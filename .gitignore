@@ -1,0 +1,25 @@
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
