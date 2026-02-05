@@ -29,14 +29,17 @@ public class AgentController {
     private final UserPolicyRepository userPolicyRepo;
     private final PolicyRepository policyRepo;
     private final NotificationService notificationService;
+    private final com.insurai.service.AgentConsultationService agentConsultationService;
 
     public AgentController(UserRepository userRepo, BookingRepository bookingRepo, UserPolicyRepository userPolicyRepo,
-            PolicyRepository policyRepo, NotificationService notificationService) {
+            PolicyRepository policyRepo, NotificationService notificationService,
+            com.insurai.service.AgentConsultationService agentConsultationService) {
         this.userRepo = userRepo;
         this.bookingRepo = bookingRepo;
         this.userPolicyRepo = userPolicyRepo;
         this.policyRepo = policyRepo;
         this.notificationService = notificationService;
+        this.agentConsultationService = agentConsultationService;
     }
 
     // Public/User: Find agents
@@ -210,5 +213,50 @@ public class AgentController {
                 "INFO");
 
         return saved;
+    }
+
+    // NEW: Get Agent's Consultations with AI-Assisted Risk Indicators
+    @GetMapping("/consultations")
+    @PreAuthorize("hasRole('AGENT')")
+    public List<com.insurai.dto.ConsultationDTO> getMyConsultations(Authentication auth) {
+        String email = auth.getName();
+        User agent = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+
+        return agentConsultationService.getAgentConsultations(agent.getId());
+    }
+
+    // NEW: Process Consultation Decision (Approve/Reject/Recommend Alternative)
+    @PostMapping("/consultations/decision")
+    @PreAuthorize("hasRole('AGENT')")
+    public ResponseEntity<String> processConsultationDecision(
+            Authentication auth,
+            @RequestBody com.insurai.dto.PolicyRecommendationRequest request) {
+
+        String email = auth.getName();
+        User agent = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+
+        agentConsultationService.processConsultationDecision(agent.getId(), request);
+
+        return ResponseEntity.ok("Consultation decision processed successfully");
+    }
+
+    // NEW: Get Agent Performance Metrics
+    @GetMapping("/performance")
+    @PreAuthorize("hasRole('AGENT')")
+    public com.insurai.dto.AgentPerformanceDTO getMyPerformance(Authentication auth) {
+        String email = auth.getName();
+        User agent = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+
+        return agentConsultationService.getAgentPerformance(agent.getId());
+    }
+
+    // NEW: Admin - Get Any Agent's Performance
+    @GetMapping("/{agentId}/performance")
+    @PreAuthorize("hasRole('ADMIN')")
+    public com.insurai.dto.AgentPerformanceDTO getAgentPerformance(@PathVariable Long agentId) {
+        return agentConsultationService.getAgentPerformance(agentId);
     }
 }

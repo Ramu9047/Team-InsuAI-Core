@@ -21,6 +21,11 @@ public class Booking {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Consultation Tracking Fields
+    private LocalDateTime respondedAt; // When agent first responded
+    private LocalDateTime completedAt; // When consultation completed
+    private Boolean slaBreached = false; // If response took > 24 hours
+
     // ----- Getters -----
 
     public Long getId() {
@@ -103,5 +108,29 @@ public class Booking {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public LocalDateTime getRespondedAt() {
+        return respondedAt;
+    }
+
+    public void setRespondedAt(LocalDateTime respondedAt) {
+        this.respondedAt = respondedAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public Boolean getSlaBreached() {
+        return slaBreached;
+    }
+
+    public void setSlaBreached(Boolean slaBreached) {
+        this.slaBreached = slaBreached;
     }
 }
