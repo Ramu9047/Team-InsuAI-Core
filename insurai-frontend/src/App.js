@@ -18,6 +18,9 @@ import MyPolicies from "./pages/MyPolicies";
 import Profile from "./pages/Profile";
 import AgentConsultations from "./pages/AgentConsultations";
 import AgentPerformance from "./pages/AgentPerformance";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AgentGovernance from "./pages/AgentGovernance";
+import ExceptionHandling from "./pages/ExceptionHandling";
 
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -68,6 +71,9 @@ export default function App() {
               {/* Admin Routes */}
               <Route element={<RequireAuth allowedRoles={['ADMIN']} />}>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/agents" element={<AgentGovernance />} />
+                <Route path="/admin/exceptions" element={<ExceptionHandling />} />
               </Route>
             </Routes>
           </Layout>

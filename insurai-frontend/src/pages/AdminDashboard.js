@@ -188,6 +188,69 @@ export default function AdminDashboard() {
                     ))}
                 </div>
 
+                {/* Admin Governance Quick Access */}
+                <div style={{ marginBottom: 40 }}>
+                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>🔐 Admin Governance</h2>
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                        <div
+                            className="card"
+                            style={{
+                                borderLeft: '4px solid #3b82f6',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onClick={() => window.location.href = '/admin/analytics'}
+                        >
+                            <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>📊</div>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Analytics Dashboard</h3>
+                            <p style={{ margin: '10px 0', opacity: 0.7, fontSize: '0.9rem' }}>
+                                Full lifecycle visibility with funnel metrics and drop-off analysis
+                            </p>
+                            <span style={{ fontSize: '0.8rem', color: '#3b82f6', textDecoration: 'underline' }}>
+                                View Analytics →
+                            </span>
+                        </div>
+
+                        <div
+                            className="card"
+                            style={{
+                                borderLeft: '4px solid #22c55e',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onClick={() => window.location.href = '/admin/agents'}
+                        >
+                            <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>👥</div>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Agent Governance</h3>
+                            <p style={{ margin: '10px 0', opacity: 0.7, fontSize: '0.9rem' }}>
+                                Manage agent assignments, regions, and compliance monitoring
+                            </p>
+                            <span style={{ fontSize: '0.8rem', color: '#22c55e', textDecoration: 'underline' }}>
+                                Manage Agents →
+                            </span>
+                        </div>
+
+                        <div
+                            className="card"
+                            style={{
+                                borderLeft: '4px solid #ef4444',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onClick={() => window.location.href = '/admin/exceptions'}
+                        >
+                            <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>⚖️</div>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Exception Handling</h3>
+                            <p style={{ margin: '10px 0', opacity: 0.7, fontSize: '0.9rem' }}>
+                                Handle escalations, disputes, and agent misconduct cases
+                            </p>
+                            <span style={{ fontSize: '0.8rem', color: '#ef4444', textDecoration: 'underline' }}>
+                                View Cases →
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Charts Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, maxWidth: "1100px", margin: "0 auto" }}>
 
