@@ -130,4 +130,171 @@ public class PolicyService {
             }
         }
     }
+
+    // NEW: AI-Powered Policy Recommendations with Eligibility
+    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendedPolicies(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        List<Policy> allPolicies = policyRepo.findAll();
+        List<com.insurai.dto.PolicyRecommendationDTO> recommendations = new java.util.ArrayList<>();
+
+        for (Policy policy : allPolicies) {
+            com.insurai.dto.PolicyRecommendationDTO dto = new com.insurai.dto.PolicyRecommendationDTO(policy);
+
+            // Calculate eligibility
+            String eligibility = checkEligibility(user, policy);
+            dto.setEligibilityStatus(eligibility);
+
+            // Calculate match score (0-100)
+            double matchScore = calculateMatchScore(user, policy);
+            dto.setMatchScore(matchScore);
+
+            // Set premium breakdown (can be adjusted based on user profile)
+            dto.setPremiumBreakdown(policy.getPremium());
+
+            // AI recommendation logic
+            if (matchScore >= 70 && "ELIGIBLE".equals(eligibility)) {
+                dto.setIsRecommended(true);
+                dto.setRecommendationReason("Best match for your profile");
+            } else if (matchScore >= 50) {
+                dto.setIsRecommended(false);
+                dto.setRecommendationReason("Good option, consult agent for details");
+            } else {
+                dto.setIsRecommended(false);
+                dto.setRecommendationReason("Consider alternatives");
+            }
+
+            recommendations.add(dto);
+        }
+
+        // Sort by match score (highest first)
+        recommendations.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
+
+        return recommendations;
+    }
+
+    // NEW: Filtered Policy Search
+    public List<com.insurai.dto.PolicyRecommendationDTO> getFilteredPolicies(
+            Long userId, com.insurai.dto.PolicyFilterRequest filter) {
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        List<Policy> allPolicies = policyRepo.findAll();
+        List<com.insurai.dto.PolicyRecommendationDTO> filtered = new java.util.ArrayList<>();
+
+        for (Policy policy : allPolicies) {
+            // Apply filters
+            if (filter.getType() != null && !filter.getType().equalsIgnoreCase(policy.getType())) {
+                continue;
+            }
+            if (filter.getCategory() != null && !filter.getCategory().equalsIgnoreCase(policy.getCategory())) {
+                continue;
+            }
+            if (filter.getMaxPremium() != null && policy.getPremium() > filter.getMaxPremium()) {
+                continue;
+            }
+            if (filter.getMinCoverage() != null && policy.getCoverage() < filter.getMinCoverage()) {
+                continue;
+            }
+            if (filter.getMaxCoverage() != null && policy.getCoverage() > filter.getMaxCoverage()) {
+                continue;
+            }
+
+            com.insurai.dto.PolicyRecommendationDTO dto = new com.insurai.dto.PolicyRecommendationDTO(policy);
+
+            // Calculate eligibility
+            String eligibility = checkEligibility(user, policy);
+            dto.setEligibilityStatus(eligibility);
+
+            // Calculate match score
+            double matchScore = calculateMatchScore(user, policy);
+            dto.setMatchScore(matchScore);
+            dto.setPremiumBreakdown(policy.getPremium());
+
+            filtered.add(dto);
+        }
+
+        // Sort by match score
+        filtered.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
+
+        return filtered;
+    }
+
+    // Helper: Check Eligibility
+    private String checkEligibility(User user, Policy policy) {
+        StringBuilder reason = new StringBuilder();
+        boolean eligible = true;
+        boolean partiallyEligible = false;
+
+        // Age check
+        if (policy.getMinAge() != null && user.getAge() != null && user.getAge() < policy.getMinAge()) {
+            eligible = false;
+            reason.append("Age below minimum requirement. ");
+        }
+        if (policy.getMaxAge() != null && user.getAge() != null && user.getAge() > policy.getMaxAge()) {
+            eligible = false;
+            reason.append("Age above maximum limit. ");
+        }
+
+        // Income check
+        if (policy.getMinIncome() != null && user.getIncome() != null && user.getIncome() < policy.getMinIncome()) {
+            partiallyEligible = true;
+            reason.append("Income below recommended level. ");
+        }
+
+        if (!eligible) {
+            return "NOT_ELIGIBLE";
+        } else if (partiallyEligible) {
+            return "PARTIALLY_ELIGIBLE";
+        } else {
+            return "ELIGIBLE";
+        }
+    }
+
+    // Helper: Calculate Match Score (0-100)
+    private double calculateMatchScore(User user, Policy policy) {
+        double score = 50.0; // Base score
+
+        // Age match
+        if (policy.getMinAge() != null && policy.getMaxAge() != null && user.getAge() != null) {
+            int midAge = (policy.getMinAge() + policy.getMaxAge()) / 2;
+            int ageDiff = Math.abs(user.getAge() - midAge);
+            score += Math.max(0, 20 - ageDiff); // Up to +20 for perfect age match
+        }
+
+        // Income match
+        if (policy.getMinIncome() != null && user.getIncome() != null) {
+            if (user.getIncome() >= policy.getMinIncome() * 1.5) {
+                score += 15; // Good income buffer
+            } else if (user.getIncome() >= policy.getMinIncome()) {
+                score += 10; // Meets minimum
+            }
+        }
+
+        // Premium affordability (premium should be < 10% of monthly income)
+        if (user.getIncome() != null && policy.getPremium() != null) {
+            double monthlyIncome = user.getIncome() / 12;
+            double affordabilityRatio = policy.getPremium() / monthlyIncome;
+            if (affordabilityRatio < 0.05) {
+                score += 15; // Very affordable
+            } else if (affordabilityRatio < 0.10) {
+                score += 10; // Affordable
+            } else if (affordabilityRatio > 0.20) {
+                score -= 10; // Too expensive
+            }
+        }
+
+        // Claim settlement ratio
+        if (policy.getClaimSettlementRatio() != null) {
+            if (policy.getClaimSettlementRatio() >= 95) {
+                score += 10;
+            } else if (policy.getClaimSettlementRatio() >= 90) {
+                score += 5;
+            }
+        }
+
+        return Math.min(100, Math.max(0, score));
+    }
 }

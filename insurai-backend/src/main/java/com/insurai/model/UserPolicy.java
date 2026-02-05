@@ -19,9 +19,17 @@ public class UserPolicy {
 
     private LocalDate startDate;
     private LocalDate endDate;
-    private String status; // ACTIVE, EXPIRED, QUOTED, PURCHASED
+    private String status; // QUOTED, PENDING_APPROVAL, APPROVED, REJECTED, PAYMENT_PENDING, ACTIVE,
+                           // EXPIRED
     private String pdfUrl; // Specific signed doc
     private String recommendationNote;
+
+    // Workflow Enhancement Fields
+    private String agentNotes; // Agent's consultation notes
+    private String rejectionReason; // Why policy was rejected
+    @ElementCollection
+    private java.util.List<Long> alternativePolicyIds = new java.util.ArrayList<>(); // Suggested alternatives
+    private String workflowStatus; // CONSULTATION_PENDING, CONSULTATION_COMPLETED, APPROVED, REJECTED
 
     public String getRecommendationNote() {
         return recommendationNote;
@@ -29,6 +37,38 @@ public class UserPolicy {
 
     public void setRecommendationNote(String recommendationNote) {
         this.recommendationNote = recommendationNote;
+    }
+
+    public String getAgentNotes() {
+        return agentNotes;
+    }
+
+    public void setAgentNotes(String agentNotes) {
+        this.agentNotes = agentNotes;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public java.util.List<Long> getAlternativePolicyIds() {
+        return alternativePolicyIds;
+    }
+
+    public void setAlternativePolicyIds(java.util.List<Long> alternativePolicyIds) {
+        this.alternativePolicyIds = alternativePolicyIds;
+    }
+
+    public String getWorkflowStatus() {
+        return workflowStatus;
+    }
+
+    public void setWorkflowStatus(String workflowStatus) {
+        this.workflowStatus = workflowStatus;
     }
 
     public String getPdfUrl() {

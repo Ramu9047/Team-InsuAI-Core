@@ -76,4 +76,18 @@ public class PolicyController {
             throw new RuntimeException("Failed to upload file", e);
         }
     }
+
+    // NEW: Get AI-Powered Recommendations
+    @GetMapping("/recommendations/{userId}")
+    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendations(@PathVariable Long userId) {
+        return policyService.getRecommendedPolicies(userId);
+    }
+
+    // NEW: Get Filtered Policies
+    @PostMapping("/filter/{userId}")
+    public List<com.insurai.dto.PolicyRecommendationDTO> filterPolicies(
+            @PathVariable Long userId,
+            @RequestBody com.insurai.dto.PolicyFilterRequest filter) {
+        return policyService.getFilteredPolicies(userId, filter);
+    }
 }

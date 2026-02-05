@@ -29,6 +29,12 @@ public class Policy {
   @jakarta.persistence.ElementCollection
   private java.util.List<String> warnings = new java.util.ArrayList<>();
 
+  // Eligibility Criteria
+  private Integer minAge; // Minimum age for eligibility
+  private Integer maxAge; // Maximum age for eligibility
+  private Double minIncome; // Minimum annual income required
+  private Integer tenure; // Policy tenure in years
+
   public Double getClaimSettlementRatio() {
     return claimSettlementRatio;
   }
@@ -115,5 +121,37 @@ public class Policy {
 
   public void setCoverage(Double coverage) {
     this.coverage = coverage;
+  }
+
+  public Integer getMinAge() {
+    return minAge;
+  }
+
+  public void setMinAge(Integer minAge) {
+    this.minAge = minAge;
+  }
+
+  public Integer getMaxAge() {
+    return maxAge;
+  }
+
+  public void setMaxAge(Integer maxAge) {
+    this.maxAge = maxAge;
+  }
+
+  public Double getMinIncome() {
+    return minIncome;
+  }
+
+  public void setMinIncome(Double minIncome) {
+    this.minIncome = minIncome;
+  }
+
+  public Integer getTenure() {
+    return tenure;
+  }
+
+  public void setTenure(Integer tenure) {
+    this.tenure = tenure;
   }
 }
