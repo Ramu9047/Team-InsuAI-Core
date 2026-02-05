@@ -33,6 +33,16 @@ public class User {
     private String specialization; // Health, Life, Motor
     private String bio; // "Top agent with 10 years experience..."
 
+    // Agent Governance Fields
+    @ElementCollection
+    private java.util.List<String> assignedRegions = new java.util.ArrayList<>(); // Regions agent can serve
+
+    @ElementCollection
+    private java.util.List<String> assignedPolicyTypes = new java.util.ArrayList<>(); // Policy types agent can handle
+
+    private String deactivationReason; // Reason for deactivation (if isActive = false)
+    private java.time.LocalDateTime deactivatedAt; // When agent was deactivated
+
     public Double getRating() {
         return rating;
     }
@@ -167,5 +177,37 @@ public class User {
 
     public void setHealthInfo(String healthInfo) {
         this.healthInfo = healthInfo;
+    }
+
+    public java.util.List<String> getAssignedRegions() {
+        return assignedRegions;
+    }
+
+    public void setAssignedRegions(java.util.List<String> assignedRegions) {
+        this.assignedRegions = assignedRegions;
+    }
+
+    public java.util.List<String> getAssignedPolicyTypes() {
+        return assignedPolicyTypes;
+    }
+
+    public void setAssignedPolicyTypes(java.util.List<String> assignedPolicyTypes) {
+        this.assignedPolicyTypes = assignedPolicyTypes;
+    }
+
+    public String getDeactivationReason() {
+        return deactivationReason;
+    }
+
+    public void setDeactivationReason(String deactivationReason) {
+        this.deactivationReason = deactivationReason;
+    }
+
+    public java.time.LocalDateTime getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(java.time.LocalDateTime deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
     }
 }
