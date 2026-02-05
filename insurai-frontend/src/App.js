@@ -11,10 +11,13 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ScheduleAppointment from "./pages/ScheduleAppointment";
 import AgentRequests from "./pages/AgentRequests";
 import Plans from "./pages/Plans";
+import PlansEnhanced from "./pages/PlansEnhanced";
 import MyClaims from "./pages/MyClaims";
 import MyBookings from "./pages/MyBookings";
 import MyPolicies from "./pages/MyPolicies";
 import Profile from "./pages/Profile";
+import AgentConsultations from "./pages/AgentConsultations";
+import AgentPerformance from "./pages/AgentPerformance";
 
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -42,6 +45,7 @@ export default function App() {
               <Route element={<RequireAuth allowedRoles={['USER', 'AGENT', 'ADMIN']} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/plans" element={<Plans />} />
+                <Route path="/plans-enhanced" element={<PlansEnhanced />} />
               </Route>
 
               {/* User Routes */}
@@ -56,8 +60,9 @@ export default function App() {
 
               {/* Agent Routes */}
               <Route element={<RequireAuth allowedRoles={['AGENT', 'ADMIN']} />}>
-
                 <Route path="/agent/requests" element={<AgentRequests />} />
+                <Route path="/agent/consultations" element={<AgentConsultations />} />
+                <Route path="/agent/performance" element={<AgentPerformance />} />
               </Route>
 
               {/* Admin Routes */}

@@ -223,9 +223,16 @@ export default function Navbar() {
 
                                     {/* Agent vs User Links */}
                                     {user.role === 'AGENT' ? (
-                                        <NavLink to="/agent/requests" className="nav-link" style={{ display: "block" }}>Agent Requests</NavLink>
+                                        <>
+                                            <NavLink to="/agent/consultations" className="nav-link" style={{ display: "block" }}>My Consultations</NavLink>
+                                            <NavLink to="/agent/performance" className="nav-link" style={{ display: "block" }}>My Performance</NavLink>
+                                            <NavLink to="/agent/requests" className="nav-link" style={{ display: "block" }}>Agent Requests</NavLink>
+                                        </>
                                     ) : user.role === 'USER' ? (
-                                        <NavLink to="/my-bookings" className="nav-link" style={{ display: "block" }}>My Bookings</NavLink>
+                                        <>
+                                            <NavLink to="/my-bookings" className="nav-link" style={{ display: "block" }}>My Bookings</NavLink>
+                                            <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block" }}>AI Recommendations</NavLink>
+                                        </>
                                     ) : null}
 
                                     <NavLink to="/profile" className="nav-link" style={{ display: "block" }}>Profile</NavLink>
