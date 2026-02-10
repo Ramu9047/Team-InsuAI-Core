@@ -21,7 +21,10 @@ export default function AgentRequests() {
   useEffect(() => {
     if (user?.id) {
       api.get("/agents/appointments").then(res => {
-        setRequests(res.data.filter(b => b.status === "PENDING" || b.status === "APPROVED"));
+        setRequests(res.data.filter(b =>
+          b.status === "PENDING" ||
+          (b.status === "APPROVED" && !b.policy) // Only show Approved if it's a Meeting (no policy attached)
+        ));
       });
       api.get("/claims").then(res => setClaims(res.data)); // Agents view all claims
       api.get("/policies").then(res => setPolicies(res.data));
@@ -246,20 +249,67 @@ export default function AgentRequests() {
                   </div>
                 )}
 
-                {b.status === "APPROVED" && !b.policy && (
+                {b.status === "APPROVED" && (
                   <div style={{ marginTop: 15 }}>
-                    {!viewedProfiles.has(b.user.id) ? (
-                      <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
-                        ⚠️ Analyze profile before recommending
+                    {b.meetingLink && (
+                      <div style={{ marginBottom: 15 }}>
+                        <a
+                          href={b.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="primary-btn"
+                          style={{
+                            display: 'block',
+                            textAlign: 'center',
+                            background: '#22c55e',
+                            borderColor: '#22c55e',
+                            textDecoration: 'none',
+                            marginBottom: 10
+                          }}
+                        >
+                          🎥 Join Google Meet
+                        </a>
+                        <a
+                          href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Consultation with " + b.user.name)}&details=${encodeURIComponent("Join Link: " + b.meetingLink)}&dates=${new Date(b.startTime).toISOString().replace(/-|:|\.\d\d\d/g, "")}/${new Date(b.endTime).toISOString().replace(/-|:|\.\d\d\d/g, "")}&location=${encodeURIComponent("Google Meet")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'block',
+                            textAlign: 'center',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted)',
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          📅 Add to Google Calendar
+                        </a>
                       </div>
-                    ) : null}
+                    )}
+
+                    {!b.policy && (
+                      <>
+                        {!viewedProfiles.has(b.user.id) ? (
+                          <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
+                            ⚠️ Analyze profile before recommending
+                          </div>
+                        ) : null}
+                        <button
+                          className="primary-btn"
+                          style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
+                          onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
+                          disabled={!viewedProfiles.has(b.user.id)}
+                        >
+                          ✨ Recommend Policy
+                        </button>
+                      </>
+                    )}
+
                     <button
-                      className="primary-btn"
-                      style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
-                      onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
-                      disabled={!viewedProfiles.has(b.user.id)}
+                      className="secondary-btn"
+                      style={{ width: "100%", marginTop: 10, borderColor: "#3b82f6", color: "#3b82f6" }}
+                      onClick={() => updateStatus(b.id, 'COMPLETED')}
                     >
-                      ✨ Recommend Policy
+                      ✅ Mark as Completed
                     </button>
                   </div>
                 )}

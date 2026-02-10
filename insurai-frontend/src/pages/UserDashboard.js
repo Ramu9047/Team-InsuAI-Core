@@ -75,7 +75,9 @@ export default function UserDashboard() {
       const upcomingAppointments = allBookings.filter(b => {
         const bookingDate = new Date(b.startTime);
         const now = new Date();
-        const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status);
+        // Exclude bookings that are linked to an active policy (already issued)
+        const isPolicyIssued = activePolicies.some(p => p.bookingId === b.id);
+        const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status) && !isPolicyIssued;
         return bookingDate > now && isActive;
       });
 
@@ -263,12 +265,24 @@ export default function UserDashboard() {
   };
 
   const getAppointmentStage = () => {
-    if (appointments.length === 0) return 0;
+    if (appointments.length === 0) {
+      // If there are no upcoming appointments, check past bookings or active policies
+      // If user has an active policy, show stage 4
+      if (policies.length > 0) return 4;
+      return 0;
+    }
     const appt = appointments[0];
 
+    // If an appointment exists:
     if (appt.status === 'PENDING') return 1;
-    if (appt.status === 'APPROVED' || appt.status === 'CONFIRMED') return 2;
-    if (appt.status === 'COMPLETED') return 3;
+    if (appt.status === 'CONFIRMED') return 2;
+    if (appt.status === 'APPROVED') {
+      // Check if a policy has been issued linked to this appointment or generally
+      if (policies.length > 0) return 4;
+      return 3;
+    }
+    if (appt.status === 'COMPLETED') return 4;
+
     return 0;
   };
 
