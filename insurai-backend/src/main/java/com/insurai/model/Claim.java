@@ -21,8 +21,6 @@ public class Claim {
 
     // Detailed Timeline
     private LocalDateTime docsUploadedAt;
-    private LocalDateTime reviewStartedAt;
-    private LocalDateTime completedAt;
 
     // Next Best Action (AI suggestion)
     private String nextAction;

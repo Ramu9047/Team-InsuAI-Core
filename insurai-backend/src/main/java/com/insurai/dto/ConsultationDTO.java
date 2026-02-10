@@ -2,33 +2,39 @@ package com.insurai.dto;
 
 import java.time.LocalDateTime;
 
+/**
+ * Consultation DTO for agent consultation details
+ */
 public class ConsultationDTO {
     private Long bookingId;
     private Long userId;
     private String userName;
     private String userEmail;
+    private Long policyId;
+    private String policyName;
+    private String status;
+    private LocalDateTime scheduledTime;
+    private LocalDateTime completedAt;
+    private String agentNotes;
+    private String recommendation;
+    private String outcome;
+    private Boolean isRecommended;
+
+    // Additional fields for agent consultation
+    private String appointmentReason;
     private Integer userAge;
     private Double userIncome;
     private Integer userDependents;
     private String userHealthInfo;
-
-    private Long policyId;
-    private String policyName;
     private String policyType;
     private Double policyPremium;
     private Double policyCoverage;
-
-    private LocalDateTime appointmentTime;
-    private String appointmentReason;
-    private String status;
-
-    // AI-Assisted Risk Indicators
     private Double matchScore;
     private String eligibilityStatus;
-    private String riskLevel; // LOW, MEDIUM, HIGH
-    private String riskReason;
+    private Double affordabilityRatio;
     private Boolean isAffordable;
-    private Double affordabilityRatio; // Premium as % of monthly income
+    private String riskLevel;
+    private String riskReason;
 
     // Getters and Setters
     public Long getBookingId() {
@@ -63,6 +69,95 @@ public class ConsultationDTO {
         this.userEmail = userEmail;
     }
 
+    public Long getPolicyId() {
+        return policyId;
+    }
+
+    public void setPolicyId(Long policyId) {
+        this.policyId = policyId;
+    }
+
+    public String getPolicyName() {
+        return policyName;
+    }
+
+    public void setPolicyName(String policyName) {
+        this.policyName = policyName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getScheduledTime() {
+        return scheduledTime;
+    }
+
+    public void setScheduledTime(LocalDateTime scheduledTime) {
+        this.scheduledTime = scheduledTime;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public String getAgentNotes() {
+        return agentNotes;
+    }
+
+    public void setAgentNotes(String agentNotes) {
+        this.agentNotes = agentNotes;
+    }
+
+    public String getRecommendation() {
+        return recommendation;
+    }
+
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation;
+    }
+
+    public String getOutcome() {
+        return outcome;
+    }
+
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
+    }
+
+    public Boolean getIsRecommended() {
+        return isRecommended;
+    }
+
+    public void setIsRecommended(Boolean isRecommended) {
+        this.isRecommended = isRecommended;
+    }
+
+    // Alias methods for compatibility
+    public LocalDateTime getAppointmentTime() {
+        return scheduledTime;
+    }
+
+    public void setAppointmentTime(LocalDateTime appointmentTime) {
+        this.scheduledTime = appointmentTime;
+    }
+
+    public String getAppointmentReason() {
+        return appointmentReason;
+    }
+
+    public void setAppointmentReason(String appointmentReason) {
+        this.appointmentReason = appointmentReason;
+    }
+
     public Integer getUserAge() {
         return userAge;
     }
@@ -95,22 +190,6 @@ public class ConsultationDTO {
         this.userHealthInfo = userHealthInfo;
     }
 
-    public Long getPolicyId() {
-        return policyId;
-    }
-
-    public void setPolicyId(Long policyId) {
-        this.policyId = policyId;
-    }
-
-    public String getPolicyName() {
-        return policyName;
-    }
-
-    public void setPolicyName(String policyName) {
-        this.policyName = policyName;
-    }
-
     public String getPolicyType() {
         return policyType;
     }
@@ -135,30 +214,6 @@ public class ConsultationDTO {
         this.policyCoverage = policyCoverage;
     }
 
-    public LocalDateTime getAppointmentTime() {
-        return appointmentTime;
-    }
-
-    public void setAppointmentTime(LocalDateTime appointmentTime) {
-        this.appointmentTime = appointmentTime;
-    }
-
-    public String getAppointmentReason() {
-        return appointmentReason;
-    }
-
-    public void setAppointmentReason(String appointmentReason) {
-        this.appointmentReason = appointmentReason;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public Double getMatchScore() {
         return matchScore;
     }
@@ -175,6 +230,22 @@ public class ConsultationDTO {
         this.eligibilityStatus = eligibilityStatus;
     }
 
+    public Double getAffordabilityRatio() {
+        return affordabilityRatio;
+    }
+
+    public void setAffordabilityRatio(Double affordabilityRatio) {
+        this.affordabilityRatio = affordabilityRatio;
+    }
+
+    public Boolean getIsAffordable() {
+        return isAffordable;
+    }
+
+    public void setIsAffordable(Boolean isAffordable) {
+        this.isAffordable = isAffordable;
+    }
+
     public String getRiskLevel() {
         return riskLevel;
     }
@@ -189,21 +260,5 @@ public class ConsultationDTO {
 
     public void setRiskReason(String riskReason) {
         this.riskReason = riskReason;
-    }
-
-    public Boolean getIsAffordable() {
-        return isAffordable;
-    }
-
-    public void setIsAffordable(Boolean isAffordable) {
-        this.isAffordable = isAffordable;
-    }
-
-    public Double getAffordabilityRatio() {
-        return affordabilityRatio;
-    }
-
-    public void setAffordabilityRatio(Double affordabilityRatio) {
-        this.affordabilityRatio = affordabilityRatio;
     }
 }

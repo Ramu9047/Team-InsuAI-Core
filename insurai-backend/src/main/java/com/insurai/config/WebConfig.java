@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(
             @org.springframework.lang.NonNull org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
-        registry.addInterceptor(rateLimitInterceptor)
+        registry.addInterceptor(java.util.Objects.requireNonNull(rateLimitInterceptor))
                 .addPathPatterns("/api/**");
     }
 

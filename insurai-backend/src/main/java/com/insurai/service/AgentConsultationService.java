@@ -49,7 +49,7 @@ public class AgentConsultationService {
      * Get all consultations for an agent with AI-assisted risk indicators
      */
     public List<ConsultationDTO> getAgentConsultations(Long agentId) {
-        userRepo.findById(agentId)
+        userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
 
         List<Booking> bookings = bookingRepo.findByAgentId(agentId);
@@ -160,10 +160,10 @@ public class AgentConsultationService {
      * Process agent's consultation decision
      */
     public void processConsultationDecision(Long agentId, PolicyRecommendationRequest request) {
-        Booking booking = bookingRepo.findById(request.getBookingId())
+        Booking booking = bookingRepo.findById(java.util.Objects.requireNonNull(request.getBookingId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
 
-        User agent = userRepo.findById(agentId)
+        User agent = userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
 
         // Mark as responded (for SLA tracking)
@@ -241,7 +241,7 @@ public class AgentConsultationService {
 
             // Create UserPolicy entries for each alternative with QUOTED status
             for (PolicyRecommendationRequest.AlternativePolicyDTO alt : request.getAlternatives()) {
-                Policy altPolicy = policyRepo.findById(alt.getPolicyId())
+                Policy altPolicy = policyRepo.findById(java.util.Objects.requireNonNull(alt.getPolicyId()))
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                 "Alternative policy not found"));
 
@@ -292,7 +292,7 @@ public class AgentConsultationService {
      * Get agent performance metrics
      */
     public AgentPerformanceDTO getAgentPerformance(Long agentId) {
-        User agent = userRepo.findById(agentId)
+        User agent = userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
 
         List<Booking> allBookings = bookingRepo.findByAgentId(agentId);
@@ -375,6 +375,40 @@ public class AgentConsultationService {
 
         // Last active time
         performance.setLastActiveTime(agent.getAvailable() ? LocalDateTime.now() : null);
+
+        // --- Calculate Rank Percentile ---
+        try {
+            List<User> allAgents = userRepo.findByRole("AGENT");
+            int totalAgents = allAgents.size();
+
+            if (totalAgents <= 1) {
+                performance.setRankPercentile(100); // Only one agent, top rank
+            } else {
+                int myCompleted = performance.getCompletedConsultations();
+                int betterAgents = 0;
+
+                for (User a : allAgents) {
+                    if (!a.getId().equals(agentId)) {
+                        // Count other agent's completed bookings
+                        // Note: Using list size is inefficient for large datasets but acceptable for
+                        // MVP
+                        List<Booking> theirBookings = bookingRepo.findByAgentIdAndStatus(a.getId(), "COMPLETED");
+                        int theirCompleted = theirBookings != null ? theirBookings.size() : 0;
+
+                        if (theirCompleted > myCompleted) {
+                            betterAgents++;
+                        }
+                    }
+                }
+
+                // Percentile
+                double percentile = 100.0 * (1.0 - ((double) betterAgents / totalAgents));
+                performance.setRankPercentile((int) percentile);
+            }
+        } catch (Exception e) {
+            // Fallback if calculation fails
+            performance.setRankPercentile(50);
+        }
 
         return performance;
     }

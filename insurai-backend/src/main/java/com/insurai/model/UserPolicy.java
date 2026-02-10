@@ -31,6 +31,11 @@ public class UserPolicy {
     private java.util.List<Long> alternativePolicyIds = new java.util.ArrayList<>(); // Suggested alternatives
     private String workflowStatus; // CONSULTATION_PENDING, CONSULTATION_COMPLETED, APPROVED, REJECTED
 
+    private java.time.LocalDateTime purchasedAt;
+    private Double premium;
+
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+
     public String getRecommendationNote() {
         return recommendationNote;
     }
@@ -133,5 +138,29 @@ public class UserPolicy {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public java.time.LocalDateTime getPurchasedAt() {
+        return purchasedAt;
+    }
+
+    public void setPurchasedAt(java.time.LocalDateTime purchasedAt) {
+        this.purchasedAt = purchasedAt;
+    }
+
+    public Double getPremium() {
+        return premium;
+    }
+
+    public void setPremium(Double premium) {
+        this.premium = premium;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -37,9 +37,9 @@ public class PolicyService {
 
     public UserPolicy buyPolicy(@org.springframework.lang.NonNull Long policyId,
             @org.springframework.lang.NonNull Long userId) {
-        Policy policy = policyRepo.findById(policyId)
+        Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
-        User user = userRepo.findById(userId)
+        User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (!"USER".equals(user.getRole())) {
@@ -58,9 +58,9 @@ public class PolicyService {
 
     public UserPolicy quotePolicy(@org.springframework.lang.NonNull Long policyId,
             @org.springframework.lang.NonNull Long userId, String note) {
-        Policy policy = policyRepo.findById(policyId)
+        Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
-        User user = userRepo.findById(userId)
+        User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (!"USER".equals(user.getRole())) {
@@ -77,7 +77,7 @@ public class PolicyService {
     }
 
     public UserPolicy purchasePolicy(@org.springframework.lang.NonNull Long userPolicyId) {
-        UserPolicy up = userPolicyRepo.findById(userPolicyId)
+        UserPolicy up = userPolicyRepo.findById(java.util.Objects.requireNonNull(userPolicyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User Policy not found"));
 
         // Simulate Payment Success
@@ -113,8 +113,12 @@ public class PolicyService {
         return userPolicyRepo.findByUserId(userId);
     }
 
+    public List<UserPolicy> getAllUserPolicies() {
+        return userPolicyRepo.findAll();
+    }
+
     public UserPolicy uploadDocument(@org.springframework.lang.NonNull Long userPolicyId, String url) {
-        UserPolicy up = userPolicyRepo.findById(userPolicyId)
+        UserPolicy up = userPolicyRepo.findById(java.util.Objects.requireNonNull(userPolicyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
         up.setPdfUrl(url);
         return userPolicyRepo.save(up);
@@ -133,7 +137,7 @@ public class PolicyService {
 
     // NEW: AI-Powered Policy Recommendations with Eligibility
     public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendedPolicies(Long userId) {
-        User user = userRepo.findById(userId)
+        User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Policy> allPolicies = policyRepo.findAll();
@@ -178,7 +182,7 @@ public class PolicyService {
     public List<com.insurai.dto.PolicyRecommendationDTO> getFilteredPolicies(
             Long userId, com.insurai.dto.PolicyFilterRequest filter) {
 
-        User user = userRepo.findById(userId)
+        User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Policy> allPolicies = policyRepo.findAll();

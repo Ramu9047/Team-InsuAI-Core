@@ -1,48 +1,52 @@
 package com.insurai.dto;
 
+import java.util.List;
+
+/**
+ * Policy Filter Request DTO
+ */
 public class PolicyFilterRequest {
-    private Integer minAge;
-    private Integer maxAge;
-    private Double minIncome;
-    private Double maxIncome;
+    private String type;
+    private String category;
+    private Double minPremium;
+    private Double maxPremium;
     private Double minCoverage;
     private Double maxCoverage;
-    private Double maxPremium;
-    private String type; // Health, Life, Motor, etc.
-    private String category;
-    private Integer tenure; // Years
+    private List<String> features;
+    private String sortBy;
+    private String sortOrder;
 
     // Getters and Setters
-    public Integer getMinAge() {
-        return minAge;
+    public String getType() {
+        return type;
     }
 
-    public void setMinAge(Integer minAge) {
-        this.minAge = minAge;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public Integer getMaxAge() {
-        return maxAge;
+    public String getCategory() {
+        return category;
     }
 
-    public void setMaxAge(Integer maxAge) {
-        this.maxAge = maxAge;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
-    public Double getMinIncome() {
-        return minIncome;
+    public Double getMinPremium() {
+        return minPremium;
     }
 
-    public void setMinIncome(Double minIncome) {
-        this.minIncome = minIncome;
+    public void setMinPremium(Double minPremium) {
+        this.minPremium = minPremium;
     }
 
-    public Double getMaxIncome() {
-        return maxIncome;
+    public Double getMaxPremium() {
+        return maxPremium;
     }
 
-    public void setMaxIncome(Double maxIncome) {
-        this.maxIncome = maxIncome;
+    public void setMaxPremium(Double maxPremium) {
+        this.maxPremium = maxPremium;
     }
 
     public Double getMinCoverage() {
@@ -61,35 +65,27 @@ public class PolicyFilterRequest {
         this.maxCoverage = maxCoverage;
     }
 
-    public Double getMaxPremium() {
-        return maxPremium;
+    public List<String> getFeatures() {
+        return features;
     }
 
-    public void setMaxPremium(Double maxPremium) {
-        this.maxPremium = maxPremium;
+    public void setFeatures(List<String> features) {
+        this.features = features;
     }
 
-    public String getType() {
-        return type;
+    public String getSortBy() {
+        return sortBy;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setSortBy(String sortBy) {
+        this.sortBy = sortBy;
     }
 
-    public String getCategory() {
-        return category;
+    public String getSortOrder() {
+        return sortOrder;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Integer getTenure() {
-        return tenure;
-    }
-
-    public void setTenure(Integer tenure) {
-        this.tenure = tenure;
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

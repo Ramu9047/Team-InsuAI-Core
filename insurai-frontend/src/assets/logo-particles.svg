@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <style>
+      .thick-stroke { fill: none; stroke: url(#brandGradient); stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; }
+      .thin-stroke { fill: none; stroke: url(#brandGradient); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .node { fill: #f8fafc; }
+    </style>
+  </defs>
+
+  <!-- Cyber Heart: Represents Care, Life, Health, and Vitality -->
+  
+  <!-- Left Lobe -->
+  <path d="M400 280 
+           C400 120, 150 120, 150 350 
+           C150 550, 350 680, 400 750" 
+        class="thick-stroke" />
+        
+  <!-- Right Lobe -->
+  <path d="M400 280 
+           C400 120, 650 120, 650 350 
+           C650 550, 450 680, 400 750" 
+        class="thick-stroke" />
+
+  <!-- Digital Pulse Line (The 'AI' Heartbeat) -->
+  <polyline points="180 400, 280 400, 330 250, 380 550, 430 300, 480 450, 620 400" 
+            class="thick-stroke" />
+
+  <!-- Network Nodes on the Pulse -->
+  <circle cx="180" cy="400" r="12" class="node" />
+  <circle cx="280" cy="400" r="12" class="node" />
+  <circle cx="330" cy="250" r="14" class="node" /> <!-- High Peak -->
+  <circle cx="380" cy="550" r="14" class="node" /> <!-- Low Trough -->
+  <circle cx="430" cy="300" r="12" class="node" />
+  <circle cx="480" cy="450" r="12" class="node" />
+  <circle cx="620" cy="400" r="12" class="node" />
+
+  <!-- Circuit Connections to Border -->
+  <line x1="330" y1="250" x2="330" y2="180" class="thin-stroke" stroke-dasharray="20 10" />
+  <circle cx="330" cy="180" r="8" class="node" />
+
+  <line x1="480" y1="450" x2="520" y2="600" class="thin-stroke" stroke-dasharray="20 10" />
+  <circle cx="520" cy="600" r="8" class="node" />
+
+</svg>

@@ -16,6 +16,12 @@ public class UserController {
         this.userRepo = userRepo;
     }
 
+    @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public java.util.List<User> getAllUsers() {
+        return userRepo.findAll();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProfile(@PathVariable Long id, @RequestBody User updates) {
         return userRepo.findById(java.util.Objects.requireNonNull(id)).map(user -> {

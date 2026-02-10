@@ -30,4 +30,13 @@ public class AIRiskAssessmentController {
         RiskAssessmentDTO assessment = aiRiskAssessmentService.assessRisk(userId, policyId);
         return ResponseEntity.ok(assessment);
     }
+
+    /**
+     * Get general risk profile for a user
+     */
+    @GetMapping("/user-risk-profile/{userId}")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    public ResponseEntity<com.insurai.dto.UserRiskProfileDTO> getUserRiskProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(aiRiskAssessmentService.getUserRiskProfile(userId));
+    }
 }

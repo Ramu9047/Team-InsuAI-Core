@@ -1,6 +1,5 @@
 import { useState } from "react";
 import api from "../services/api";
-import { motion, AnimatePresence } from "framer-motion";
 import Card from "../components/Card";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
@@ -14,41 +13,62 @@ export default function Login() {
   const { notify } = useNotification();
   const navigate = useNavigate();
 
-  const submit = async () => {
-    const e = {};
-    if (!form.email) e.email = "Email required";
-    if (!form.password) e.password = "Password required";
-    setErrors(e);
-    if (Object.keys(e).length) return;
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    const errors = {};
+    if (!form.email) errors.email = "Email is required";
+    if (!form.password) errors.password = "Password is required";
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
 
     try {
       const res = await api.post("/auth/login", form);
-      const data = res.data; // { user, token }
-      const user = data.user;
+      const data = res.data;
 
-      login(data); // Pass { user, token } to context
-      notify("Welcome " + user.name, "success");
+      login(data);
+      notify(`Welcome back, ${data.user.name}!`, "success");
 
-      if (user.role === 'ADMIN') navigate('/admin');
+      if (data.user.role === 'ADMIN') navigate('/admin');
       else navigate('/dashboard');
 
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data || "Invalid credentials";
+      console.error("Login Error:", err);
+
+      // Extract error message safely
+      let msg = "Invalid credentials";
+      if (err.response) {
+        if (typeof err.response.data === 'string') {
+          msg = err.response.data;
+        } else if (err.response.data?.message) {
+          msg = err.response.data.message;
+        }
+      }
+
       notify(msg, "error");
+      setErrors({ form: msg });
     }
   };
 
   return (
     <Card title="Login">
-      <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
+      <form onSubmit={handleLogin}>
         <div className="form-group">
           <label className="form-label">Email Address</label>
           <input
             className="form-input"
             autoFocus
+            type="email"
+            value={form.email}
             placeholder="john@example.com"
-            onChange={e => setForm({ ...form, email: e.target.value })}
+            onChange={e => {
+              setForm({ ...form, email: e.target.value });
+              if (errors.email) setErrors({ ...errors, email: null });
+            }}
           />
           {errors.email && <p className="error-msg">{errors.email}</p>}
         </div>
@@ -59,8 +79,12 @@ export default function Login() {
             <input
               className="form-input"
               type={showPassword ? "text" : "password"}
+              value={form.password}
               placeholder="••••••••"
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, password: e.target.value });
+                if (errors.password) setErrors({ ...errors, password: null });
+              }}
               style={{ paddingRight: 50, marginBottom: 0 }}
             />
             <button
@@ -84,48 +108,40 @@ export default function Login() {
                 width: 32,
                 height: 32
               }}
-              onMouseOver={e => {
-                e.currentTarget.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
-                e.currentTarget.style.color = "var(--primary)";
-              }}
-              onMouseOut={e => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "var(--text-muted)";
-              }}
             >
-              <AnimatePresence mode="wait" initial={false}>
-                {showPassword ? (
-                  <motion.svg
-                    key="hide"
-                    initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, rotate: 20 }}
-                    transition={{ duration: 0.2 }}
-                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  >
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </motion.svg>
-                ) : (
-                  <motion.svg
-                    key="show"
-                    initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, rotate: -20 }}
-                    transition={{ duration: 0.2 }}
-                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </motion.svg>
-                )}
-              </AnimatePresence>
+              {showPassword ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              )}
             </button>
           </div>
           {errors.password && <p className="error-msg">{errors.password}</p>}
         </div>
 
+        {errors.form && (
+          <div style={{
+            padding: '10px',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: '8px',
+            color: '#ef4444',
+            fontSize: '0.9rem',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            {errors.form}
+          </div>
+        )}
+
         <button type="submit" className="primary-btn" style={{ width: "100%", marginBottom: 20 }}>Sign In</button>
+
 
         <div style={{ textAlign: "center", fontSize: "0.9rem" }}>
           <Link to="/forgot-password" style={{ color: "var(--primary)" }}>Forgot Password?</Link>

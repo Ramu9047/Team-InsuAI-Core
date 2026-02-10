@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
+import { useToast } from './ToastSystem';
 
 export default function PolicyTimeline({ userPolicy, booking }) {
+    const toast = useToast();
+
     const getStepStatus = (stepIndex) => {
         const workflowStatus = userPolicy?.workflowStatus;
         const policyStatus = userPolicy?.status;
@@ -128,6 +131,7 @@ export default function PolicyTimeline({ userPolicy, booking }) {
                             status={status}
                             index={index}
                             isLast={index === steps.length - 1}
+                            toast={toast}
                         />
                     );
                 })}
@@ -136,7 +140,7 @@ export default function PolicyTimeline({ userPolicy, booking }) {
     );
 }
 
-function TimelineStep({ step, status, index, isLast }) {
+function TimelineStep({ step, status, index, isLast, toast }) {
     const getStatusColor = () => {
         switch (status) {
             case 'completed': return '#22c55e';
@@ -289,7 +293,7 @@ function TimelineStep({ step, status, index, isLast }) {
                     <button
                         className="primary-btn"
                         style={{ marginTop: 15, width: '100%' }}
-                        onClick={() => alert('Payment integration coming soon!')}
+                        onClick={() => toast.info('Payment integration coming soon! 💳', 'Feature In Progress')}
                     >
                         Proceed to Payment
                     </button>

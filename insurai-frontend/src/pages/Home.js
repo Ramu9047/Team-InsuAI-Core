@@ -48,7 +48,8 @@ export default function Home() {
         alignItems: "center",
         background: "radial-gradient(circle at center, #111827 0%, #000000 100%)",
         position: "relative",
-        overflow: "hidden"
+        overflow: "hidden",
+        paddingTop: "80px" // Account for fixed navbar
       }}>
 
         {/* Layer 1: Particle Background */}

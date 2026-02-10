@@ -1,7 +1,6 @@
 package com.insurai.dto;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * AI Risk Assessment DTO

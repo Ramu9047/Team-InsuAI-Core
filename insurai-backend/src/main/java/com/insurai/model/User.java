@@ -27,6 +27,7 @@ public class User {
     private Double income;
     private Integer dependents;
     private String healthInfo;
+    private String address;
 
     // Agent Specific Fields
     private Double rating = 4.5; // Default 4.5 stars
@@ -177,6 +178,14 @@ public class User {
 
     public void setHealthInfo(String healthInfo) {
         this.healthInfo = healthInfo;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public java.util.List<String> getAssignedRegions() {

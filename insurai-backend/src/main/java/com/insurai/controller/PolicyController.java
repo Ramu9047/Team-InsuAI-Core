@@ -83,6 +83,12 @@ public class PolicyController {
         return policyService.getRecommendedPolicies(userId);
     }
 
+    @GetMapping("/issued")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public List<UserPolicy> getAllUserPolicies() {
+        return policyService.getAllUserPolicies();
+    }
+
     // NEW: Get Filtered Policies
     @PostMapping("/filter/{userId}")
     public List<com.insurai.dto.PolicyRecommendationDTO> filterPolicies(

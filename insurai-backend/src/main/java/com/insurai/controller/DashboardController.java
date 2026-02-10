@@ -31,19 +31,19 @@ public class DashboardController {
 
         DashboardStats s = new DashboardStats();
 
-        s.activeAgents = userRepo.countByRole("AGENT");
+        s.activeAgents = Long.valueOf(userRepo.countByRole("AGENT")).intValue();
 
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.plusDays(1).atStartOfDay();
 
-        s.appointmentsToday = bookingRepo.countAppointmentsBetween(start, end);
-        s.pendingRequests = bookingRepo.countByStatus("PENDING");
+        s.appointmentsToday = Long.valueOf(bookingRepo.countAppointmentsBetween(start, end)).intValue();
+        s.pendingRequests = Long.valueOf(bookingRepo.countByStatus("PENDING")).intValue();
 
         if (userId != null) {
             // Calculate User Health & Insights (Mock Logic until we inject PolicyService)
             // In real app, we would query UserPolicyRepo
-            s.totalPolicies = userPolicyRepo.countByUserIdAndStatus(userId, "ACTIVE");
+            s.totalPolicies = Long.valueOf(userPolicyRepo.countByUserIdAndStatus(userId, "ACTIVE")).intValue();
             s.healthScore = 65;
             s.coverageGaps.add("No Life Insurance Found");
             s.coverageGaps.add("Health Cover < 3L");

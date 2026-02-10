@@ -34,4 +34,11 @@ public class NotificationController {
     public void markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
     }
+
+    @PutMapping("/read-all")
+    public void markAllAsRead(Authentication auth) {
+        User user = userRepo.findByEmail(auth.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        notificationService.markAllAsRead(user.getId());
+    }
 }

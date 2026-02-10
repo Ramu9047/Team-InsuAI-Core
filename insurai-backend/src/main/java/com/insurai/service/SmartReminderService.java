@@ -47,7 +47,7 @@ public class SmartReminderService {
      * Create appointment reminder
      */
     public SmartReminder createAppointmentReminder(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findById(java.util.Objects.requireNonNull(bookingId))
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         SmartReminder reminder = new SmartReminder();
@@ -88,7 +88,7 @@ public class SmartReminderService {
      * Create document upload reminder
      */
     public SmartReminder createDocumentUploadReminder(Long userId, Long policyId, String documentName) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         SmartReminder reminder = new SmartReminder();
@@ -111,7 +111,7 @@ public class SmartReminderService {
      * Create payment due reminder
      */
     public SmartReminder createPaymentDueReminder(Long userId, Long policyId, Double amount, LocalDateTime dueDate) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         SmartReminder reminder = new SmartReminder();
@@ -135,7 +135,7 @@ public class SmartReminderService {
      * Mark reminder as sent
      */
     public void markAsSent(Long reminderId) {
-        SmartReminder reminder = smartReminderRepository.findById(reminderId)
+        SmartReminder reminder = smartReminderRepository.findById(java.util.Objects.requireNonNull(reminderId))
                 .orElseThrow(() -> new RuntimeException("Reminder not found"));
 
         reminder.setSent(true);
@@ -188,6 +188,6 @@ public class SmartReminderService {
      * Delete reminder
      */
     public void deleteReminder(Long reminderId) {
-        smartReminderRepository.deleteById(reminderId);
+        smartReminderRepository.deleteById(java.util.Objects.requireNonNull(reminderId));
     }
 }

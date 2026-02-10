@@ -202,21 +202,58 @@ export default function ScheduleAppointment() {
           <div style={{ animation: "fadeIn 0.5s" }}>
             <button onClick={() => setStep(2)} style={{ marginBottom: 20, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>← Back</button>
             <label style={{ display: "block", marginBottom: 15 }}>Available Slots for {selectedDate}</label>
+
+            {/* Time validation warning */}
+            {selectedDate === new Date().toISOString().split("T")[0] && (
+              <div style={{
+                padding: '12px',
+                background: '#fef3c7',
+                border: '1px solid #f59e0b',
+                borderRadius: 8,
+                marginBottom: 15,
+                fontSize: '0.9rem',
+                color: '#92400e'
+              }}>
+                ⏰ <strong>Today's Booking:</strong> Past time slots are automatically disabled
+              </div>
+            )}
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 10 }}>
-              {availableSlots.map(slot => (
-                <button
-                  key={slot}
-                  onClick={() => { setSelectedSlot(slot); setStep(4); }}
-                  style={{
-                    padding: "10px", borderRadius: 8, border: "1px solid var(--primary)",
-                    background: selectedSlot === slot ? "var(--primary)" : "transparent",
-                    color: selectedSlot === slot ? "white" : "var(--primary)",
-                    cursor: "pointer", fontWeight: 600
-                  }}
-                >
-                  {slot}
-                </button>
-              ))}
+              {availableSlots.map(slot => {
+                // Check if slot is in the past
+                const now = new Date();
+                const slotDateTime = new Date(`${selectedDate}T${slot}:00`);
+                const isPast = slotDateTime < now;
+
+                return (
+                  <button
+                    key={slot}
+                    onClick={() => {
+                      if (!isPast) {
+                        setSelectedSlot(slot);
+                        setStep(4);
+                      }
+                    }}
+                    disabled={isPast}
+                    style={{
+                      padding: "10px",
+                      borderRadius: 8,
+                      border: isPast ? "1px solid #d1d5db" : "1px solid var(--primary)",
+                      background: isPast ? "#f3f4f6" : (selectedSlot === slot ? "var(--primary)" : "transparent"),
+                      color: isPast ? "#9ca3af" : (selectedSlot === slot ? "white" : "var(--primary)"),
+                      cursor: isPast ? "not-allowed" : "pointer",
+                      fontWeight: 600,
+                      opacity: isPast ? 0.5 : 1,
+                      textDecoration: isPast ? "line-through" : "none",
+                      position: "relative"
+                    }}
+                    title={isPast ? "This time slot has passed" : `Book appointment at ${slot}`}
+                  >
+                    {slot}
+                    {isPast && <span style={{ fontSize: '0.7rem', display: 'block' }}>Past</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

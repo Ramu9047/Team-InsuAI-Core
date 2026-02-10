@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
@@ -19,7 +22,7 @@ export default function AgentPerformance() {
                 notify("Failed to load performance data", "error");
                 setLoading(false);
             });
-    }, []);
+    }, [notify]);
 
     if (loading) {
         return (
@@ -65,7 +68,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="⚡"
                         title="Avg Response Time"
-                        value={performance.averageResponseTimeHours ? `${performance.averageResponseTimeHours.toFixed(1)}h` : 'N/A'}
+                        value={performance.averageResponseTimeHours !== null ? `${performance.averageResponseTimeHours?.toFixed(1)}h` : 'N/A'}
                         status={performance.averageResponseTimeHours < 24 ? 'good' : 'warning'}
                         subtitle={performance.averageResponseTimeHours < 24 ? 'Within SLA' : 'Exceeds 24h SLA'}
                         index={0}
@@ -73,7 +76,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="⚠️"
                         title="SLA Breaches"
-                        value={performance.slaBreaches || 0}
+                        value={performance.slaBreaches ?? 0}
                         status={performance.slaBreaches === 0 ? 'good' : 'error'}
                         subtitle={performance.slaBreaches === 0 ? 'Excellent!' : 'Needs improvement'}
                         index={1}
@@ -81,7 +84,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="⏳"
                         title="Pending"
-                        value={performance.pendingConsultations || 0}
+                        value={performance.pendingConsultations ?? 0}
                         status="info"
                         subtitle="Awaiting review"
                         index={2}
@@ -89,7 +92,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="✅"
                         title="Completed"
-                        value={performance.completedConsultations || 0}
+                        value={performance.completedConsultations ?? 0}
                         status="info"
                         subtitle="Total consultations"
                         index={3}
@@ -104,7 +107,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="👍"
                         title="Approval Rate"
-                        value={performance.approvalRate ? `${performance.approvalRate.toFixed(1)}%` : 'N/A'}
+                        value={performance.approvalRate !== null ? `${performance.approvalRate?.toFixed(1)}%` : '0%'}
                         status={performance.approvalRate >= 60 ? 'good' : performance.approvalRate >= 40 ? 'warning' : 'error'}
                         subtitle={`${performance.approvalRate >= 60 ? 'Great!' : 'Room for improvement'}`}
                         index={4}
@@ -112,7 +115,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="👎"
                         title="Rejection Rate"
-                        value={performance.rejectionRate ? `${performance.rejectionRate.toFixed(1)}%` : 'N/A'}
+                        value={performance.rejectionRate !== null ? `${performance.rejectionRate?.toFixed(1)}%` : '0%'}
                         status="info"
                         subtitle="Policies rejected"
                         index={5}
@@ -120,7 +123,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="💰"
                         title="Conversion Rate"
-                        value={performance.conversionRate ? `${performance.conversionRate.toFixed(1)}%` : 'N/A'}
+                        value={performance.conversionRate !== null ? `${performance.conversionRate?.toFixed(1)}%` : '0%'}
                         status={performance.conversionRate >= 50 ? 'good' : performance.conversionRate >= 30 ? 'warning' : 'error'}
                         subtitle={performance.conversionRate >= 50 ? 'Excellent!' : 'Can improve'}
                         index={6}
@@ -128,7 +131,7 @@ export default function AgentPerformance() {
                     <MetricCard
                         icon="💡"
                         title="Alternatives Suggested"
-                        value={performance.alternativesRecommended || 0}
+                        value={performance.alternativesRecommended ?? 0}
                         status="info"
                         subtitle="Better options provided"
                         index={7}
@@ -136,45 +139,61 @@ export default function AgentPerformance() {
                 </div>
             </div>
 
-            {/* Activity Metrics */}
-            <div style={{ marginBottom: 40 }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>📅 Activity</h2>
-                <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-                    <MetricCard
-                        icon="📆"
-                        title="This Week"
-                        value={performance.consultationsThisWeek || 0}
-                        status="info"
-                        subtitle="Consultations"
-                        index={8}
-                    />
-                    <MetricCard
-                        icon="📅"
-                        title="This Month"
-                        value={performance.consultationsThisMonth || 0}
-                        status="info"
-                        subtitle="Consultations"
-                        index={9}
-                    />
-                    <MetricCard
-                        icon="📈"
-                        title="Total Consultations"
-                        value={performance.totalConsultations || 0}
-                        status="info"
-                        subtitle="All time"
-                        index={10}
-                    />
-                    {performance.lastActiveTime && (
-                        <MetricCard
-                            icon="🕐"
-                            title="Last Active"
-                            value={new Date(performance.lastActiveTime).toLocaleDateString()}
-                            status="info"
-                            subtitle={new Date(performance.lastActiveTime).toLocaleTimeString()}
-                            index={11}
-                        />
-                    )}
-                </div>
+            {/* Activity Charts */}
+            <div style={{ marginBottom: 40, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card"
+                >
+                    <h3>📅 Consultation Activity</h3>
+                    <div style={{ height: 250, marginTop: 20 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { name: 'This Week', value: performance.consultationsThisWeek || 0 },
+                                { name: 'Last Month', value: performance.consultationsThisMonth || 0 },
+                                { name: 'Total', value: performance.totalConsultations || 0 }
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                <XAxis dataKey="name" stroke="#9ca3af" />
+                                <YAxis stroke="#9ca3af" />
+                                <Tooltip
+                                    contentStyle={{ background: '#1f2937', border: 'none', borderRadius: 8 }}
+                                    itemStyle={{ color: '#fff' }}
+                                />
+                                <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card"
+                    style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
+                >
+                    <div style={{ fontSize: '4rem', marginBottom: 20 }}>🏆</div>
+                    <h3>Agent Rank</h3>
+                    <div style={{ fontSize: '3rem', fontWeight: 800, color: '#f59e0b', margin: '10px 0' }}>
+                        {performance.rankPercentile ? `Top ${Math.max(1, 100 - performance.rankPercentile)}%` : 'New Agent'}
+                    </div>
+                    <p style={{ opacity: 0.7 }}>
+                        {performance.rankPercentile
+                            ? `You are performing better than ${performance.rankPercentile}% of agents!`
+                            : "Complete consultations to earn a rank."}
+                    </p>
+
+                    <div style={{ marginTop: 30, width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                            <span>Percentile Score</span>
+                            <span>{performance.rankPercentile || 0}/100</span>
+                        </div>
+                        <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden' }}>
+                            <div style={{ width: `${performance.rankPercentile || 0}%`, height: '100%', background: '#f59e0b' }}></div>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
 
             {/* Rejection Reasons Analysis */}

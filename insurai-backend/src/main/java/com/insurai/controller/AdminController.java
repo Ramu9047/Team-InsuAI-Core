@@ -40,7 +40,7 @@ public class AdminController {
         return m;
     }
 
-    @GetMapping("/analytics")
+    @GetMapping("/booking-analytics")
     public com.insurai.dto.AnalyticsDTO getAnalytics() {
         // 1. Base Booking Analytics
         var stats = bookingService.getAnalytics();
@@ -73,19 +73,19 @@ public class AdminController {
 
     @DeleteMapping("/users/{id}")
     public void deleteUser(@PathVariable Long id) {
-        userRepo.deleteById(id);
+        userRepo.deleteById(java.util.Objects.requireNonNull(id));
     }
 
     // --- New Admin Features ---
 
     @PostMapping("/policies")
     public com.insurai.model.Policy createPolicy(@RequestBody com.insurai.model.Policy policy) {
-        return policyRepo.save(policy);
+        return policyRepo.save(java.util.Objects.requireNonNull(policy));
     }
 
     @PutMapping("/agents/{id}/status")
     public com.insurai.model.User updateAgentStatus(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
-        com.insurai.model.User agent = userRepo.findById(id)
+        com.insurai.model.User agent = userRepo.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Agent not found"));
         // Assuming 'verified' or 'available' controls status, or we add a status field.
         // Prompt says "Activate / deactivate agents". 'verified' seems appropriate or
@@ -94,11 +94,139 @@ public class AdminController {
         if (body.containsKey("verified")) {
             agent.setVerified(body.get("verified"));
         }
-        return userRepo.save(agent);
+        return userRepo.save(java.util.Objects.requireNonNull(agent));
     }
 
     @GetMapping("/audit-logs")
     public java.util.List<com.insurai.model.AuditLog> getAuditLogs() {
         return auditRepo.findAll();
+    }
+
+    @GetMapping("/dashboard-stats")
+    public com.insurai.dto.AdminDashboardDTO getDashboardStats() {
+        com.insurai.dto.AdminDashboardDTO dashboard = new com.insurai.dto.AdminDashboardDTO();
+
+        // 1. Claim Risk Distribution
+        Map<String, Integer> riskDist = new HashMap<>();
+        riskDist.put("Low", 0);
+        riskDist.put("Medium", 0);
+        riskDist.put("High", 0);
+
+        java.util.List<com.insurai.model.Claim> claims = claimService.getAllClaims();
+        for (com.insurai.model.Claim c : claims) {
+            Double score = c.getFraudScore();
+            if (score == null)
+                score = 0.0;
+
+            if (score <= 0.3)
+                riskDist.put("Low", riskDist.get("Low") + 1);
+            else if (score <= 0.7)
+                riskDist.put("Medium", riskDist.get("Medium") + 1);
+            else
+                riskDist.put("High", riskDist.get("High") + 1);
+        }
+        dashboard.setClaimRiskDistribution(riskDist);
+
+        // 2. Agent Leaderboard
+        java.util.List<com.insurai.model.Booking> bookings = bookingService.getAllBookings(); // Now available
+        Map<com.insurai.model.User, java.util.List<com.insurai.model.Booking>> agentBookings = bookings.stream()
+                .filter(b -> b.getAgent() != null)
+                .collect(java.util.stream.Collectors.groupingBy(com.insurai.model.Booking::getAgent));
+
+        java.util.List<com.insurai.dto.AgentPerformanceDTO> leaderboard = new java.util.ArrayList<>();
+
+        for (Map.Entry<com.insurai.model.User, java.util.List<com.insurai.model.Booking>> entry : agentBookings
+                .entrySet()) {
+            com.insurai.model.User agent = entry.getKey();
+            java.util.List<com.insurai.model.Booking> abs = entry.getValue();
+
+            int total = abs.size();
+            long approved = abs.stream()
+                    .filter(b -> "APPROVED".equals(b.getStatus()) || "COMPLETED".equals(b.getStatus())).count();
+
+            // Calc Avg Response Time (minutes)
+            double totalMins = 0;
+            int countTime = 0;
+            for (com.insurai.model.Booking b : abs) {
+                if (b.getCreatedAt() != null) {
+                    java.time.LocalDateTime end = b.getRespondedAt();
+                    if (end == null)
+                        end = b.getReviewedAt();
+                    if (end == null)
+                        end = b.getCompletedAt();
+
+                    if (end != null) {
+                        long mins = java.time.Duration.between(b.getCreatedAt(), end).toMinutes();
+                        if (mins >= 0) {
+                            totalMins += mins;
+                            countTime++;
+                        }
+                    }
+                }
+            }
+            double avgTime = countTime > 0 ? totalMins / countTime : 0;
+
+            com.insurai.dto.AgentPerformanceDTO dto = new com.insurai.dto.AgentPerformanceDTO();
+            dto.setAgentId(agent.getId());
+            dto.setAgentName(agent.getName());
+            dto.setTotalConsultations(total);
+            dto.setApprovalRate(total > 0 ? ((double) approved / total) * 100 : 0);
+            dto.setAverageResponseTime(avgTime);
+
+            leaderboard.add(dto);
+        }
+
+        // Ensure at least empty list
+        if (leaderboard.isEmpty())
+            dashboard.setAgentLeaderboard(new java.util.ArrayList<>());
+        else {
+            leaderboard.sort((a, b) -> Double.compare(ifNull(b.getApprovalRate()), ifNull(a.getApprovalRate())));
+            dashboard.setAgentLeaderboard(leaderboard);
+        }
+
+        // 3. SLA Metrics
+        com.insurai.dto.AdminDashboardDTO.SLAMetricsDTO sla = new com.insurai.dto.AdminDashboardDTO.SLAMetricsDTO();
+        java.util.List<com.insurai.dto.AdminDashboardDTO.SLATaskDTO> urgent = new java.util.ArrayList<>();
+        int onTrack = 0, atRisk = 0, breached = 0;
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (com.insurai.model.Booking b : bookings) {
+            if ("PENDING".equals(b.getStatus()) || "CONFIRMED".equals(b.getStatus())) {
+                java.time.LocalDateTime deadline = b.getCreatedAt().plusHours(24);
+                long hoursLeft = java.time.Duration.between(now, deadline).toHours();
+
+                if (hoursLeft < 0) {
+                    breached++;
+                    urgent.add(new com.insurai.dto.AdminDashboardDTO.SLATaskDTO(
+                            "B-" + b.getId(), "Consultation", deadline.toString(), "HIGH",
+                            b.getAgent() != null ? b.getAgent().getName() : "Unassigned"));
+                } else if (hoursLeft < 4) {
+                    atRisk++;
+                    urgent.add(new com.insurai.dto.AdminDashboardDTO.SLATaskDTO(
+                            "B-" + b.getId(), "Consultation", deadline.toString(), "MEDIUM",
+                            b.getAgent() != null ? b.getAgent().getName() : "Unassigned"));
+                } else {
+                    onTrack++;
+                }
+            }
+        }
+
+        sla.setOnTrack(onTrack);
+        sla.setAtRisk(atRisk);
+        sla.setBreached(breached);
+
+        urgent.sort((a, b) -> a.getDeadline().compareTo(b.getDeadline()));
+        if (urgent.size() > 5)
+            urgent = urgent.subList(0, 5);
+        sla.setUrgentTasks(urgent);
+
+        dashboard.setSlaMetrics(sla);
+
+        return dashboard;
+    }
+
+    private double ifNull(Double d) {
+        return d == null ? 0.0 : d;
     }
 }

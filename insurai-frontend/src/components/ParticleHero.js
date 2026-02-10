@@ -10,6 +10,40 @@ export default function ParticleHero() {
         let particleArray = [];
         const mouse = { x: null, y: null };
 
+        // Pre-render glowing sprites for performance
+        const createGlowSprite = (color) => {
+            const sCanvas = document.createElement('canvas');
+            const sSize = 1.3; // Increased size to maintain solidity with step=2
+            const sGlow = 4; // Shadow blur
+            const sPadding = sSize + sGlow + 2;
+            sCanvas.width = sPadding * 2;
+            sCanvas.height = sPadding * 2;
+            const sCtx = sCanvas.getContext('2d');
+            sCtx.shadowBlur = sGlow;
+            sCtx.shadowColor = color;
+            sCtx.fillStyle = color;
+            sCtx.beginPath();
+            // Center is at padding, padding
+            sCtx.arc(sPadding, sPadding, sSize, 0, Math.PI * 2);
+            sCtx.fill();
+            return sCanvas;
+        };
+
+        // Colors extracted from user Image (Electric Blue & Cyan)
+        const colors = {
+            blue: '#2563eb',    // Deep Royal Blue
+            cyan: '#06b6d4',    // Bright Cyan Highlight
+            pink: '#ec4899'     // Neon Pink (Hover)
+        };
+
+        const sprites = {
+            [colors.blue]: createGlowSprite(colors.blue),
+            [colors.cyan]: createGlowSprite(colors.cyan),
+            [colors.pink]: createGlowSprite(colors.pink)
+        };
+
+        const spriteOffset = sprites[colors.blue].width / 2;
+
         // Particle Class
         class Particle {
             constructor(x, y) {
@@ -17,38 +51,41 @@ export default function ParticleHero() {
                 this.y = y;
                 this.baseX = x;
                 this.baseY = y;
-                this.size = Math.random() * 2 + 1; // Random size
+                this.size = 1;
                 this.density = Math.random() * 30 + 1;
-                this.color = '#3b82f6'; // Blue for base
-                // Add continuous movement properties
+                // Randomize base color for depth (70% Blue, 30% Cyan) to match image texture
+                this.baseColor = Math.random() < 0.7 ? colors.blue : colors.cyan;
+                this.color = this.baseColor;
                 this.angle = Math.random() * 360;
             }
 
             draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.fill();
+                // Draw pre-rendered sprite for max performance + glow
+                const sprite = sprites[this.color];
+                if (sprite) {
+                    ctx.drawImage(sprite, this.x - spriteOffset, this.y - spriteOffset);
+                }
             }
 
             update(mouse) {
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
-                let forceDirectionX = dx / distance;
-                let forceDirectionY = dy / distance;
+                let distanceSq = dx * dx + dy * dy;
                 let maxDistance = 100;
-                let force = (maxDistance - distance) / maxDistance;
-                let directionX = forceDirectionX * force * this.density;
-                let directionY = forceDirectionY * force * this.density;
+                let maxDistanceSq = maxDistance * maxDistance;
 
-                if (distance < maxDistance) {
+                if (distanceSq < maxDistanceSq) {
+                    let distance = Math.sqrt(distanceSq);
+                    let forceDirectionX = dx / distance;
+                    let forceDirectionY = dy / distance;
+                    let force = (maxDistance - distance) / maxDistance;
+                    let directionX = forceDirectionX * force * this.density;
+                    let directionY = forceDirectionY * force * this.density;
+
                     this.x -= directionX;
                     this.y -= directionY;
-                    this.color = '#ec4899'; // Change to neon pink on hover
+                    this.color = colors.pink; // Change to neon pink on hover
                 } else {
-                    // Continuous jitter/wobble effect
                     this.angle += 0.05;
                     let motionX = Math.cos(this.angle) * 2;
                     let motionY = Math.sin(this.angle) * 2;
@@ -57,14 +94,16 @@ export default function ParticleHero() {
                     let targetY = this.baseY + motionY;
 
                     if (this.x !== targetX) {
-                        let dx = this.x - targetX;
-                        this.x -= dx / 10;
+                        let reqDx = this.x - targetX;
+                        if (Math.abs(reqDx) < 0.1) this.x = targetX;
+                        else this.x -= reqDx / 2;
                     }
                     if (this.y !== targetY) {
-                        let dy = this.y - targetY;
-                        this.y -= dy / 10;
+                        let reqDy = this.y - targetY;
+                        if (Math.abs(reqDy) < 0.1) this.y = targetY;
+                        else this.y -= reqDy / 2;
                     }
-                    this.color = '#3b82f6'; // Back to blue
+                    this.color = this.baseColor; // Return to variable base color
                 }
             }
         }
@@ -74,14 +113,17 @@ export default function ParticleHero() {
             constructor() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                // varied sizes for depth
-                this.size = Math.random() < 0.9 ? Math.random() * 1.5 : Math.random() * 3 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.8;
-                this.speedY = (Math.random() - 0.5) * 0.8;
-                // Brighter, more visible blue/indigo/purple mix
-                const hue = Math.random() > 0.5 ? 240 : 280; // Blue or Purple
-                const alpha = Math.random() * 0.6 + 0.2; // Higher opacity
-                this.color = `hsla(${hue}, 100%, 70%, ${alpha})`;
+                // Increase speed for "energetic" feel
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                // Match theme colors
+                const rand = Math.random();
+                if (rand < 0.6) this.color = colors.blue;
+                else if (rand < 0.9) this.color = colors.cyan;
+                else this.color = colors.pink; // Occasional pink pop
+
+                // Random scale for depth effect
+                this.scale = Math.random() * 0.5 + 0.5;
             }
             update() {
                 this.x += this.speedX;
@@ -90,8 +132,12 @@ export default function ParticleHero() {
                 if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
             }
             draw() {
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
+                const sprite = sprites[this.color];
+                if (sprite) {
+                    // Draw with slight scale variation for depth
+                    const size = sprite.width * this.scale;
+                    ctx.drawImage(sprite, this.x - size / 2, this.y - size / 2, size, size);
+                }
             }
         }
 
@@ -120,45 +166,92 @@ export default function ParticleHero() {
 
         let backgroundParticles = [];
 
+        let logoImage = new Image();
+
         function init() {
+            // ... implementation ...
+
             particleArray = [];
             backgroundParticles = [];
 
             // Clear before sampling
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw text to get coordinates - Increased size
+            // Draw Logo Image to get coordinates
+            const aspectRatio = logoImage.width / logoImage.height || 1.2; // Default to 1.2 if not loaded yet (SVG is 600x500)
+
+            // Calculate scale to fit nicely within the canvas, maxing at a reasonable size
+            // Base calculation on height to ensure it fits vertically
+            // Increased scale for "expanded" look
+            const maxLogoHeight = Math.min(canvas.height * 0.75, 650);
+
+            const imgHeight = maxLogoHeight;
+            const imgWidth = imgHeight * aspectRatio;
+
+            // Position on the RIGHT side
+            // 75% across width
+            const offsetX = (canvas.width * 0.75) - (imgWidth / 2);
+            // Moved upper (-80) to center visually better with text below
+            const offsetY = (canvas.height - imgHeight) / 2 - 80;
+
+            ctx.drawImage(logoImage, offsetX, offsetY, imgWidth, imgHeight);
+
+            // Add text "INSURAI" below the logo
             ctx.fillStyle = 'white';
-            // Increased divider from 6 to 3.5 for larger text relative to container width
-            const fontSize = Math.min(canvas.width / 6.5, 140);
-            ctx.font = `900 ${fontSize}px Orbitron, sans-serif`;
+            // Increase font size dramatically for visibility
+            const fontSize = Math.min(canvas.width / 18, 70);
+            ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            // Draw "InsurAI" on the right side
-            ctx.fillText('InsurAI', canvas.width * 0.72, canvas.height / 2);
+            // Position text relative to the center of the rendered logo
+            const textCenterX = offsetX + (imgWidth / 2);
+
+            ctx.fillText('INSURAI', textCenterX, offsetY + imgHeight + 60);
+
+            // Make subtext larger and cleaner
+            ctx.font = `700 ${fontSize * 0.45}px "Space Grotesk", sans-serif`;
+            ctx.letterSpacing = '10px';
+            ctx.fillText('FUTURE SECURE', textCenterX, offsetY + imgHeight + 110);
+
 
             const textCoordinates = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
             // Text Particles Sampling
-            const step = canvas.width < 800 ? 5 : 3; // Increase density for sharper text
+            // Lower step means higher density/resolution
+            // Step 2 provides 4x performance boost over Step 1 while keeping text readable with sSize 1.2
+            const step = canvas.width < 1000 ? 3 : 2;
 
             for (let y = 0, y2 = textCoordinates.height; y < y2; y += step) {
                 for (let x = 0, x2 = textCoordinates.width; x < x2; x += step) {
-                    if (textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 3] > 128) {
+                    const index = (y * 4 * textCoordinates.width) + (x * 4);
+                    const alpha = textCoordinates.data[index + 3];
+                    const red = textCoordinates.data[index];
+                    const green = textCoordinates.data[index + 1];
+                    const blue = textCoordinates.data[index + 2];
+
+                    // Check alpha AND brightness to ignore the dark background (#0E100E) of the SVG
+                    // Threshold of 40 ensures we only pick up the visible logo parts, not the near-black bg
+                    if (alpha > 128 && (red > 40 || green > 40 || blue > 40)) {
                         let positionX = x;
                         let positionY = y;
+                        // Keep particle size small for sharpness, but density is high
                         particleArray.push(new Particle(positionX, positionY));
                     }
                 }
             }
 
             // Create Background Floating Particles
-            // Highly dense field ("millions" visual feel)
-            const bgParticleCount = canvas.width < 600 ? 1000 : 8000;
+            // Increased count for visibility as requested
+            const bgParticleCount = canvas.width < 600 ? 150 : 800;
             for (let i = 0; i < bgParticleCount; i++) {
                 backgroundParticles.push(new BackgroundParticle());
             }
         }
+
+        logoImage.onload = () => {
+            init();
+            animate();
+        };
+        logoImage.src = require('../assets/Converted.svg').default;
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -170,19 +263,17 @@ export default function ParticleHero() {
             }
 
             // Draw Text Particles
+            // Using sprites, so no need for composite operation tricks
             for (let i = 0; i < particleArray.length; i++) {
-                particleArray[i].draw();
                 particleArray[i].update(mouse);
+                particleArray[i].draw();
             }
-
-            // Connect lines between nearby text particles for "network" effect? 
-            // Might be heavy on performance, keep it simple dots for now as requested "dots".
 
             animationFrameId = requestAnimationFrame(animate);
         }
 
-        init();
-        animate();
+        // init(); moved to onload
+        // animate(); moved to onload
 
         return () => {
             window.removeEventListener('resize', handleResize);

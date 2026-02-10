@@ -133,4 +133,42 @@ public class Booking {
     public void setSlaBreached(Boolean slaBreached) {
         this.slaBreached = slaBreached;
     }
+
+    // Workflow fields
+    private LocalDateTime reviewedAt; // When agent reviewed
+    private String rejectionReason;
+    private String agentNotes;
+    private String adminNotes;
+
+    public LocalDateTime getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(LocalDateTime reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public String getAgentNotes() {
+        return agentNotes;
+    }
+
+    public void setAgentNotes(String agentNotes) {
+        this.agentNotes = agentNotes;
+    }
+
+    public String getAdminNotes() {
+        return adminNotes;
+    }
+
+    public void setAdminNotes(String adminNotes) {
+        this.adminNotes = adminNotes;
+    }
 }

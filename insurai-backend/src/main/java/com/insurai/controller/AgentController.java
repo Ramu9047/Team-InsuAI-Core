@@ -193,9 +193,9 @@ public class AgentController {
         Long policyId = Long.valueOf(pIdObj.toString());
         String note = (String) payload.get("note");
 
-        User user = userRepo.findById(userId)
+        User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        Policy policy = policyRepo.findById(policyId)
+        Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
 
         UserPolicy up = new UserPolicy();

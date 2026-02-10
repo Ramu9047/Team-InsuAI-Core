@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
@@ -8,11 +8,7 @@ export default function AdminAnalytics() {
     const [loading, setLoading] = useState(true);
     const { notify } = useNotification();
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, []);
-
-    const fetchAnalytics = () => {
+    const fetchAnalytics = useCallback(() => {
         setLoading(true);
         api.get('/admin/analytics')
             .then(r => {
@@ -24,7 +20,11 @@ export default function AdminAnalytics() {
                 notify("Failed to load analytics", "error");
                 setLoading(false);
             });
-    };
+    }, [notify]);
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, [fetchAnalytics]);
 
     if (loading) {
         return (

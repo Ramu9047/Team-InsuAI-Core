@@ -1,37 +1,27 @@
 package com.insurai.dto;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-
+/**
+ * Agent Performance DTO
+ */
 public class AgentPerformanceDTO {
     private Long agentId;
     private String agentName;
-
-    // SLA Metrics
-    private Double averageResponseTimeHours;
     private Integer totalConsultations;
-    private Integer pendingConsultations;
     private Integer completedConsultations;
-
-    // Performance Metrics
-    private Double approvalRate; // % of approved consultations
-    private Double rejectionRate; // % of rejected consultations
-    private Double conversionRate; // % that led to policy purchase
-
-    // Rejection Analysis
-    private Map<String, Integer> rejectionReasons; // Reason -> Count
-
-    // Time-based Metrics
-    private LocalDateTime lastActiveTime;
+    private Integer pendingConsultations;
+    private Double approvalRate;
+    private Double conversionRate;
+    private Double averageResponseTime;
+    private Integer slaBreaches;
+    private Double customerSatisfaction;
+    private Double averageResponseTimeHours;
+    private Double rejectionRate;
+    private Integer rankPercentile; // New field
     private Integer consultationsThisWeek;
     private Integer consultationsThisMonth;
-
-    // Quality Metrics
-    private Double averageCustomerSatisfaction; // If we have feedback
+    private java.util.Map<String, Integer> rejectionReasons;
     private Integer alternativesRecommended;
-
-    // Compliance
-    private Integer slaBreaches; // Consultations not responded within SLA
+    private java.time.LocalDateTime lastActiveTime;
 
     // Getters and Setters
     public Long getAgentId() {
@@ -50,28 +40,12 @@ public class AgentPerformanceDTO {
         this.agentName = agentName;
     }
 
-    public Double getAverageResponseTimeHours() {
-        return averageResponseTimeHours;
-    }
-
-    public void setAverageResponseTimeHours(Double averageResponseTimeHours) {
-        this.averageResponseTimeHours = averageResponseTimeHours;
-    }
-
     public Integer getTotalConsultations() {
         return totalConsultations;
     }
 
     public void setTotalConsultations(Integer totalConsultations) {
         this.totalConsultations = totalConsultations;
-    }
-
-    public Integer getPendingConsultations() {
-        return pendingConsultations;
-    }
-
-    public void setPendingConsultations(Integer pendingConsultations) {
-        this.pendingConsultations = pendingConsultations;
     }
 
     public Integer getCompletedConsultations() {
@@ -82,20 +56,20 @@ public class AgentPerformanceDTO {
         this.completedConsultations = completedConsultations;
     }
 
+    public Integer getPendingConsultations() {
+        return pendingConsultations;
+    }
+
+    public void setPendingConsultations(Integer pendingConsultations) {
+        this.pendingConsultations = pendingConsultations;
+    }
+
     public Double getApprovalRate() {
         return approvalRate;
     }
 
     public void setApprovalRate(Double approvalRate) {
         this.approvalRate = approvalRate;
-    }
-
-    public Double getRejectionRate() {
-        return rejectionRate;
-    }
-
-    public void setRejectionRate(Double rejectionRate) {
-        this.rejectionRate = rejectionRate;
     }
 
     public Double getConversionRate() {
@@ -106,20 +80,44 @@ public class AgentPerformanceDTO {
         this.conversionRate = conversionRate;
     }
 
-    public Map<String, Integer> getRejectionReasons() {
-        return rejectionReasons;
+    public Double getAverageResponseTime() {
+        return averageResponseTime;
     }
 
-    public void setRejectionReasons(Map<String, Integer> rejectionReasons) {
-        this.rejectionReasons = rejectionReasons;
+    public void setAverageResponseTime(Double averageResponseTime) {
+        this.averageResponseTime = averageResponseTime;
     }
 
-    public LocalDateTime getLastActiveTime() {
-        return lastActiveTime;
+    public Integer getSlaBreaches() {
+        return slaBreaches;
     }
 
-    public void setLastActiveTime(LocalDateTime lastActiveTime) {
-        this.lastActiveTime = lastActiveTime;
+    public void setSlaBreaches(Integer slaBreaches) {
+        this.slaBreaches = slaBreaches;
+    }
+
+    public Double getCustomerSatisfaction() {
+        return customerSatisfaction;
+    }
+
+    public void setCustomerSatisfaction(Double customerSatisfaction) {
+        this.customerSatisfaction = customerSatisfaction;
+    }
+
+    public Double getAverageResponseTimeHours() {
+        return averageResponseTimeHours;
+    }
+
+    public void setAverageResponseTimeHours(Double averageResponseTimeHours) {
+        this.averageResponseTimeHours = averageResponseTimeHours;
+    }
+
+    public Double getRejectionRate() {
+        return rejectionRate;
+    }
+
+    public void setRejectionRate(Double rejectionRate) {
+        this.rejectionRate = rejectionRate;
     }
 
     public Integer getConsultationsThisWeek() {
@@ -138,12 +136,12 @@ public class AgentPerformanceDTO {
         this.consultationsThisMonth = consultationsThisMonth;
     }
 
-    public Double getAverageCustomerSatisfaction() {
-        return averageCustomerSatisfaction;
+    public java.util.Map<String, Integer> getRejectionReasons() {
+        return rejectionReasons;
     }
 
-    public void setAverageCustomerSatisfaction(Double averageCustomerSatisfaction) {
-        this.averageCustomerSatisfaction = averageCustomerSatisfaction;
+    public void setRejectionReasons(java.util.Map<String, Integer> rejectionReasons) {
+        this.rejectionReasons = rejectionReasons;
     }
 
     public Integer getAlternativesRecommended() {
@@ -154,11 +152,19 @@ public class AgentPerformanceDTO {
         this.alternativesRecommended = alternativesRecommended;
     }
 
-    public Integer getSlaBreaches() {
-        return slaBreaches;
+    public java.time.LocalDateTime getLastActiveTime() {
+        return lastActiveTime;
     }
 
-    public void setSlaBreaches(Integer slaBreaches) {
-        this.slaBreaches = slaBreaches;
+    public void setLastActiveTime(java.time.LocalDateTime lastActiveTime) {
+        this.lastActiveTime = lastActiveTime;
+    }
+
+    public Integer getRankPercentile() {
+        return rankPercentile;
+    }
+
+    public void setRankPercentile(Integer rankPercentile) {
+        this.rankPercentile = rankPercentile;
     }
 }

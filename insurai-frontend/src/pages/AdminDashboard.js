@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Card from "../components/Card";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
+import { RoleGuard } from "../components/RoleGuard";
 import {
     PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -41,14 +42,16 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const [sRes, uRes, agRes, cRes, pRes, alRes, bRes] = await Promise.all([
-                api.get("/admin/stats").catch(() => ({ data: {} })),
-                api.get("/admin/users").catch(() => ({ data: [] })),
-                api.get("/agents").catch(() => ({ data: [] })),
-                api.get("/claims").catch(() => ({ data: [] })),
-                api.get("/policies").catch(() => ({ data: [] })),
-                api.get("/admin/audit-logs").catch(() => ({ data: [] })),
-                api.get("/bookings").catch(() => ({ data: [] }))
+                api.get("/admin/stats").catch((err) => { console.error("Stats API failed:", err); return { data: {} }; }),
+                api.get("/admin/users").catch((err) => { console.error("Users API failed:", err); return { data: [] }; }),
+                api.get("/agents").catch((err) => { console.error("Agents API failed:", err); return { data: [] }; }),
+                api.get("/claims").catch((err) => { console.error("Claims API failed:", err); return { data: [] }; }),
+                api.get("/policies").catch((err) => { console.error("Policies API failed:", err); return { data: [] }; }),
+                api.get("/admin/audit-logs").catch((err) => { console.error("Audit logs API failed:", err); return { data: [] }; }),
+                api.get("/bookings").catch((err) => { console.error("Bookings API failed:", err); return { data: [] }; })
             ]);
+
+            console.log("Loaded data:", { stats: sRes.data, users: uRes.data.length, agents: agRes.data.length, claims: cRes.data.length, plans: pRes.data.length, auditLogs: alRes.data.length, bookings: bRes.data.length });
 
             setStats(sRes.data);
             setUsers(uRes.data);
@@ -58,7 +61,7 @@ export default function AdminDashboard() {
             setAuditLogs(alRes.data);
             setBookings(bRes.data);
         } catch (e) {
-            console.error(e);
+            console.error("loadAllData error:", e);
             notify("Failed to load some data", "error");
         } finally {
             setLoading(false);
@@ -164,12 +167,20 @@ export default function AdminDashboard() {
         return (
             <div>
                 {/* Stats Cards */}
-                <div className="grid" style={{ marginBottom: 40 }}>
+                <div className="grid" style={{ marginBottom: 40, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                     {[
-                        { title: "Total Users", val: stats.users, color: "#4f46e5", tab: "users" },
-                        { title: "Active Agents", val: stats.agents, color: "#22c55e", tab: "agents" },
-                        { title: "Total Bookings", val: stats.bookings, color: "#eab308", tab: "bookings" },
-                        { title: "Pending Claims", val: claims.filter(c => c.status === 'PENDING').length, color: "#ef4444", tab: "claims" }
+                        { title: "Total Users", val: stats.users, color: "#4f46e5", tab: "users", icon: "👥" },
+                        { title: "Active Agents", val: stats.agents, color: "#22c55e", tab: "agents", icon: "👨‍💼" },
+                        { title: "Total Bookings", val: stats.bookings, color: "#eab308", tab: "bookings", icon: "📅" },
+                        { title: "Pending Approvals", val: bookings.filter(b => b.status === 'PENDING_ADMIN_APPROVAL' || b.status === 'PENDING').length, color: "#f59e0b", tab: "bookings", icon: "⏳" },
+                        {
+                            title: "Policies Issued Today", val: plans.filter(p => {
+                                const today = new Date().toDateString();
+                                const policyDate = p.createdAt ? new Date(p.createdAt).toDateString() : null;
+                                return policyDate === today;
+                            }).length, color: "#10b981", tab: "policies", icon: "📋"
+                        },
+                        { title: "Pending Claims", val: claims.filter(c => c.status === 'PENDING').length, color: "#ef4444", tab: "claims", icon: "⚠️" }
                     ].map((item, i) => (
                         <div
                             key={i}
@@ -180,8 +191,17 @@ export default function AdminDashboard() {
                                 transition: "all 0.2s"
                             }}
                             onClick={() => setActiveTab(item.tab)}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'var(--card-shadow)';
+                            }}
                         >
-                            <h4 style={{ margin: 0, opacity: 0.8, fontSize: "0.9rem", textTransform: "uppercase", color: "var(--text-muted)" }}>{item.title}</h4>
+                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>{item.icon}</div>
+                            <h4 style={{ margin: 0, opacity: 0.8, fontSize: "0.85rem", textTransform: "uppercase", color: "var(--text-muted)" }}>{item.title}</h4>
                             <p style={{ fontSize: "2.5rem", fontWeight: 700, margin: "10px 0", color: "var(--text-main)" }}>{item.val}</p>
                             <span style={{ fontSize: "0.8rem", color: item.color, textDecoration: "underline" }}>View Details →</span>
                         </div>

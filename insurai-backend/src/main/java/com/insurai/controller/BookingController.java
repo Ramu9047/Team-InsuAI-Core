@@ -4,6 +4,7 @@ import com.insurai.dto.BookingRequest;
 import com.insurai.model.Booking;
 import com.insurai.service.BookingService;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 import java.util.List;
 
@@ -53,6 +54,14 @@ public class BookingController {
     @PutMapping("/{id}/status")
     public Booking updateStatus(@PathVariable Long id,
             @RequestParam String status) {
+        return bookingService.updateStatus(java.util.Objects.requireNonNull(id), status);
+    }
+
+    @PatchMapping("/{id}/status")
+    public Booking updateStatusPatch(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String status = body.get("status");
+        if (status == null)
+            throw new IllegalArgumentException("Status is required in body");
         return bookingService.updateStatus(java.util.Objects.requireNonNull(id), status);
     }
 

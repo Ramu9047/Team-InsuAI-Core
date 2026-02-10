@@ -2,17 +2,15 @@ import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import logoParticles from "../assets/logo-particles.svg";
 
 
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
-    const [notificationOpen, setNotificationOpen] = useState(false);
 
-    // Notification State
-    const [notifications, setNotifications] = useState([]);
-    const [badge, setBadge] = useState(0);
+    // Notification State for Toast only
     const [toast, setToast] = useState(null); // Ephemeral toast
 
     const handleLogout = () => {
@@ -24,50 +22,43 @@ export default function Navbar() {
     useEffect(() => {
         if (!user) return;
 
-        const fetchNotifications = async (isFirstLoad = false) => {
+        const checkNotifications = async () => {
             try {
                 const res = await api.get('/notifications');
                 const newNotes = res.data;
+                const latest = newNotes[0]; // Assumes desc sort
 
-                // Live Alert Logic
-                if (!isFirstLoad && newNotes.length > notifications.length) {
-                    const latest = newNotes[0]; // Assumes backend sorts desc
-                    // Only toast if it was created recently (e.g. last 10 seconds) to avoid spamming old notes on re-connect
-                    if (new Date(latest.createdAt) > new Date(Date.now() - 20000)) {
-                        showToast(latest.message);
+                if (latest) {
+                    const storedId = sessionStorage.getItem('lastSeenNotifId');
+                    // Store as string to handle potentially large IDs or type mismatches
+                    const lastId = storedId || null;
+                    const currentId = String(latest.id);
+
+                    if (lastId === null) {
+                        // First load, store current ID to prevent stale toast
+                        sessionStorage.setItem('lastSeenNotifId', currentId);
+                    } else if (currentId !== lastId) {
+                        // New notification detected
+                        const activityTime = new Date(latest.createdAt || latest.timestamp);
+                        const isRecent = !isNaN(activityTime.getTime()) &&
+                            activityTime > new Date(Date.now() - 60000); // 1 min window
+
+                        if (isRecent) {
+                            showToast(latest.message);
+                        }
+                        sessionStorage.setItem('lastSeenNotifId', currentId);
                     }
                 }
-
-                setNotifications(newNotes);
-                setBadge(newNotes.length);
             } catch (error) {
                 // silent fail
             }
         };
 
-        fetchNotifications(true);
-        const interval = setInterval(fetchNotifications, 10000); // Poll every 10s
+        checkNotifications();
+        const interval = setInterval(checkNotifications, 10000);
 
         return () => clearInterval(interval);
-    }, [user, notifications.length]); // Dependency on length helps detection logic
-
-    const markAsRead = async (id) => {
-        try {
-            await api.put(`/notifications/${id}/read`);
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            setBadge(prev => Math.max(0, prev - 1));
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const markAllRead = async () => {
-        // Optimistic update
-        const ids = notifications.map(n => n.id);
-        setNotifications([]);
-        setBadge(0);
-        ids.forEach(id => api.put(`/notifications/${id}/read`).catch(() => { }));
-    };
+    }, [user]);
 
     const showToast = (msg) => {
         setToast(msg);
@@ -94,8 +85,9 @@ export default function Navbar() {
                 </div>
             )}
 
-            <Link to="/" className="logo">
-                🛡️ InsurAI
+            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img src={logoParticles} alt="InsurAI Logo" style={{ height: '40px' }} />
+                InsurAI
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -113,79 +105,8 @@ export default function Navbar() {
                             Plans
                         </NavLink>
 
-                        {/* Notification Bell */}
-                        <div style={{ position: "relative" }}>
-                            <div
-                                onClick={() => setNotificationOpen(!notificationOpen)}
-                                style={{
-                                    cursor: "pointer", position: "relative", width: 40, height: 40,
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    borderRadius: "50%", background: notificationOpen ? "rgba(255,255,255,0.1)" : "transparent"
-                                }}
-                            >
-                                <span style={{ fontSize: 20 }}>🔔</span>
-                                {badge > 0 && (
-                                    <span style={{
-                                        position: "absolute", top: 5, right: 5,
-                                        background: "#ef4444", color: "white", fontSize: 10, fontWeight: "bold",
-                                        width: 16, height: 16, borderRadius: "50%",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)"
-                                    }}>
-                                        {badge}
-                                    </span>
-                                )}
-                            </div>
-
-                            {notificationOpen && (
-                                <div className="card" style={{
-                                    position: "absolute", top: 50, right: -60,
-                                    width: 320, padding: 0, borderRadius: 12, zIndex: 100,
-                                    boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden",
-                                    border: "1px solid var(--card-border)"
-                                }}>
-                                    <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--nav-border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.2)" }}>
-                                        <h4 style={{ margin: 0, fontSize: "0.95rem" }}>Notifications</h4>
-                                        {notifications.length > 0 && (
-                                            <button
-                                                onClick={markAllRead}
-                                                style={{ border: "none", background: "none", color: "var(--primary)", fontSize: "0.8rem", cursor: "pointer", padding: 0 }}
-                                            >
-                                                Mark all read
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div style={{ maxHeight: 350, overflowY: "auto" }}>
-                                        {notifications.length === 0 ? (
-                                            <div style={{ padding: "30px 20px", textAlign: "center", opacity: 0.6, fontSize: "0.9rem" }}>
-                                                <div style={{ fontSize: 24, marginBottom: 5 }}>💤</div>
-                                                No new notifications
-                                            </div>
-                                        ) : (
-                                            notifications.map(n => (
-                                                <div
-                                                    key={n.id}
-                                                    onClick={() => markAsRead(n.id)}
-                                                    style={{
-                                                        padding: "12px 16px", borderBottom: "1px solid var(--nav-border)",
-                                                        cursor: "pointer", transition: "all 0.2s",
-                                                        background: "transparent"
-                                                    }}
-                                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                                                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                                                >
-                                                    <div style={{ fontSize: "0.9rem", marginBottom: 4, lineHeight: 1.4 }}>{n.message}</div>
-                                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
-                                                        <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                        <span style={{ color: n.type === 'SUCCESS' ? '#22c55e' : n.type === 'WARNING' ? '#eab308' : 'var(--primary)' }}>• {n.type}</span>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Notification Bell Removed as per request */}
+                        {/* Task handled by dashboard NotificationCenter */}
 
                         {/* User Dropdown */}
                         <div style={{ position: "relative" }}>
@@ -213,40 +134,41 @@ export default function Navbar() {
 
                             {menuOpen && (
                                 <div className="card" style={{
-                                    position: "absolute", top: 50, right: 0,
-                                    width: 200, padding: 10, borderRadius: 16, zIndex: 50
+                                    position: "absolute", top: 60, right: 0,
+                                    width: 280, padding: 15, borderRadius: 16, zIndex: 1000,
+                                    boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
                                 }}>
-                                    <div style={{ padding: 10, borderBottom: "1px solid var(--nav-border)", marginBottom: 5 }}>
-                                        <small style={{ color: "var(--text-muted)" }}>Signed in as</small>
-                                        <div style={{ fontWeight: 600 }}>{user.email}</div>
+                                    <div style={{ padding: "10px 15px", borderBottom: "1px solid var(--nav-border)", marginBottom: 10 }}>
+                                        <small style={{ color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Signed in as</small>
+                                        <div style={{ fontWeight: 600, wordBreak: "break-all" }}>{user.email}</div>
                                     </div>
 
                                     {/* Agent vs User Links */}
                                     {user.role === 'AGENT' ? (
                                         <>
-                                            <NavLink to="/agent/consultations" className="nav-link" style={{ display: "block" }}>My Consultations</NavLink>
-                                            <NavLink to="/agent/performance" className="nav-link" style={{ display: "block" }}>My Performance</NavLink>
-                                            <NavLink to="/agent/requests" className="nav-link" style={{ display: "block" }}>Agent Requests</NavLink>
+                                            <NavLink to="/agent/consultations" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Consultations</NavLink>
+                                            <NavLink to="/agent/performance" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Performance</NavLink>
+                                            <NavLink to="/agent/requests" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>Agent Requests</NavLink>
                                         </>
                                     ) : user.role === 'USER' ? (
                                         <>
-                                            <NavLink to="/my-bookings" className="nav-link" style={{ display: "block" }}>My Bookings</NavLink>
-                                            <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block" }}>AI Recommendations</NavLink>
+                                            <NavLink to="/my-bookings" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Bookings</NavLink>
+                                            <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>AI Recommendations</NavLink>
                                         </>
                                     ) : null}
 
-                                    <NavLink to="/profile" className="nav-link" style={{ display: "block" }}>Profile</NavLink>
+                                    <NavLink to="/profile" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>Profile</NavLink>
 
                                     {user.role === 'USER' && (
                                         <>
-                                            <NavLink to="/my-policies" className="nav-link" style={{ display: "block" }}>My Policies</NavLink>
-                                            <NavLink to="/claims" className="nav-link" style={{ display: "block" }}>My Claims</NavLink>
+                                            <NavLink to="/my-policies" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Policies</NavLink>
+                                            <NavLink to="/claims" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Claims</NavLink>
                                         </>
                                     )}
                                     <div
                                         onClick={handleLogout}
                                         style={{
-                                            padding: "10px 16px", cursor: "pointer",
+                                            padding: "8px 15px", cursor: "pointer",
                                             color: "#ef4444", fontWeight: 500, marginTop: 5, borderRadius: 8
                                         }}
                                         className="nav-link"

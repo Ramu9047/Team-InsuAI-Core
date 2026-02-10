@@ -52,26 +52,21 @@ export default function Toast({ message, type = 'info', duration = 4000, onClose
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 300, scale: 0.8 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             style={{
-                position: 'fixed',
-                top: 20,
-                right: 20,
-                zIndex: 9999,
-                minWidth: 300,
-                maxWidth: 500,
                 background: styles.bg,
                 border: `2px solid ${styles.border}`,
                 borderRadius: 12,
-                padding: '16px 20px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                padding: '12px 20px',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                width: '100%'
             }}
             onClick={onClose}
         >
@@ -129,11 +124,16 @@ export function ToastContainer({ toasts, removeToast }) {
             {toasts.map((toast, index) => (
                 <motion.div
                     key={toast.id}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, x: 50 }}
                     style={{
                         position: 'fixed',
-                        top: 20 + index * 90,
+                        top: 80 + index * 70, // Start below navbar (assume ~60-70px height)
                         right: 20,
-                        zIndex: 9999 - index
+                        zIndex: 9999 - index,
+                        maxWidth: '400px',
+                        minWidth: '300px'
                     }}
                     layout
                 >

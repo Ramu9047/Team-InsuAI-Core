@@ -29,10 +29,10 @@ public class AIRiskAssessmentService {
      * Assess risk for a user applying for a specific policy
      */
     public RiskAssessmentDTO assessRisk(Long userId, Long policyId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Policy policy = policyRepository.findById(policyId)
+        Policy policy = policyRepository.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new RuntimeException("Policy not found"));
 
         RiskAssessmentDTO assessment = new RiskAssessmentDTO();
@@ -66,6 +66,85 @@ public class AIRiskAssessmentService {
         assessment.setClaimReadiness(calculateClaimReadiness(user, policy));
 
         return assessment;
+    }
+
+    /**
+     * Get general risk profile for user
+     */
+    public com.insurai.dto.UserRiskProfileDTO getUserRiskProfile(Long userId) {
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        int riskScore = 20; // Base optimal score
+
+        // Age Logic
+        Integer age = user.getAge();
+        if (age != null) {
+            if (age > 60)
+                riskScore += 30;
+            else if (age > 45)
+                riskScore += 15;
+            else if (age < 25)
+                riskScore += 5;
+        }
+
+        // Health Logic
+        String healthInfo = user.getHealthInfo();
+        String healthStatus = "Good";
+        if (healthInfo != null && !healthInfo.isEmpty()) {
+            if (healthInfo.toLowerCase().contains("diabetes")) {
+                riskScore += 20;
+                healthStatus = "Moderate";
+            }
+            if (healthInfo.toLowerCase().contains("heart")) {
+                riskScore += 25;
+                healthStatus = "At Risk";
+            }
+            if (healthInfo.toLowerCase().contains("smoker")) {
+                riskScore += 15;
+                healthStatus = "At Risk";
+            }
+        }
+
+        // Income Logic (Financial Stability reduces risk)
+        Double income = user.getIncome();
+        String lifestyle = "Stable";
+        if (income != null) {
+            if (income > 1500000) {
+                riskScore -= 10;
+                lifestyle = "Excellent";
+            } else if (income < 300000) {
+                riskScore += 10;
+                lifestyle = "Variable";
+            }
+        }
+
+        riskScore = Math.min(100, Math.max(5, riskScore));
+
+        com.insurai.dto.UserRiskProfileDTO profile = new com.insurai.dto.UserRiskProfileDTO();
+        profile.setUserId(userId);
+        profile.setRiskScore(riskScore);
+        profile.setRiskLevel(getRiskLevel(riskScore));
+
+        java.util.Map<String, String> factors = new java.util.HashMap<>();
+        factors.put("Health", healthStatus);
+        factors.put("Lifestyle", lifestyle);
+        factors.put("History", "Clean"); // Placeholder for claims history check
+        profile.setFactors(factors);
+
+        if (riskScore < 30) {
+            profile.setRecommendation("Excellent profile! Eligible for premium discounts.");
+            profile.setInsights(java.util.List.of("Low health risk detected", "Financial stability is a plus"));
+        } else if (riskScore < 60) {
+            profile.setRecommendation("Standard profile. Consider comprehensive health coverage.");
+            profile.setInsights(java.util.List.of("Moderate risk factors identified", "Gap in critical illness cover"));
+        } else {
+            profile.setRecommendation("High risk detected. Specialized plans recommended.");
+            profile.setInsights(
+                    java.util.List.of("Health conditions affect premium", "Consider guaranteed issuance plans"));
+        }
+
+        return profile;
     }
 
     private int calculateRiskScore(User user, Policy policy) {

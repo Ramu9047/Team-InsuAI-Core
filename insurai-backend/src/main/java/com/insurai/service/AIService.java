@@ -69,7 +69,7 @@ public class AIService {
 
     // 3. Chatbot Logic (Advanced)
     // 3. Chatbot Logic (Advanced)
-    @org.springframework.beans.factory.annotation.Value("${groq.api.key}")
+    @org.springframework.beans.factory.annotation.Value("${groq.api.key:}")
     private String groqApiKey;
 
     private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
@@ -78,6 +78,7 @@ public class AIService {
     // 3. Chatbot Logic (Advanced)
     // 3. Chatbot Logic (Advanced)
     // 3. Chatbot Logic (Advanced)
+    @SuppressWarnings({ "null", "unchecked" })
     public String getChatResponse(String message) {
         if (groqApiKey == null || groqApiKey.isBlank() || groqApiKey.startsWith("${")) {
             return getManualResponse(message);
@@ -101,8 +102,14 @@ public class AIService {
             org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(
                     body, headers);
 
-            org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.postForEntity(url, entity,
-                    java.util.Map.class);
+            org.springframework.core.ParameterizedTypeReference<java.util.Map<String, Object>> responseType = new org.springframework.core.ParameterizedTypeReference<>() {
+            };
+
+            org.springframework.http.ResponseEntity<java.util.Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    java.util.Objects.requireNonNull(org.springframework.http.HttpMethod.POST),
+                    entity,
+                    responseType);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 java.util.List<java.util.Map<String, Object>> choices = (java.util.List<java.util.Map<String, Object>>) response
