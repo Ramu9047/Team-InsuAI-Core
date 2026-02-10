@@ -168,27 +168,66 @@ export default function MyBookings() {
               )}
 
               {activeTab === 'upcoming' && (['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status)) && (
-                <div style={{ display: "flex", gap: 10, marginTop: "auto", borderTop: "1px solid var(--glass-border)", paddingTop: 15 }}>
-                  <button
-                    onClick={() => cancelBooking(b.id)}
-                    style={{
-                      flex: 1,
-                      background: "transparent", border: "1px solid #ef4444",
-                      color: "#ef4444", padding: "8px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => reschedule(b.id)}
-                    style={{
-                      flex: 1,
-                      background: "var(--primary)", border: "none",
-                      color: "white", padding: "8px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500
-                    }}
-                  >
-                    Reschedule
-                  </button>
+                <div style={{ marginTop: "auto", borderTop: "1px solid var(--glass-border)", paddingTop: 15 }}>
+                  {b.meetingLink && (b.status === 'APPROVED' || b.status === 'CONFIRMED') && (
+                    <div style={{ marginBottom: 10 }}>
+                      <a
+                        href={createCalendarLink(b)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "block",
+                          textAlign: "center",
+                          width: "100%",
+                          marginBottom: 5,
+                          fontSize: "0.85rem",
+                          color: "var(--text-muted)",
+                          textDecoration: "underline"
+                        }}
+                      >
+                        📅 Add to Google Calendar
+                      </a>
+                      <a
+                        href={b.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="primary-btn"
+                        style={{
+                          display: "block",
+                          textAlign: "center",
+                          width: "100%",
+                          background: "#22c55e",
+                          borderColor: "#22c55e",
+                          textDecoration: "none"
+                        }}
+                      >
+                        🎥 Join Google Meet
+                      </a>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                      onClick={() => cancelBooking(b.id)}
+                      style={{
+                        flex: 1,
+                        background: "transparent", border: "1px solid #ef4444",
+                        color: "#ef4444", padding: "8px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => reschedule(b.id)}
+                      style={{
+                        flex: 1,
+                        background: "var(--primary)", border: "none",
+                        color: "white", padding: "8px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500
+                      }}
+                    >
+                      Reschedule
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -205,3 +244,15 @@ function getColor(status) {
   if (status === 'COMPLETED') return '#6366f1';
   return '#ef4444';
 }
+
+function createCalendarLink(booking) {
+  const start = new Date(booking.startTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const end = new Date(booking.endTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
+
+  const title = encodeURIComponent(`Consultation with ${booking.agent.name}`);
+  const details = encodeURIComponent(`Insurance consultation regarding policy #${booking.policy?.id || 'N/A'}.\n\nJoin Meeting: ${booking.meetingLink || 'Link pending'}`);
+  const location = encodeURIComponent("Google Meet");
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+}
+

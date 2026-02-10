@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import Modal from "../components/Modal";
 
 export default function AgentGovernance() {
     const [agents, setAgents] = useState([]);
@@ -10,11 +11,13 @@ export default function AgentGovernance() {
     const [filter, setFilter] = useState('all'); // all, active, inactive
     const { notify } = useNotification();
 
-    useEffect(() => {
-        fetchAgents();
-    }, []);
+    // Deactivation Modal State
+    const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+    const [agentToDeactivate, setAgentToDeactivate] = useState(null);
+    const [deactivateReason, setDeactivateReason] = useState("");
+    const [processingId, setProcessingId] = useState(null);
 
-    const fetchAgents = () => {
+    const fetchAgents = useCallback(() => {
         setLoading(true);
         api.get('/admin/agents/governance')
             .then(r => {
@@ -26,6 +29,61 @@ export default function AgentGovernance() {
                 notify("Failed to load agents", "error");
                 setLoading(false);
             });
+    }, [notify]);
+
+    useEffect(() => {
+        fetchAgents();
+    }, [fetchAgents]);
+
+    const handleToggleStatus = async (agent) => {
+        if (agent.isActive) {
+            // Deactivating - Open Modal
+            setAgentToDeactivate(agent);
+            setDeactivateReason("");
+            setIsDeactivateModalOpen(true);
+        } else {
+            // Activating - Do directly
+            setProcessingId(agent.agentId);
+            try {
+                await api.put(`/admin/agents/${agent.agentId}/status`, {
+                    isActive: true,
+                    reason: null
+                });
+                notify(`Agent activated successfully`, "success");
+                fetchAgents();
+            } catch (err) {
+                console.error(err);
+                notify("Failed to activate agent", "error");
+            } finally {
+                setProcessingId(null);
+            }
+        }
+    };
+
+    const confirmDeactivation = async () => {
+        if (!deactivateReason.trim()) {
+            notify("Deactivation reason is required", "error");
+            return;
+        }
+
+        const agent = agentToDeactivate;
+        setProcessingId(agent.agentId);
+        setIsDeactivateModalOpen(false);
+
+        try {
+            await api.put(`/admin/agents/${agent.agentId}/status`, {
+                isActive: false,
+                reason: deactivateReason
+            });
+            notify(`Agent deactivated successfully`, "success");
+            fetchAgents();
+        } catch (err) {
+            console.error(err);
+            notify("Failed to deactivate agent", "error");
+        } finally {
+            setProcessingId(null);
+            setAgentToDeactivate(null);
+        }
     };
 
     const filteredAgents = agents.filter(a => {
@@ -95,7 +153,8 @@ export default function AgentGovernance() {
                             agent={agent}
                             index={index}
                             onClick={() => setSelectedAgent(agent)}
-                            onRefresh={fetchAgents}
+                            onToggleStatus={() => handleToggleStatus(agent)}
+                            isProcessing={processingId === agent.agentId}
                         />
                     ))}
                 </div>
@@ -109,6 +168,39 @@ export default function AgentGovernance() {
                     onUpdate={fetchAgents}
                 />
             )}
+
+            {/* Deactivation Confirmation Modal */}
+            <Modal
+                isOpen={isDeactivateModalOpen}
+                onClose={() => setIsDeactivateModalOpen(false)}
+                title="Deactivate Agent"
+                actions={
+                    <>
+                        <button className="secondary-btn" onClick={() => setIsDeactivateModalOpen(false)}>Cancel</button>
+                        <button className="primary-btn" style={{ background: '#ef4444' }} onClick={confirmDeactivation}>
+                            Deactivate
+                        </button>
+                    </>
+                }
+            >
+                <div>
+                    <p style={{ marginBottom: 15 }}>
+                        Are you sure you want to deactivate <strong>{agentToDeactivate?.agentName}</strong>?
+                        They will immediately lose access to the platform.
+                    </p>
+                    <div className="form-group">
+                        <label className="form-label">Reason for Deactivation <span style={{ color: '#ef4444' }}>*</span></label>
+                        <textarea
+                            className="form-input"
+                            rows="3"
+                            value={deactivateReason}
+                            onChange={(e) => setDeactivateReason(e.target.value)}
+                            placeholder="e.g. Compliance violation, contract ended..."
+                            autoFocus
+                        />
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
@@ -146,37 +238,7 @@ function FilterTab({ active, onClick, label, count, color }) {
     );
 }
 
-function AgentCard({ agent, index, onClick, onRefresh }) {
-    const { notify } = useNotification();
-    const [toggling, setToggling] = useState(false);
-
-    const handleToggleStatus = async (e) => {
-        e.stopPropagation();
-
-        const newStatus = !agent.isActive;
-        const reason = newStatus ? null : prompt("Reason for deactivation:");
-
-        if (!newStatus && !reason) {
-            notify("Deactivation reason is required", "error");
-            return;
-        }
-
-        setToggling(true);
-        try {
-            await api.put(`/admin/agents/${agent.agentId}/status`, {
-                isActive: newStatus,
-                reason: reason
-            });
-            notify(`Agent ${newStatus ? 'activated' : 'deactivated'} successfully`, "success");
-            onRefresh();
-        } catch (err) {
-            console.error(err);
-            notify("Failed to update agent status", "error");
-        } finally {
-            setToggling(false);
-        }
-    };
-
+function AgentCard({ agent, index, onClick, onToggleStatus, isProcessing }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -298,8 +360,11 @@ function AgentCard({ agent, index, onClick, onRefresh }) {
                     Manage
                 </button>
                 <button
-                    onClick={handleToggleStatus}
-                    disabled={toggling}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleStatus();
+                    }}
+                    disabled={isProcessing}
                     style={{
                         flex: 1,
                         padding: '10px',
@@ -308,10 +373,11 @@ function AgentCard({ agent, index, onClick, onRefresh }) {
                         background: agent.isActive ? '#ef444420' : '#22c55e20',
                         color: agent.isActive ? '#ef4444' : '#22c55e',
                         fontWeight: 600,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        opacity: isProcessing ? 0.7 : 1
                     }}
                 >
-                    {toggling ? 'Processing...' : agent.isActive ? 'Deactivate' : 'Activate'}
+                    {isProcessing ? 'Processing...' : agent.isActive ? 'Deactivate' : 'Activate'}
                 </button>
             </div>
         </motion.div>

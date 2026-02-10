@@ -1,5 +1,11 @@
 $ErrorActionPreference = "Stop"
 
+# --- EMAIL CONFIGURATION (Option A) ---
+# Replace with your actual Gmail address and App Password
+$env:MAIL_USER = "raamukutty2004@gmail.com"
+$env:MAIL_PASS = "jbzp czbt zoau rvql"
+# --------------------------------------
+
 # Load environment variables from .env file
 if (Test-Path .env) {
     Write-Host "Loading .env file..." -ForegroundColor Green

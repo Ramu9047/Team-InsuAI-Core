@@ -413,8 +413,8 @@ export default function AgentDashboard() {
                                             borderRadius: 12,
                                             fontSize: '0.7rem',
                                             fontWeight: 700,
-                                            background: appt.status === 'CONFIRMED' ? '#dcfce7' : '#fef9c3',
-                                            color: appt.status === 'CONFIRMED' ? '#15803d' : '#854d0e'
+                                            background: appt.status === 'CONFIRMED' || appt.status === 'APPROVED' ? '#dcfce7' : '#fef9c3',
+                                            color: appt.status === 'CONFIRMED' || appt.status === 'APPROVED' ? '#15803d' : '#854d0e'
                                         }}>
                                             {appt.status}
                                         </div>
@@ -425,6 +425,28 @@ export default function AgentDashboard() {
                                     {appt.policy && (
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 5 }}>
                                             📋 {appt.policy.name}
+                                        </div>
+                                    )}
+                                    {appt.meetingLink && (
+                                        <div style={{ marginTop: 10 }}>
+                                            <a
+                                                href={appt.meetingLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="primary-btn"
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{
+                                                    display: 'block',
+                                                    textAlign: 'center',
+                                                    fontSize: '0.8rem',
+                                                    padding: '6px',
+                                                    background: '#22c55e',
+                                                    borderColor: '#22c55e',
+                                                    textDecoration: 'none'
+                                                }}
+                                            >
+                                                🎥 Join Google Meet
+                                            </a>
                                         </div>
                                     )}
                                 </motion.div>
@@ -485,11 +507,12 @@ export default function AgentDashboard() {
                         </div>
                     )}
                 </motion.div>
-            </div>
+            </div >
 
             {/* Quick Actions */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
+            < motion.div
+                initial={{ opacity: 0, y: 20 }
+                }
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
                 style={{ marginTop: 30 }}
@@ -509,7 +532,7 @@ export default function AgentDashboard() {
                         🛡️ Browse Policies
                     </button>
                 </div>
-            </motion.div>
-        </div>
+            </motion.div >
+        </div >
     );
 }

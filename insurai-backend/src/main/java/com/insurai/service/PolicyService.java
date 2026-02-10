@@ -35,6 +35,33 @@ public class PolicyService {
         return policyRepo.save(policy);
     }
 
+    public Policy update(Long id, Policy updates) {
+        return policyRepo.findById(java.util.Objects.requireNonNull(id)).map(policy -> {
+            policy.setName(updates.getName());
+            policy.setCategory(updates.getCategory());
+            policy.setType(updates.getType());
+            policy.setDescription(updates.getDescription());
+            policy.setPremium(updates.getPremium());
+            policy.setCoverage(updates.getCoverage());
+            policy.setDocumentUrl(updates.getDocumentUrl());
+            policy.setClaimSettlementRatio(updates.getClaimSettlementRatio());
+            policy.setExclusions(updates.getExclusions());
+            policy.setWarnings(updates.getWarnings());
+            policy.setMinAge(updates.getMinAge());
+            policy.setMaxAge(updates.getMaxAge());
+            policy.setMinIncome(updates.getMinIncome());
+            policy.setTenure(updates.getTenure());
+            return policyRepo.save(policy);
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
+    }
+
+    public void delete(Long id) {
+        if (!policyRepo.existsById(java.util.Objects.requireNonNull(id))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found");
+        }
+        policyRepo.deleteById(id);
+    }
+
     public UserPolicy buyPolicy(@org.springframework.lang.NonNull Long policyId,
             @org.springframework.lang.NonNull Long userId) {
         Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))

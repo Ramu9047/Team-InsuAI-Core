@@ -29,6 +29,18 @@ public class PolicyController {
         return policyService.create(java.util.Objects.requireNonNull(policy));
     }
 
+    @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public Policy update(@PathVariable Long id, @RequestBody Policy policy) {
+        return policyService.update(java.util.Objects.requireNonNull(id), java.util.Objects.requireNonNull(policy));
+    }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public void delete(@PathVariable Long id) {
+        policyService.delete(java.util.Objects.requireNonNull(id));
+    }
+
     @PostMapping("/{policyId}/buy/{userId}")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('USER')")
     public UserPolicy buyPolicy(@PathVariable Long policyId, @PathVariable Long userId) {

@@ -23,12 +23,15 @@ public class BookingLifecycleService {
 
     private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     public BookingLifecycleService(
             BookingRepository bookingRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     /**
@@ -49,10 +52,18 @@ public class BookingLifecycleService {
         Booking saved = bookingRepository.save(booking);
 
         // Notify user
+        String message = "Your consultation has been confirmed for " + appointmentTime.toString();
         notificationService.createNotification(
                 booking.getUser(),
-                "Your consultation has been confirmed for " + appointmentTime.toString(),
+                message,
                 "SUCCESS");
+
+        // Send Email
+        try {
+            emailService.send(booking.getUser().getEmail(), "Booking Confirmed - InsurAI", message);
+        } catch (Exception e) {
+            logger.error("Failed to send email", e);
+        }
 
         logger.info("Booking {} transitioned: PENDING → CONFIRMED by agent {}", bookingId, agentId);
         return saved;
@@ -78,10 +89,18 @@ public class BookingLifecycleService {
         Booking saved = bookingRepository.save(booking);
 
         // Notify user
+        String message = "Your consultation has been completed. The agent will review your application.";
         notificationService.createNotification(
                 booking.getUser(),
-                "Your consultation has been completed. The agent will review your application.",
+                message,
                 "INFO");
+
+        // Send Email
+        try {
+            emailService.send(booking.getUser().getEmail(), "Consultation Completed - InsurAI", message);
+        } catch (Exception e) {
+            logger.error("Failed to send email", e);
+        }
 
         logger.info("Booking {} transitioned: CONFIRMED → COMPLETED", bookingId);
         return saved;
@@ -107,10 +126,18 @@ public class BookingLifecycleService {
         Booking saved = bookingRepository.save(booking);
 
         // Notify user
+        String message = "Congratulations! Your policy has been issued and is now active.";
         notificationService.createNotification(
                 booking.getUser(),
-                "Congratulations! Your policy has been issued and is now active.",
+                message,
                 "SUCCESS");
+
+        // Send Email
+        try {
+            emailService.send(booking.getUser().getEmail(), "Policy Issued - InsurAI", message);
+        } catch (Exception e) {
+            logger.error("Failed to send email", e);
+        }
 
         logger.info("Booking {} transitioned: {} → POLICY_ISSUED",
                 bookingId, booking.getStatus());
@@ -134,10 +161,18 @@ public class BookingLifecycleService {
         Booking saved = bookingRepository.save(booking);
 
         // Notify user
+        String message = "Your application has been rejected. Reason: " + rejectionReason;
         notificationService.createNotification(
                 booking.getUser(),
-                "Your application has been rejected. Reason: " + rejectionReason,
+                message,
                 "WARNING");
+
+        // Send Email
+        try {
+            emailService.send(booking.getUser().getEmail(), "Application Update - InsurAI", message);
+        } catch (Exception e) {
+            logger.error("Failed to send email", e);
+        }
 
         logger.info("Booking {} transitioned: {} → REJECTED", bookingId, previousStatus);
         return saved;

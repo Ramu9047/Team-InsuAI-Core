@@ -49,6 +49,28 @@ public class UserController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}/admin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> adminUpdateUser(@PathVariable Long id, @RequestBody User updates) {
+        return userRepo.findById(java.util.Objects.requireNonNull(id)).map(user -> {
+            if (updates.getName() != null)
+                user.setName(updates.getName());
+            if (updates.getEmail() != null)
+                user.setEmail(updates.getEmail());
+            if (updates.getRole() != null)
+                user.setRole(updates.getRole());
+            if (updates.getIsActive() != null)
+                user.setIsActive(updates.getIsActive());
+
+            // Also allow updating standard fields
+            if (updates.getPhone() != null)
+                user.setPhone(updates.getPhone());
+            // ... can add others if needed
+
+            return ResponseEntity.ok(userRepo.save(java.util.Objects.requireNonNull(user)));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProfile(@PathVariable Long id) {
         return userRepo.findById(java.util.Objects.requireNonNull(id))

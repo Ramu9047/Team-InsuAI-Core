@@ -86,23 +86,28 @@ export default function ParticleHero() {
                     this.y -= directionY;
                     this.color = colors.pink; // Change to neon pink on hover
                 } else {
-                    this.angle += 0.05;
-                    let motionX = Math.cos(this.angle) * 2;
-                    let motionY = Math.sin(this.angle) * 2;
+                    // "Visible Motion" state
+                    // Increase angle speed for more energy
+                    this.angle += 0.1;
 
+                    // Create a "breathing" or "shimmer" effect with larger amplitude
+                    // Use sin/cos for circular motion around the base position
+                    let motionX = Math.cos(this.angle) * 3;
+                    let motionY = Math.sin(this.angle) * 3;
+
+                    // Apply the motion offset to the target
                     let targetX = this.baseX + motionX;
                     let targetY = this.baseY + motionY;
 
-                    if (this.x !== targetX) {
-                        let reqDx = this.x - targetX;
-                        if (Math.abs(reqDx) < 0.1) this.x = targetX;
-                        else this.x -= reqDx / 2;
-                    }
-                    if (this.y !== targetY) {
-                        let reqDy = this.y - targetY;
-                        if (Math.abs(reqDy) < 0.1) this.y = targetY;
-                        else this.y -= reqDy / 2;
-                    }
+                    // Since targetX/Y are constantly moving in a circle, we can just smoothly follow them
+                    // Or snapping to them creates the orbit
+                    let reqDx = this.x - targetX;
+                    let reqDy = this.y - targetY;
+
+                    // Relaxed ease-out for smoother "float" feel
+                    this.x -= reqDx / 10;
+                    this.y -= reqDy / 10;
+
                     this.color = this.baseColor; // Return to variable base color
                 }
             }

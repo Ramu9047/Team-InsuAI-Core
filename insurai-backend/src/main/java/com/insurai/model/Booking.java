@@ -171,4 +171,14 @@ public class Booking {
     public void setAdminNotes(String adminNotes) {
         this.adminNotes = adminNotes;
     }
+
+    private String meetingLink;
+
+    public String getMeetingLink() {
+        return meetingLink;
+    }
+
+    public void setMeetingLink(String meetingLink) {
+        this.meetingLink = meetingLink;
+    }
 }

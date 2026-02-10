@@ -65,13 +65,15 @@ export default function AdminDashboardEnterprise() {
             setLoading(true);
 
             // Fetch all data in parallel
-            const [analyticsData, dashboardStatsRes] = await Promise.all([
+            const [analyticsData, dashboardStatsRes, plansRes] = await Promise.all([
                 analyticsService.getAllData(),
-                api.get('/admin/dashboard-stats').catch(e => null)
+                api.get('/admin/dashboard-stats').catch(e => null),
+                api.get('/policies').catch(e => ({ data: [] }))
             ]);
 
             const { users, agents, bookings, issuedPolicies } = analyticsData;
             const dashboardStats = dashboardStatsRes ? dashboardStatsRes.data : null;
+            const totalPlans = plansRes ? plansRes.data.length : 0;
 
             // Calculate SLA Items (Fallback to local calc if backend fails, or override)
             if (dashboardStats && dashboardStats.slaMetrics) {
@@ -105,7 +107,8 @@ export default function AdminDashboardEnterprise() {
                 totalUsers,
                 totalAgents,
                 policiesIssued,
-                fraudAlerts
+                fraudAlerts,
+                totalPlans
             });
 
             // Conversion Funnel
@@ -449,6 +452,7 @@ export default function AdminDashboardEnterprise() {
                     { icon: '👥', title: 'Total Users', value: metrics.totalUsers, color: '#3b82f6', trend: '+12%', link: '/admin/users' },
                     { icon: '🧑‍💼', title: 'Agents', value: metrics.totalAgents, color: '#8b5cf6', trend: '+3', link: '/admin/agents' },
                     { icon: '📄', title: 'Policies Issued', value: metrics.policiesIssued, color: '#10b981', trend: '+8%', link: '/admin/policies' },
+                    { icon: '🛡️', title: 'Manage Plans', value: metrics.totalPlans || 0, color: '#ec4899', trend: 'Edit', link: '/admin/plans' },
                     { icon: '⚠️', title: 'Fraud Alerts', value: metrics.fraudAlerts, color: '#ef4444', trend: '-2', link: '/admin/exceptions' }
                 ].map((metric, idx) => (
                     <motion.div

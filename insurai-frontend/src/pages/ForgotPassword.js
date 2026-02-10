@@ -9,8 +9,8 @@ export default function ForgotPassword() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.get(`/auth/forgot?email=${email}`);
-            setMsg("✅ Reset link sent! Check your email.");
+            const res = await api.get(`/auth/forgot?email=${email}`);
+            setMsg("✅ " + (typeof res.data === 'string' ? res.data : "Reset link sent! Check your email."));
         } catch (err) {
             setMsg("❌ Failed: " + (err.response?.data || "User not found"));
         }
@@ -19,7 +19,20 @@ export default function ForgotPassword() {
     return (
         <div style={{ maxWidth: 400, margin: "50px auto", padding: 30 }} className="card">
             <h2 style={{ textAlign: "center" }}>Reset Password</h2>
-            {msg && <p style={{ textAlign: "center", fontWeight: "bold" }}>{msg}</p>}
+            {msg && (
+                <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: 15 }}>
+                    {msg.includes("http") ? (
+                        <>
+                            <p>{msg.split("http")[0]}</p>
+                            <a href={`http${msg.split("http")[1]}`} style={{ color: "var(--primary)", textDecoration: "underline" }}>
+                                Click here to reset password
+                            </a>
+                        </>
+                    ) : (
+                        msg
+                    )}
+                </div>
+            )}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                 <input
                     type="email"

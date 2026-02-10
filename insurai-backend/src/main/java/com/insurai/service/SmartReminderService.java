@@ -143,6 +143,9 @@ public class SmartReminderService {
         smartReminderRepository.save(reminder);
     }
 
+    @Autowired
+    private EmailService emailService;
+
     /**
      * Scheduled task to process due reminders
      * Runs every hour
@@ -153,8 +156,17 @@ public class SmartReminderService {
                 .findBySentFalseAndReminderTimeBefore(LocalDateTime.now());
 
         for (SmartReminder reminder : dueReminders) {
-            // Here you would integrate with notification service (email, SMS, push)
+            // Integrate with notification service (email, SMS, push)
             System.out.println("Sending reminder: " + reminder.getTitle() + " to user: " + reminder.getUser().getId());
+
+            try {
+                emailService.send(
+                        reminder.getUser().getEmail(),
+                        reminder.getTitle(),
+                        reminder.getMessage() + "\n\nAction: " + reminder.getActionLabel());
+            } catch (Exception e) {
+                System.err.println("Failed to send email reminder: " + e.getMessage());
+            }
 
             // Mark as sent
             markAsSent(reminder.getId());

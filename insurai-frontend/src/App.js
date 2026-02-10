@@ -23,6 +23,7 @@ import AgentGovernance from "./pages/AgentGovernance";
 import ExceptionHandling from "./pages/ExceptionHandling";
 import AdminUsers from './pages/AdminUsers';
 import AdminPolicies from './pages/AdminPolicies';
+import AdminPlans from './pages/AdminPlans';
 import Notifications from './pages/Notifications';
 
 import ForgotPassword from "./pages/ForgotPassword";
@@ -85,6 +86,7 @@ export default function App() {
                   <Route path="/admin/exceptions" element={<ExceptionHandling />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/policies" element={<AdminPolicies />} />
+                  <Route path="/admin/plans" element={<AdminPlans />} />
 
                   <Route path="/my-consultations" element={<PolicyWorkflowPage />} />
                 </Route>

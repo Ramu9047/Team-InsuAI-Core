@@ -86,11 +86,12 @@ public class AuthController {
         String link = "http://localhost:3000/reset-password?token=" + token;
         try {
             emailService.send(email, "Reset Your Password", "Click here to reset: " + link);
+            return ResponseEntity.ok("Reset link sent to email.");
         } catch (Exception e) {
             System.err.println("Email failed: " + e.getMessage());
+            // For dev/demo only: Return link if email fails
+            return ResponseEntity.ok("Email failed. Dev Link: " + link);
         }
-
-        return ResponseEntity.ok("Reset link sent to email (Check console if no SMTP)");
     }
 
     @PostMapping("/reset")

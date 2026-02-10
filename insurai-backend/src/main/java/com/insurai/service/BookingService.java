@@ -21,16 +21,20 @@ public class BookingService {
     private final PolicyRepository policyRepo;
     private final AIService aiService;
     private final AuditService auditService;
+    private final EmailService emailService;
+    private final GoogleCalendarService calendarService;
 
     public BookingService(BookingRepository bookingRepo, UserRepository userRepo,
             NotificationService notificationService, PolicyRepository policyRepo, AIService aiService,
-            AuditService auditService) {
+            AuditService auditService, EmailService emailService, GoogleCalendarService calendarService) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.notificationService = notificationService;
         this.policyRepo = policyRepo;
         this.aiService = aiService;
         this.auditService = auditService;
+        this.emailService = emailService;
+        this.calendarService = calendarService;
     }
 
     public double predictSuccess(@org.springframework.lang.NonNull Long bookingId) {
@@ -101,11 +105,16 @@ public class BookingService {
         // Audit & Notify
         auditService.log("BOOKING_CREATED: ID " + saved.getId(), userId);
 
+        String message = "New appointment request from " + user.getName() + " for " + startTime.toString();
+
         // Send Persistent Notification to Agent
-        notificationService.createNotification(
-                agent,
-                "New appointment request from " + user.getName() + " for " + startTime.toString(),
-                "INFO");
+        notificationService.createNotification(agent, message, "INFO");
+
+        // Send Email to Agent
+        emailService.send(
+                agent.getEmail(),
+                "New Appointment Request",
+                message + "\nReason: " + reason + "\n\nPlease login to review.");
 
         return saved;
     }
@@ -134,21 +143,41 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot approve an appointment in the past.");
         }
 
+        if ("APPROVED".equals(status) && booking.getMeetingLink() == null) {
+            // Generate Google Meet Link
+            String link = calendarService.createMeeting(
+                    "Consultation: " + booking.getUser().getName(),
+                    "Insurance Policy Discussion",
+                    booking.getStartTime().toString(),
+                    booking.getEndTime().toString(),
+                    booking.getUser().getEmail(),
+                    booking.getAgent().getEmail());
+            booking.setMeetingLink(link);
+        }
+
         booking.setStatus(status);
 
         // Audit & Notify
-        auditService.log("BOOKING_STATUS_UPDATE: ID " + booking.getId() + " to " + status, booking.getUser().getId()); // logging
-                                                                                                                       // under
-                                                                                                                       // user
-                                                                                                                       // ID
-                                                                                                                       // for
-                                                                                                                       // now
+        auditService.log("BOOKING_STATUS_UPDATE: ID " + booking.getId() + " to " + status, booking.getUser().getId());
+
+        String message = "Your appointment status updated to: " + status;
+        if (booking.getMeetingLink() != null && "APPROVED".equals(status)) {
+            message += "\nJoin Link: " + booking.getMeetingLink();
+        }
 
         // Notify user of status change
         notificationService.createNotification(
                 booking.getUser(),
-                "Your appointment status updated to: " + status,
+                message,
                 "APPROVED".equals(status) ? "SUCCESS" : "INFO");
+
+        // Send Email to User
+        emailService.send(
+                booking.getUser().getEmail(),
+                "Appointment Status Update",
+                "Your appointment with " + booking.getAgent().getName() + " has been " + status + ".\n" +
+                        (booking.getMeetingLink() != null ? ("\nGoogle Meet Link: " + booking.getMeetingLink() + "\n")
+                                : ""));
 
         return bookingRepo.save(booking);
     }
@@ -248,10 +277,17 @@ public class BookingService {
         auditService.log("BOOKING_RESCHEDULED: ID " + booking.getId(), booking.getUser().getId());
 
         // Notify Agent
+        String message = "Appointment #" + booking.getId() + " rescheduled by user to " + startTime.toString();
         notificationService.createNotification(
                 booking.getAgent(),
-                "Appointment #" + booking.getId() + " rescheduled by user to " + startTime.toString(),
+                message,
                 "INFO");
+
+        // Send Email to Agent
+        emailService.send(
+                booking.getAgent().getEmail(),
+                "Appointment Rescheduled",
+                message + "\nPlease update your calendar.");
 
         return saved;
     }

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,7 @@ export default function ScheduleAppointment() {
   const { user } = useAuth();
   const { notify } = useNotification();
   const location = useLocation();
+  const navigate = useNavigate();
   const interestedPolicy = location.state?.policy;
   const preSelectedAgent = location.state?.agent;
 
@@ -81,8 +82,8 @@ export default function ScheduleAppointment() {
         notify("Appointment Confirmed! 📅", "success");
       }
 
-      // Reset or redirect
-      setStep(1); setSelectedAgent(null); setSelectedDate("");
+      // Redirect to dashboard
+      navigate("/dashboard");
     } catch (e) {
       if (e.response?.status === 409) {
         setError("Slot already booked. Please pick another.");
