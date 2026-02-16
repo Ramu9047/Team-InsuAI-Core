@@ -66,6 +66,10 @@ export default function Sidebar() {
             ⚠️ Claims
           </NavLink>
 
+          <NavLink to="/feedback" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            💬 Feedback
+          </NavLink>
+
           {/* New Upgrade/Renew Link for Sales */}
           <NavLink to="/plans" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             ⭐ Upgrade Plan

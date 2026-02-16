@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// Main Dashboard Component
 import { useAuth } from "../context/AuthContext";
 import UserDashboard from "./UserDashboard";
 import AgentDashboardAdvanced from "./AgentDashboardAdvanced";
@@ -7,7 +6,6 @@ import AdminDashboardEnterprise from "./AdminDashboardEnterprise";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   if (!user) return null;
 

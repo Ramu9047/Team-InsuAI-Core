@@ -16,4 +16,8 @@ public interface UserPolicyRepository extends JpaRepository<UserPolicy, Long> {
     long countByUserId(Long userId);
 
     long countByUserIdAndStatus(Long userId, String status);
+
+    List<UserPolicy> findByUserIdAndPolicyId(Long userId, Long policyId);
+
+    List<UserPolicy> findByPolicyCompanyId(Long companyId);
 }

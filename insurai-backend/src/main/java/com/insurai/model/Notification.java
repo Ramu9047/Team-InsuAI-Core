@@ -11,8 +11,12 @@ public class Notification {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // The recipient
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user; // The recipient (User)
+
+    @ManyToOne
+    @JoinColumn(name = "company_id", nullable = true)
+    private Company company; // The recipient (Company)
 
     @Column(nullable = false)
     private String message;
@@ -49,6 +53,14 @@ public class Notification {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public String getMessage() {

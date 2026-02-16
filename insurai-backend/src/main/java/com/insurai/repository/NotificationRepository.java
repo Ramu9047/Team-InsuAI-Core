@@ -10,4 +10,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // Find all notifications for a user (optional history)
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<Notification> findByCompanyIdAndIsReadFalseOrderByCreatedAtDesc(Long companyId);
 }

@@ -22,6 +22,10 @@ public class NotificationService {
         return notificationRepo.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }
 
+    public List<Notification> getUnreadNotificationsForCompany(Long companyId) {
+        return notificationRepo.findByCompanyIdAndIsReadFalseOrderByCreatedAtDesc(companyId);
+    }
+
     public void markAsRead(Long notificationId) {
         notificationRepo.findById(java.util.Objects.requireNonNull(notificationId)).ifPresent(n -> {
             n.setRead(true);

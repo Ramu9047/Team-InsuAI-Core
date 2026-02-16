@@ -15,6 +15,7 @@ export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' | 'history'
 
   const [modal, setModal] = useState({ isOpen: false, title: "", content: "", onConfirm: null });
+  const [reviewModal, setReviewModal] = useState({ isOpen: false, bookingId: null, agentId: null, rating: 5, feedback: "" });
 
   const fetchBookings = useCallback(() => {
     if (!user) return;
@@ -53,9 +54,43 @@ export default function MyBookings() {
   };
 
   const reschedule = async (id) => {
-    // Just redirect, let the final confirm step handle the API call
     const booking = list.find(b => b.id === id);
-    navigate("/schedule", { state: { policy: booking.policy, agent: booking.agent, rescheduleId: booking.id } });
+    if (booking) {
+      navigate("/schedule", { state: { policy: booking.policy, agent: booking.agent, rescheduleId: booking.id } });
+    }
+  };
+
+  const openReviewModal = (booking) => {
+    setReviewModal({
+      isOpen: true,
+      bookingId: booking.id,
+      agentId: booking.agent.id,
+      rating: 5,
+      feedback: ""
+    });
+  };
+
+  const submitReview = async () => {
+    if (!reviewModal.feedback.trim()) {
+      notify("Please provide some feedback text.", "error");
+      return;
+    }
+    try {
+      await api.post(`/agents/${reviewModal.agentId}/reviews`, {
+        bookingId: reviewModal.bookingId,
+        rating: reviewModal.rating,
+        feedback: reviewModal.feedback
+      });
+      notify("Review submitted successfully!", "success");
+      setReviewModal({ ...reviewModal, isOpen: false });
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.status === 409) {
+        notify("You have already reviewed this booking.", "warning");
+      } else {
+        notify("Failed to submit review.", "error");
+      }
+    }
   };
 
   if (loading) return <div style={{ textAlign: "center", marginTop: 50 }}>Loading appointments...</div>;
@@ -95,6 +130,7 @@ export default function MyBookings() {
 
   return (
     <div>
+      {/* Confirmation Modal */}
       <Modal
         isOpen={modal.isOpen}
         onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
@@ -109,6 +145,57 @@ export default function MyBookings() {
         {modal.content}
       </Modal>
 
+      {/* Review Modal */}
+      <Modal
+        isOpen={reviewModal.isOpen}
+        onClose={() => setReviewModal({ ...reviewModal, isOpen: false })}
+        title="Rate Your Agent"
+        actions={
+          <>
+            <button className="secondary-btn" onClick={() => setReviewModal({ ...reviewModal, isOpen: false })}>Cancel</button>
+            <button className="primary-btn" onClick={submitReview}>Submit Review</button>
+          </>
+        }
+      >
+        <div style={{ padding: 10 }}>
+          <div style={{ marginBottom: 15 }}>
+            <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>Rating</label>
+            <div style={{ display: 'flex', gap: 5 }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <span
+                  key={star}
+                  onClick={() => setReviewModal({ ...reviewModal, rating: star })}
+                  style={{
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: star <= reviewModal.rating ? '#f59e0b' : '#374151'
+                  }}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>Feedback</label>
+            <textarea
+              value={reviewModal.feedback}
+              onChange={e => setReviewModal({ ...reviewModal, feedback: e.target.value })}
+              style={{
+                width: '100%',
+                minHeight: 80,
+                padding: 10,
+                borderRadius: 6,
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-main)'
+              }}
+              placeholder="Share your experience (e.g., helpful, knowledgeable)..."
+            />
+          </div>
+        </div>
+      </Modal>
+
       <div className="breadcrumbs">
         <Link to="/">Home</Link>
         <span>/</span>
@@ -116,7 +203,10 @@ export default function MyBookings() {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
         <h1 className="text-gradient" style={{ margin: 0 }}>My Appointments</h1>
-        <button onClick={() => navigate("/schedule")} className="primary-btn">+ New Booking</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => navigate("/feedback")} className="secondary-btn">💬 Give App Feedback</button>
+          <button onClick={() => navigate("/schedule")} className="primary-btn">+ New Booking</button>
+        </div>
       </div>
 
       <div style={{ marginBottom: 20, borderBottom: "1px solid var(--card-border)" }}>
@@ -230,6 +320,26 @@ export default function MyBookings() {
                   </div>
                 </div>
               )}
+
+              {activeTab === 'history' && b.status === 'COMPLETED' && (
+                <div style={{ marginTop: "auto", paddingTop: 15, borderTop: "1px solid var(--glass-border)" }}>
+                  <button
+                    onClick={() => openReviewModal(b)}
+                    style={{
+                      width: '100%',
+                      padding: 8,
+                      background: 'var(--primary)',
+                      border: 'none',
+                      color: 'white',
+                      borderRadius: 6,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ★ Rate Agent
+                  </button>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -255,4 +365,3 @@ function createCalendarLink(booking) {
 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
 }
-

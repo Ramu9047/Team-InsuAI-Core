@@ -14,6 +14,7 @@ public class Claim {
     private User user;
 
     private String policyName;
+    private String claimType; // HEALTH, ACCIDENT, DEATH, PROPERTY_DAMAGE, etc.
     private String description;
     private Double amount;
     private String status; // INITIATED, DOCS_UPLOADED, UNDER_REVIEW, APPROVED, REJECTED
@@ -136,6 +137,14 @@ public class Claim {
 
     public void setDocsUploadedAt(LocalDateTime t) {
         this.docsUploadedAt = t;
+    }
+
+    public String getClaimType() {
+        return claimType;
+    }
+
+    public void setClaimType(String claimType) {
+        this.claimType = claimType;
     }
 
     private String proofUrl;

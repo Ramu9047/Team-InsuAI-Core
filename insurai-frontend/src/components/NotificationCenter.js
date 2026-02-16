@@ -13,14 +13,13 @@ export default function NotificationCenter({ userRole }) {
         const loadNotifications = async () => {
             try {
                 const notifs = await notificationService.getNotifications(userRole);
-                const data = notifs || notificationService.generateMockNotifications(userRole);
+                const data = notifs || [];
                 setNotifications(data);
                 setUnreadCount(data.filter(n => !n.read).length); // Recalculate unread from fresh data
             } catch (err) {
-                // Fallback to mock data
-                const mockNotifs = notificationService.generateMockNotifications(userRole);
-                setNotifications(mockNotifs);
-                setUnreadCount(mockNotifs.filter(n => !n.read).length);
+                console.error("Failed to load notifications", err);
+                setNotifications([]);
+                setUnreadCount(0);
             }
         };
 
@@ -34,7 +33,7 @@ export default function NotificationCenter({ userRole }) {
         try {
             await notificationService.markAsRead(notificationId);
         } catch (err) {
-            console.log('Mock: Marking notification as read');
+            console.error('Failed to mark notification as read');
         }
 
         setNotifications(prev => {
@@ -56,7 +55,7 @@ export default function NotificationCenter({ userRole }) {
         try {
             await notificationService.markAllAsRead();
         } catch (error) {
-            console.log('Mock: Marking all as read');
+            console.error('Failed to mark all as read');
         }
 
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -149,6 +148,7 @@ export default function NotificationCenter({ userRole }) {
                     <>
                         {/* Backdrop */}
                         <div
+                            key="backdrop"
                             onClick={() => setIsOpen(false)}
                             style={{
                                 position: 'fixed',
@@ -162,6 +162,7 @@ export default function NotificationCenter({ userRole }) {
 
                         {/* Panel */}
                         <motion.div
+                            key="panel"
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}

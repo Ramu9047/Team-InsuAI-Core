@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
@@ -8,10 +8,9 @@ import { useNotification } from "../context/NotificationContext";
 export default function PlansEnhanced() {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState("All");
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
-    
+
     // Filter state
     const [filters, setFilters] = useState({
         maxPremium: '',
@@ -24,6 +23,34 @@ export default function PlansEnhanced() {
     const { user } = useAuth();
     const { notify } = useNotification();
     const navigate = useNavigate();
+
+    // Fetch AI recommendations on mount
+
+
+    const fetchRecommendations = useCallback(() => {
+        setLoading(true);
+        api.get(`/policies/recommendations/${user.id}`)
+            .then(r => {
+                const normalized = r.data.map(rec => ({
+                    ...rec,
+                    policy: rec.policy || {
+                        id: rec.policyId,
+                        name: rec.policyName,
+                        type: rec.type,
+                        category: rec.category,
+                        premium: rec.premium,
+                        coverage: rec.coverage,
+                        description: rec.recommendationReason || rec.matchReason || ""
+                    }
+                }));
+                setRecommendations(normalized);
+            })
+            .catch(err => {
+                console.error(err);
+                notify("Failed to load recommendations", "error");
+            })
+            .finally(() => setLoading(false));
+    }, [user, notify]);
 
     // Fetch AI recommendations on mount
     useEffect(() => {
@@ -44,18 +71,7 @@ export default function PlansEnhanced() {
                 .catch(console.error)
                 .finally(() => setLoading(false));
         }
-    }, [user]);
-
-    const fetchRecommendations = () => {
-        setLoading(true);
-        api.get(`/policies/recommendations/${user.id}`)
-            .then(r => setRecommendations(r.data))
-            .catch(err => {
-                console.error(err);
-                notify("Failed to load recommendations", "error");
-            })
-            .finally(() => setLoading(false));
-    };
+    }, [user, fetchRecommendations]);
 
     const applyFilters = () => {
         if (!user || user.role !== 'USER') {
@@ -66,7 +82,19 @@ export default function PlansEnhanced() {
         setLoading(true);
         api.post(`/policies/filter/${user.id}`, filters)
             .then(r => {
-                setRecommendations(r.data);
+                const normalized = r.data.map(rec => ({
+                    ...rec,
+                    policy: rec.policy || {
+                        id: rec.policyId,
+                        name: rec.policyName,
+                        type: rec.type,
+                        category: rec.category,
+                        premium: rec.premium,
+                        coverage: rec.coverage,
+                        description: rec.recommendationReason || rec.matchReason || ""
+                    }
+                }));
+                setRecommendations(normalized);
                 setShowFilters(false);
                 notify("Filters applied successfully", "success");
             })
@@ -136,12 +164,12 @@ export default function PlansEnhanced() {
                         Insurance Plans
                     </h1>
                     <p style={{ opacity: 0.8 }}>
-                        {user && user.role === 'USER' 
-                            ? 'AI-powered recommendations based on your profile' 
+                        {user && user.role === 'USER'
+                            ? 'AI-powered recommendations based on your profile'
                             : 'Compare and buy the best insurance plans for your needs'}
                     </p>
                 </div>
-                
+
                 {user && user.role === 'USER' && (
                     <button
                         className="primary-btn"
@@ -165,7 +193,7 @@ export default function PlansEnhanced() {
                         style={{ marginBottom: 30, padding: 20 }}
                     >
                         <h3 style={{ marginTop: 0, marginBottom: 20 }}>Filter Policies</h3>
-                        
+
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 15 }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: 5, fontSize: '0.9rem', fontWeight: 600 }}>
@@ -228,12 +256,12 @@ export default function PlansEnhanced() {
                             <button className="primary-btn" onClick={applyFilters}>
                                 Apply Filters
                             </button>
-                            <button 
+                            <button
                                 onClick={clearFilters}
-                                style={{ 
-                                    padding: '10px 20px', 
-                                    borderRadius: 8, 
-                                    border: '1px solid var(--card-border)', 
+                                style={{
+                                    padding: '10px 20px',
+                                    borderRadius: 8,
+                                    border: '1px solid var(--card-border)',
                                     background: 'transparent',
                                     cursor: 'pointer'
                                 }}
@@ -252,11 +280,11 @@ export default function PlansEnhanced() {
                         <span style={{ fontSize: '2rem' }}>⭐</span>
                         <h2 style={{ fontSize: '1.8rem', margin: 0 }}>Top Picks for You</h2>
                     </div>
-                    
+
                     <div className="grid">
                         {topPicks.map((rec, i) => (
                             <PolicyRecommendationCard
-                                key={rec.policy.id}
+                                key={rec.policy?.id || rec.policyId || i}
                                 recommendation={rec}
                                 index={i}
                                 onSelect={setSelectedPlan}
@@ -274,7 +302,7 @@ export default function PlansEnhanced() {
                 {user && user.role === 'USER' && topPicks.length > 0 && (
                     <h2 style={{ fontSize: '1.6rem', marginBottom: 20 }}>Other Recommendations</h2>
                 )}
-                
+
                 {loading ? (
                     <div className="grid">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -290,7 +318,7 @@ export default function PlansEnhanced() {
                     <div className="grid">
                         {(user && user.role === 'USER' ? otherRecommendations : recommendations).map((rec, i) => (
                             <PolicyRecommendationCard
-                                key={rec.policy?.id || rec.id}
+                                key={rec.policy?.id || rec.policyId || rec.id || i}
                                 recommendation={rec}
                                 index={i}
                                 onSelect={setSelectedPlan}
@@ -315,14 +343,14 @@ export default function PlansEnhanced() {
                         className="card" style={{ width: 500, maxWidth: "90%" }}
                     >
                         <h2 style={{ marginTop: 0 }}>Consult Expert for {selectedPlan.policy?.name || selectedPlan.name}</h2>
-                        
+
                         {selectedPlan.matchScore !== null && selectedPlan.matchScore !== undefined && (
                             <div style={{ marginBottom: 20 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                                     <span style={{ fontWeight: 600 }}>Match Score:</span>
-                                    <span style={{ 
-                                        fontWeight: 700, 
-                                        color: selectedPlan.matchScore >= 70 ? '#22c55e' : selectedPlan.matchScore >= 50 ? '#eab308' : '#ef4444' 
+                                    <span style={{
+                                        fontWeight: 700,
+                                        color: selectedPlan.matchScore >= 70 ? '#22c55e' : selectedPlan.matchScore >= 50 ? '#eab308' : '#ef4444'
                                     }}>
                                         {selectedPlan.matchScore.toFixed(0)}/100
                                     </span>
@@ -330,19 +358,19 @@ export default function PlansEnhanced() {
                                 {selectedPlan.eligibilityStatus && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                                         <span style={{ fontWeight: 600 }}>Eligibility:</span>
-                                        <span style={{ 
-                                            fontWeight: 700, 
-                                            color: getEligibilityColor(selectedPlan.eligibilityStatus) 
+                                        <span style={{
+                                            fontWeight: 700,
+                                            color: getEligibilityColor(selectedPlan.eligibilityStatus)
                                         }}>
                                             {getEligibilityText(selectedPlan.eligibilityStatus)}
                                         </span>
                                     </div>
                                 )}
                                 {selectedPlan.recommendationReason && (
-                                    <p style={{ 
-                                        padding: 10, 
-                                        background: 'rgba(0,0,0,0.05)', 
-                                        borderRadius: 8, 
+                                    <p style={{
+                                        padding: 10,
+                                        background: 'rgba(0,0,0,0.05)',
+                                        borderRadius: 8,
                                         fontSize: '0.9rem',
                                         marginTop: 10
                                     }}>
@@ -351,7 +379,7 @@ export default function PlansEnhanced() {
                                 )}
                             </div>
                         )}
-                        
+
                         <p style={{ opacity: 0.7, marginBottom: 20 }}>
                             Our compliance requires an agent consultation before purchase.
                             Talk to an expert to get the best quote.
@@ -400,8 +428,8 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             className="card policy-card-minimal"
-            style={{ 
-                position: "relative", 
+            style={{
+                position: "relative",
                 overflow: "hidden",
                 border: isTopPick ? `2px solid ${stripeColor}` : undefined,
                 boxShadow: isTopPick ? `0 4px 20px ${stripeColor}40` : undefined
@@ -432,10 +460,10 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
 
             {/* AI Indicators */}
             {hasAIData && (
-                <div style={{ 
-                    display: 'flex', 
-                    gap: 8, 
-                    marginBottom: 15, 
+                <div style={{
+                    display: 'flex',
+                    gap: 8,
+                    marginBottom: 15,
                     paddingLeft: 10,
                     flexWrap: 'wrap'
                 }}>
@@ -506,8 +534,8 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
 
             {/* Description */}
             <p style={{ paddingLeft: 10, fontSize: "0.9rem", opacity: 0.7, lineHeight: 1.6, flex: 1, marginBottom: 20 }}>
-                {(policy.description || "No description available.").length > 80 
-                    ? (policy.description || "").substring(0, 80) + "..." 
+                {(policy.description || "No description available.").length > 80
+                    ? (policy.description || "").substring(0, 80) + "..."
                     : policy.description}
             </p>
 

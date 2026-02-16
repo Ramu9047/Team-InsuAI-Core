@@ -34,6 +34,8 @@ export default function Login() {
       notify(`Welcome back, ${data.user.name}!`, "success");
 
       if (data.user.role === 'ADMIN') navigate('/admin');
+      else if (data.user.role === 'COMPANY') navigate('/company');
+      else if (data.user.role === 'SUPER_ADMIN') navigate('/super-admin');
       else navigate('/dashboard');
 
     } catch (err) {

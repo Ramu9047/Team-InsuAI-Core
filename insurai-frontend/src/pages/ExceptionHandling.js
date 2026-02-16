@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
@@ -13,11 +13,9 @@ export default function ExceptionHandling() {
     const { notify } = useNotification();
     const { user } = useAuth();
 
-    useEffect(() => {
-        fetchCases();
-    }, [filter]);
 
-    const fetchCases = () => {
+
+    const fetchCases = useCallback(() => {
         setLoading(true);
         const endpoint = filter === 'all' ? '/admin/exceptions' : `/admin/exceptions/status/${filter}`;
         api.get(endpoint)
@@ -30,7 +28,11 @@ export default function ExceptionHandling() {
                 notify("Failed to load exception cases", "error");
                 setLoading(false);
             });
-    };
+    }, [filter, notify]);
+
+    useEffect(() => {
+        fetchCases();
+    }, [fetchCases]);
 
     const filteredCases = typeFilter === 'all'
         ? cases

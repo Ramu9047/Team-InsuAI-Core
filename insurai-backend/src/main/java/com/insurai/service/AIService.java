@@ -182,4 +182,47 @@ public class AIService {
 
         return Math.min(chance, 0.95);
     }
+
+    // 5. Rejection Analysis
+    public RejectionAnalysis analyzeRejection(String reason, com.insurai.model.User user,
+            com.insurai.model.Policy policy) {
+        // Mock AI Logic
+        double riskScore = 0.3; // Low risk default
+        StringBuilder explanation = new StringBuilder();
+        java.util.List<PolicyRecommendation> alternatives = new java.util.ArrayList<>();
+
+        // Logic based on reason keywords
+        if (reason.toLowerCase().contains("income")) {
+            riskScore = 0.8;
+            explanation.append("User income (").append(user.getIncome())
+                    .append(") does not meet the policy requirement. ");
+            // Recommend lower premium
+            alternatives
+                    .add(new PolicyRecommendation("Micro-Insurance Starter", "Fits lower income bracket", "95% Match"));
+        } else if (reason.toLowerCase().contains("age")) {
+            riskScore = 0.7;
+            explanation.append("User age (").append(user.getAge()).append(") is outside the eligible range. ");
+            // Recommend age appropriate
+            if (user.getAge() > 50) {
+                alternatives.add(new PolicyRecommendation("Senior Life Secure", "Optimized for seniors", "98% Match"));
+            } else {
+                alternatives.add(new PolicyRecommendation("Digital Nomad Health", "Optimized for youth", "90% Match"));
+            }
+        } else if (reason.toLowerCase().contains("document")) {
+            riskScore = 0.5;
+            explanation.append("Incomplete or unverifiable documentation provided. ");
+            explanation.append("Risk factor: Identity verification failure. ");
+        } else {
+            // Generic
+            explanation.append("Policy criteria not met based on agent assessment. ");
+            alternatives.addAll(recommendPolicies(user.getAge() != null ? user.getAge() : 30,
+                    user.getIncome() != null ? user.getIncome() : 50000, "Unknown"));
+        }
+
+        return new RejectionAnalysis(riskScore, explanation.toString(), alternatives);
+    }
+
+    public record RejectionAnalysis(double riskScore, String explanation,
+            java.util.List<PolicyRecommendation> recommendations) {
+    }
 }

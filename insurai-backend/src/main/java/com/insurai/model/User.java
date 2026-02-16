@@ -44,6 +44,17 @@ public class User {
     private String deactivationReason; // Reason for deactivation (if isActive = false)
     private java.time.LocalDateTime deactivatedAt; // When agent was deactivated
 
+    @OneToOne
+    private Company company; // Linked Company Profile if role is COMPANY
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
     public Double getRating() {
         return rating;
     }

@@ -27,43 +27,97 @@ public class PolicyService {
         this.userRepo = userRepo;
     }
 
-    public List<Policy> getAll() {
-        return policyRepo.findAll();
+    // Role-based retrieval
+    public List<Policy> getAll(String role, long userId) {
+        if ("USER".equals(role)) {
+            // Users see only ACTIVE policies from APPROVED companies
+            return policyRepo.findByStatusAndCompany_Status("ACTIVE", "APPROVED");
+        } else if ("COMPANY".equals(role)) {
+            // Company sees only their own policies
+            // (Assuming User entity links to Company via getCompany())
+            User user = userRepo.findById(userId).orElseThrow();
+            if (user.getCompany() == null)
+                return List.of();
+            return policyRepo.findByCompanyId(user.getCompany().getId());
+        } else {
+            // ADMIN / SUPER_ADMIN see all
+            return policyRepo.findAll();
+        }
     }
 
-    public Policy create(@org.springframework.lang.NonNull Policy policy) {
+    public Policy create(@org.springframework.lang.NonNull Policy policy, User creator) {
+        if ("COMPANY".equals(creator.getRole())) {
+            if (creator.getCompany() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not linked to a company profile.");
+            }
+            if (!"APPROVED".equals(creator.getCompany().getStatus())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Company account is not approved yet.");
+            }
+            policy.setCompany(creator.getCompany());
+            policy.setStatus("ACTIVE"); // Default
+            return policyRepo.save(policy);
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only Insurance Companies can create policies.");
+        }
+    }
+
+    public Policy update(long id, Policy updates, User updater) {
+        Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
+
+        // Auth Check
+        if ("COMPANY".equals(updater.getRole())) {
+            if (policy.getCompany() == null || !policy.getCompany().getId().equals(updater.getCompany().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this policy.");
+            }
+        } else if ("ADMIN".equals(updater.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Admins cannot edit policies. Contact the Company.");
+        } else if (!"SUPER_ADMIN".equals(updater.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized.");
+        }
+
+        policy.setName(updates.getName());
+        policy.setCategory(updates.getCategory());
+        policy.setType(updates.getType());
+        policy.setDescription(updates.getDescription());
+        policy.setPremium(updates.getPremium());
+        policy.setCoverage(updates.getCoverage());
+        policy.setDocumentUrl(updates.getDocumentUrl());
+        policy.setClaimSettlementRatio(updates.getClaimSettlementRatio());
+        policy.setExclusions(updates.getExclusions());
+        policy.setWarnings(updates.getWarnings());
+        policy.setMinAge(updates.getMinAge());
+        policy.setMaxAge(updates.getMaxAge());
+        policy.setMinIncome(updates.getMinIncome());
+        policy.setTenure(updates.getTenure());
+
+        // Status update allowed
+        if (updates.getStatus() != null) {
+            policy.setStatus(updates.getStatus());
+        }
+
         return policyRepo.save(policy);
     }
 
-    public Policy update(Long id, Policy updates) {
-        return policyRepo.findById(java.util.Objects.requireNonNull(id)).map(policy -> {
-            policy.setName(updates.getName());
-            policy.setCategory(updates.getCategory());
-            policy.setType(updates.getType());
-            policy.setDescription(updates.getDescription());
-            policy.setPremium(updates.getPremium());
-            policy.setCoverage(updates.getCoverage());
-            policy.setDocumentUrl(updates.getDocumentUrl());
-            policy.setClaimSettlementRatio(updates.getClaimSettlementRatio());
-            policy.setExclusions(updates.getExclusions());
-            policy.setWarnings(updates.getWarnings());
-            policy.setMinAge(updates.getMinAge());
-            policy.setMaxAge(updates.getMaxAge());
-            policy.setMinIncome(updates.getMinIncome());
-            policy.setTenure(updates.getTenure());
-            return policyRepo.save(policy);
-        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
-    }
+    public void delete(long id, User deleter) {
+        Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
 
-    public void delete(Long id) {
-        if (!policyRepo.existsById(java.util.Objects.requireNonNull(id))) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found");
+        if ("COMPANY".equals(deleter.getRole())) {
+            if (policy.getCompany() == null || !policy.getCompany().getId().equals(deleter.getCompany().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this policy.");
+            }
+        } else if ("ADMIN".equals(deleter.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admins cannot delete policies.");
+        } else if (!"SUPER_ADMIN".equals(deleter.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized.");
         }
+
         policyRepo.deleteById(id);
     }
 
-    public UserPolicy buyPolicy(@org.springframework.lang.NonNull Long policyId,
-            @org.springframework.lang.NonNull Long userId) {
+    public UserPolicy buyPolicy(long policyId, long userId) {
         Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
         User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
@@ -71,6 +125,16 @@ public class PolicyService {
 
         if (!"USER".equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only clients can buy policies.");
+        }
+
+        // Check for existing active policy
+        List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(userId, policyId);
+        for (UserPolicy upCheck : existing) {
+            // Prevent buying if ACTIVE or PENDING
+            if ("ACTIVE".equalsIgnoreCase(upCheck.getStatus()) || "PENDING".equalsIgnoreCase(upCheck.getStatus())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "You already have an active or pending policy of this type.");
+            }
         }
 
         UserPolicy up = new UserPolicy();
@@ -83,8 +147,7 @@ public class PolicyService {
         return userPolicyRepo.save(up);
     }
 
-    public UserPolicy quotePolicy(@org.springframework.lang.NonNull Long policyId,
-            @org.springframework.lang.NonNull Long userId, String note) {
+    public UserPolicy quotePolicy(long policyId, long userId, String note) {
         Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
         User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
@@ -103,9 +166,19 @@ public class PolicyService {
         return userPolicyRepo.save(up);
     }
 
-    public UserPolicy purchasePolicy(@org.springframework.lang.NonNull Long userPolicyId) {
+    public UserPolicy purchasePolicy(long userPolicyId) {
         UserPolicy up = userPolicyRepo.findById(java.util.Objects.requireNonNull(userPolicyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User Policy not found"));
+
+        // Check for existing active policy (excluding current one)
+        List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(up.getUser().getId(),
+                up.getPolicy().getId());
+        for (UserPolicy check : existing) {
+            if (!check.getId().equals(up.getId()) && "ACTIVE".equalsIgnoreCase(check.getStatus())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "User already has an ACTIVE policy of this type.");
+            }
+        }
 
         // Simulate Payment Success
         // In a real system, this would happen via a webhook from Stripe/Razorpay
@@ -136,7 +209,7 @@ public class PolicyService {
         return false;
     }
 
-    public List<UserPolicy> getUserPolicies(@org.springframework.lang.NonNull Long userId) {
+    public List<UserPolicy> getUserPolicies(long userId) {
         return userPolicyRepo.findByUserId(userId);
     }
 
@@ -144,7 +217,7 @@ public class PolicyService {
         return userPolicyRepo.findAll();
     }
 
-    public UserPolicy uploadDocument(@org.springframework.lang.NonNull Long userPolicyId, String url) {
+    public UserPolicy uploadDocument(long userPolicyId, String url) {
         UserPolicy up = userPolicyRepo.findById(java.util.Objects.requireNonNull(userPolicyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
         up.setPdfUrl(url);
@@ -163,11 +236,11 @@ public class PolicyService {
     }
 
     // NEW: AI-Powered Policy Recommendations with Eligibility
-    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendedPolicies(Long userId) {
+    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendedPolicies(long userId) {
         User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        List<Policy> allPolicies = policyRepo.findAll();
+        List<Policy> allPolicies = policyRepo.findByStatusAndCompany_Status("ACTIVE", "APPROVED");
         List<com.insurai.dto.PolicyRecommendationDTO> recommendations = new java.util.ArrayList<>();
 
         for (Policy policy : allPolicies) {
@@ -207,12 +280,12 @@ public class PolicyService {
 
     // NEW: Filtered Policy Search
     public List<com.insurai.dto.PolicyRecommendationDTO> getFilteredPolicies(
-            Long userId, com.insurai.dto.PolicyFilterRequest filter) {
+            long userId, com.insurai.dto.PolicyFilterRequest filter) {
 
         User user = userRepo.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        List<Policy> allPolicies = policyRepo.findAll();
+        List<Policy> allPolicies = policyRepo.findByStatusAndCompany_Status("ACTIVE", "APPROVED");
         List<com.insurai.dto.PolicyRecommendationDTO> filtered = new java.util.ArrayList<>();
 
         for (Policy policy : allPolicies) {

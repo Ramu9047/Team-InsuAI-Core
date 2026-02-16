@@ -1,6 +1,6 @@
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
 import logoParticles from "../assets/logo-particles.svg";
 
@@ -8,7 +8,9 @@ import logoParticles from "../assets/logo-particles.svg";
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef(null);
 
     // Notification State for Toast only
     const [toast, setToast] = useState(null); // Ephemeral toast
@@ -17,6 +19,28 @@ export default function Navbar() {
         logout();
         navigate("/");
     };
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setMenuOpen(false);
+            }
+        };
+
+        if (menuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [menuOpen]);
+
+    // Close menu when navigating to a different page
+    useEffect(() => {
+        setMenuOpen(false);
+    }, [location.pathname]);
 
     // Polling for Notifications
     useEffect(() => {
@@ -97,7 +121,12 @@ export default function Navbar() {
 
                 {user ? (
                     <>
-                        <NavLink to={user.role === 'ADMIN' ? "/admin" : "/dashboard"} className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        <NavLink to={
+                            user.role === 'SUPER_ADMIN' ? "/super-admin" :
+                                user.role === 'COMPANY_ADMIN' ? "/company" :
+                                    user.role === 'ADMIN' ? "/admin" :
+                                        "/dashboard"
+                        } className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                             Dashboard
                         </NavLink>
 
@@ -109,7 +138,7 @@ export default function Navbar() {
                         {/* Task handled by dashboard NotificationCenter */}
 
                         {/* User Dropdown */}
-                        <div style={{ position: "relative" }}>
+                        <div style={{ position: "relative" }} ref={menuRef}>
                             <div
                                 onClick={() => setMenuOpen(!menuOpen)}
                                 style={{

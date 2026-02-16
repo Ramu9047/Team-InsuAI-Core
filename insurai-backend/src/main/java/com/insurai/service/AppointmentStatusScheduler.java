@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.insurai.repository.BookingRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @EnableScheduling
@@ -21,14 +22,12 @@ public class AppointmentStatusScheduler {
     }
 
     @Scheduled(fixedRate = 60000) // every 1 minute
+    @Transactional
     public void updateStatuses() {
         LocalDateTime now = LocalDateTime.now();
 
-        // Expire pending
-        bookingRepo.expirePending(now);
-
-        // Complete approved
-        bookingRepo.completeApproved(now);
+        // Status updates (expire/complete) are handled by SchedulerService.java
+        // We only handle reminders here to avoid duplicate processing.
 
         // Reminders (T-24h)
         checkAndSendReminders(now.plusHours(24), "24 Hours");

@@ -17,26 +17,40 @@ export default function AgentRequests() {
   const [claims, setClaims] = useState([]);
   const [viewedProfiles, setViewedProfiles] = useState(new Set());
   const [proofModal, setProofModal] = useState({ isOpen: false, url: "" });
+  const [rejectionModal, setRejectionModal] = useState({ isOpen: false, bookingId: null, reason: "" });
 
   useEffect(() => {
     if (user?.id) {
       api.get("/agents/appointments").then(res => {
-        setRequests(res.data.filter(b => b.status === "PENDING" || b.status === "APPROVED"));
+        // Show all active/relevant statuses
+        setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED"].includes(b.status)));
       });
       api.get("/claims").then(res => setClaims(res.data)); // Agents view all claims
       api.get("/policies").then(res => setPolicies(res.data));
     }
   }, [user]);
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, extraBody = {}) => {
     try {
-      await api.put(`/agents/appointments/${id}/status`, { status });
-      setRequests(r => r.map(b => b.id === id ? { ...b, status } : b));
-      if (status === 'APPROVED') notify("Appointment Approved & Policy Created!", "success");
-      else notify("Appointment Rejected", "error");
+      await api.put(`/agents/appointments/${id}/status`, { status, ...extraBody });
+      const res = await api.get("/agents/appointments"); // Refresh to get latest data (AI fields)
+      setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED"].includes(b.status)));
+
+      if (status === 'APPROVED') notify("Meeting Approved!", "success");
+      else if (status === 'COMPLETED') notify("Consultation Completed & Policy Issued!", "success");
+      else if (status === 'REJECTED') notify("Appointment Rejected", "info");
     } catch (e) {
       notify("Failed to update status", "error");
     }
+  };
+
+  const submitRejection = () => {
+    if (!rejectionModal.reason) {
+      notify("Reason is required", "error");
+      return;
+    }
+    updateStatus(rejectionModal.bookingId, "REJECTED", { reason: rejectionModal.reason });
+    setRejectionModal({ isOpen: false, bookingId: null, reason: "" });
   };
 
   const updateClaimStatus = async (id, status) => {
@@ -179,23 +193,48 @@ export default function AgentRequests() {
         </div>
       </Modal>
 
+      {/* Rejection Modal */}
+      <Modal
+        isOpen={rejectionModal.isOpen}
+        onClose={() => setRejectionModal({ isOpen: false, bookingId: null, reason: "" })}
+        title="Reject Appointment"
+        actions={
+          <div style={{ display: "flex", gap: 10, width: "100%" }}>
+            <button className="secondary-btn" onClick={() => setRejectionModal({ isOpen: false, bookingId: null, reason: "" })}>Cancel</button>
+            <button className="primary-btn" style={{ background: "#ef4444", borderColor: "#ef4444" }} onClick={submitRejection}>Confirm Rejection</button>
+          </div>
+        }
+      >
+        <p style={{ color: "var(--text-muted)", marginBottom: 10 }}>Please provide a mandatory reason for rejection. AI will analyze this for the user.</p>
+        <textarea
+          style={{
+            width: "100%", padding: 15, borderRadius: 12,
+            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+            color: "white", fontFamily: "inherit", minHeight: 100
+          }}
+          placeholder="e.g. Income does not match policy requirements..."
+          value={rejectionModal.reason}
+          onChange={(e) => setRejectionModal({ ...rejectionModal, reason: e.target.value })}
+        />
+      </Modal>
+
       {activeTab === "appointments" && (
         requests.length === 0 ? (
           <div style={{ textAlign: "center", padding: 50, opacity: 0.6 }}>
             <p>No pending appointment requests.</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30, alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30 }}>
             {requests.map(b => (
-              <Card key={b.id} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+              <Card key={b.id} style={{ display: "flex", flexDirection: "column", height: "100%", margin: "0 auto", width: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                   <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>{b.user.name}</span>
                   <span style={{
                     padding: "2px 8px", borderRadius: 10, fontSize: "0.8rem",
-                    background: b.status === "PENDING" ? "rgba(245, 158, 11, 0.1)" : "rgba(16, 185, 129, 0.1)",
-                    color: b.status === "PENDING" ? "#f59e0b" : "#10b981",
-                    border: b.status === "PENDING" ? "1px solid rgba(245, 158, 11, 0.4)" : "1px solid rgba(16, 185, 129, 0.4)"
-                  }}>{b.status}</span>
+                    background: b.status === "PENDING" ? "rgba(245, 158, 11, 0.1)" : b.status === "APPROVED" ? "rgba(16, 185, 129, 0.1)" : b.status === "COMPLETED" ? "rgba(59, 130, 246, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                    color: b.status === "PENDING" ? "#f59e0b" : b.status === "APPROVED" ? "#10b981" : b.status === "COMPLETED" ? "#3b82f6" : "#ef4444",
+                    border: b.status === "PENDING" ? "1px solid rgba(245, 158, 11, 0.4)" : b.status === "APPROVED" ? "1px solid rgba(16, 185, 129, 0.4)" : b.status === "COMPLETED" ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(239, 68, 68, 0.4)"
+                  }}>{b.status === "COMPLETED" ? "CONSULTED" : b.status}</span>
                 </div>
                 <p style={{ margin: "5px 0", fontSize: "0.9rem", color: "var(--text-muted)" }}>📅 {new Date(b.startTime).toLocaleString()}</p>
 
@@ -238,7 +277,7 @@ export default function AgentRequests() {
                       <button
                         className="secondary-btn"
                         style={{ flex: 1, padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}
-                        onClick={() => updateStatus(b.id, "REJECTED")}
+                        onClick={() => setRejectionModal({ isOpen: true, bookingId: b.id, reason: "" })}
                       >
                         Reject
                       </button>
@@ -246,21 +285,100 @@ export default function AgentRequests() {
                   </div>
                 )}
 
-                {b.status === "APPROVED" && !b.policy && (
+                {b.status === "APPROVED" && (
                   <div style={{ marginTop: 15 }}>
-                    {!viewedProfiles.has(b.user.id) ? (
-                      <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
-                        ⚠️ Analyze profile before recommending
+                    {/* Meeting Link if available */}
+                    {b.meetingLink && (
+                      <a
+                        href={b.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="primary-btn"
+                        style={{
+                          display: 'block',
+                          textAlign: 'center',
+                          marginBottom: 10,
+                          background: '#22c55e',
+                          borderColor: '#22c55e',
+                          textDecoration: 'none'
+                        }}
+                      >
+                        🎥 Join Meeting
+                      </a>
+                    )}
+
+                    {/* Add to Google Calendar */}
+                    {b.startTime && b.endTime && (
+                      <a
+                        href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Consultation with ${b.user.name}`)}&dates=${new Date(b.startTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(b.endTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(`Policy consultation for ${b.policy?.name || 'General Discussion'}`)}&location=${encodeURIComponent(b.meetingLink || 'To be shared')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="secondary-btn"
+                        style={{
+                          display: 'block',
+                          textAlign: 'center',
+                          marginBottom: 10,
+                          textDecoration: 'none'
+                        }}
+                      >
+                        📅 Add to Google Calendar
+                      </a>
+                    )}
+
+                    {!b.policy && (
+                      <>
+                        {!viewedProfiles.has(b.user.id) ? (
+                          <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
+                            ⚠️ Analyze profile before recommending
+                          </div>
+                        ) : null}
+                        <button
+                          className="primary-btn"
+                          style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
+                          onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
+                          disabled={!viewedProfiles.has(b.user.id)}
+                        >
+                          ✨ Recommend Policy
+                        </button>
+                      </>
+                    )}
+
+                    {b.policy && (
+                      <div style={{ marginTop: 10 }}>
+                        <button
+                          className="primary-btn"
+                          style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6" }}
+                          onClick={() => updateStatus(b.id, "COMPLETED")}
+                        >
+                          ✅ Complete Consultation & Issue Policy
+                        </button>
                       </div>
-                    ) : null}
-                    <button
-                      className="primary-btn"
-                      style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
-                      onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
-                      disabled={!viewedProfiles.has(b.user.id)}
-                    >
-                      ✨ Recommend Policy
-                    </button>
+                    )}
+                  </div>
+                )}
+
+                {b.status === "COMPLETED" && (
+                  <div style={{ marginTop: 15, padding: 10, background: "rgba(59, 130, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                    <div style={{ fontWeight: "bold", color: "#3b82f6", marginBottom: 5 }}>Consultation Completed</div>
+                    <div style={{ fontSize: "0.9rem" }}>Policy <strong>{b.policy?.name}</strong> has been issued (Payment Pending).</div>
+                  </div>
+                )}
+
+                {b.status === "REJECTED" && (
+                  <div style={{ marginTop: 15 }}>
+                    <div style={{ padding: 10, background: "rgba(239, 68, 68, 0.1)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.3)", marginBottom: 10 }}>
+                      <strong style={{ color: "#ef4444" }}>Rejection Reason:</strong>
+                      <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>{b.rejectionReason}</p>
+                    </div>
+                    {b.aiAnalysis && (
+                      <div style={{ padding: 10, background: "rgba(139, 92, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(139, 92, 246, 0.3)" }}>
+                        <strong style={{ color: "#8b5cf6" }}>🤖 AI Analysis:</strong>
+                        <div style={{ fontSize: "0.85rem", marginTop: 5 }}>
+                          <div><strong>Risk Score:</strong> {b.riskScore ? (b.riskScore * 100).toFixed(0) + "%" : "N/A"}</div>
+                          <p style={{ marginTop: 5 }}>{b.aiAnalysis}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
@@ -276,10 +394,10 @@ export default function AgentRequests() {
               <p>✅ All caught up! No pending claims to review.</p>
             </div>
           )}
-          <div className="grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30 }}>
             {/* Map claims... */}
             {claims.map(c => (
-              <Card key={c.id}>
+              <Card key={c.id} style={{ display: "flex", flexDirection: "column", height: "100%", margin: "0 auto", width: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
                   <div>
                     <strong style={{ fontSize: "1.1rem", display: "block" }}>Claim #{c.id}</strong>
@@ -294,29 +412,31 @@ export default function AgentRequests() {
                 <p><strong>Policy:</strong> {c.policyName}</p>
                 <p style={{ opacity: 0.8, marginBottom: 15, fontSize: "0.95rem", lineHeight: "1.5", color: "var(--text-main)" }}>{c.description}</p>
 
-                <button
-                  className="secondary-btn"
-                  style={{ width: "100%", marginBottom: 15 }}
-                  onClick={() => {
-                    let url = c.proofUrl || (c.documentUrls && c.documentUrls.length > 0 ? c.documentUrls[0] : null) || c.attachedFile;
-                    // Temp Fix: Replace broken mock domain with working dummy PDF for historical data
-                    if (url && url.includes("insurai-docs.com")) {
-                      url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
-                    }
-                    setProofModal({ isOpen: true, url: url });
-                  }}
-                >
-                  📄 Evaluate Proofs
-                </button>
+                <div style={{ marginTop: "auto" }}>
+                  <button
+                    className="secondary-btn"
+                    style={{ width: "100%", marginBottom: 15 }}
+                    onClick={() => {
+                      let url = c.proofUrl || (c.documentUrls && c.documentUrls.length > 0 ? c.documentUrls[0] : null) || c.attachedFile;
+                      // Temp Fix: Replace broken mock domain with working dummy PDF for historical data
+                      if (url && url.includes("insurai-docs.com")) {
+                        url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+                      }
+                      setProofModal({ isOpen: true, url: url });
+                    }}
+                  >
+                    📄 Evaluate Proofs
+                  </button>
 
-                {['PENDING', 'INITIATED'].includes(c.status) ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <button className="primary-btn" onClick={() => updateClaimStatus(c.id, "APPROVED")} style={{ padding: "8px", background: "#10b981", border: "none" }}>Approve Claim</button>
-                    <button className="secondary-btn" onClick={() => updateClaimStatus(c.id, "REJECTED")} style={{ padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}>Reject Claim</button>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Process Completed</div>
-                )}
+                  {['PENDING', 'INITIATED'].includes(c.status) ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <button className="primary-btn" onClick={() => updateClaimStatus(c.id, "APPROVED")} style={{ padding: "8px", background: "#10b981", border: "none" }}>Approve Claim</button>
+                      <button className="secondary-btn" onClick={() => updateClaimStatus(c.id, "REJECTED")} style={{ padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}>Reject Claim</button>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Process Completed</div>
+                  )}
+                </div>
               </Card>
             ))}
           </div>

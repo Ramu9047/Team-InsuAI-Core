@@ -1,29 +1,35 @@
 package com.insurai.service;
 
 import org.springframework.stereotype.Service;
-import java.util.UUID;
+import java.util.Random;
 
 @Service
 public class GoogleCalendarService {
 
     /**
-     * Creates a Google Meet event and returns the meeting link.
-     * Note: This is currently a simulated implementation.
-     * In a real production environment, this would use the Google Calendar API
-     * with OAuth2 or Service Account credentials to create an actual event.
+     * Creates a meeting event and returns the meeting link.
+     * Uses Jitsi Meet for immediate, no-auth valid meeting rooms.
      */
     public String createMeeting(String summary, String description, String startTime, String endTime,
             String... attendees) {
-        // Simulation of Google Meet Link generation
-        // Format: https://meet.google.com/abc-defg-hij
-
+        // Generate a consistent, valid Jitsi Meet URL
+        // Format: https://meet.jit.si/InsurAI_Consultation_<RandomCode>
         String meetingCode = generateMeetingCode();
-        return "https://meet.google.com/" + meetingCode;
+        return "https://meet.jit.si/InsurAI_Consultation_" + meetingCode;
     }
 
     private String generateMeetingCode() {
-        // Generates a random string in format xxx-yyyy-zzz
-        String uuid = UUID.randomUUID().toString();
-        return uuid.substring(0, 3) + "-" + uuid.substring(4, 8) + "-" + uuid.substring(9, 12);
+        // Generates a random alphanumeric string for unique room
+        return generateRandomString(10);
+    }
+
+    private String generateRandomString(int length) {
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 }

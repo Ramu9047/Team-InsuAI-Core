@@ -181,4 +181,25 @@ public class Booking {
     public void setMeetingLink(String meetingLink) {
         this.meetingLink = meetingLink;
     }
+
+    // AI Rejection Fields
+    private Double riskScore;
+    @Column(length = 2000)
+    private String aiAnalysis; // JSON or text explanation
+
+    public Double getRiskScore() {
+        return riskScore;
+    }
+
+    public void setRiskScore(Double riskScore) {
+        this.riskScore = riskScore;
+    }
+
+    public String getAiAnalysis() {
+        return aiAnalysis;
+    }
+
+    public void setAiAnalysis(String aiAnalysis) {
+        this.aiAnalysis = aiAnalysis;
+    }
 }

@@ -30,31 +30,28 @@ public class AgentController {
     private final PolicyRepository policyRepo;
     private final NotificationService notificationService;
     private final com.insurai.service.AgentConsultationService agentConsultationService;
+    private final com.insurai.service.GoogleCalendarService calendarService;
+    private final com.insurai.service.AIService aiService;
 
     public AgentController(UserRepository userRepo, BookingRepository bookingRepo, UserPolicyRepository userPolicyRepo,
             PolicyRepository policyRepo, NotificationService notificationService,
-            com.insurai.service.AgentConsultationService agentConsultationService) {
+            com.insurai.service.AgentConsultationService agentConsultationService,
+            com.insurai.service.GoogleCalendarService calendarService,
+            com.insurai.service.AIService aiService) {
         this.userRepo = userRepo;
         this.bookingRepo = bookingRepo;
         this.userPolicyRepo = userPolicyRepo;
         this.policyRepo = policyRepo;
         this.notificationService = notificationService;
         this.agentConsultationService = agentConsultationService;
+        this.calendarService = calendarService;
+        this.aiService = aiService;
     }
 
     // Public/User: Find agents
     @GetMapping
     public List<User> getAllAgents() {
-        var agents = userRepo.findByRole("AGENT");
-        for (User a : agents) {
-            if (a.getSpecialization() == null) {
-                a.setSpecialization(a.getId() % 2 == 0 ? "Life & Health" : "Motor & Corporate");
-                a.setRating(4.5 + (a.getId() % 5) / 10.0);
-                a.setBio("Certified " + a.getSpecialization() + " expert.");
-                userRepo.save(a);
-            }
-        }
-        return agents;
+        return userRepo.findByRole("AGENT");
     }
 
     @PatchMapping("/{id}/availability")
@@ -130,30 +127,71 @@ public class AgentController {
         if (newStatus == null)
             return booking;
 
-        if (!"PENDING".equals(booking.getStatus())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking is already processed");
+        // Allow transitions from PENDING or APPROVED or CONSULTED
+        if (!"PENDING".equals(booking.getStatus()) && !"APPROVED".equals(booking.getStatus())
+                && !"CONSULTED".equals(booking.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Booking is already processed (Current status: " + booking.getStatus() + ")");
         }
 
         if ("APPROVED".equals(newStatus)) {
-            // Task Group 1: Approve triggers Policy Purchase Creation
+            // Task 2: Approve Meeting (Scenario 1)
+            // Just generate link, DO NOT create policy yet.
+            if (booking.getMeetingLink() == null) {
+                String link = calendarService.createMeeting(
+                        "Consultation: " + booking.getUser().getName(),
+                        booking.getPolicy() != null ? "Policy Purchase Discussion: " + booking.getPolicy().getName()
+                                : "General Consultation",
+                        booking.getStartTime().toString(),
+                        booking.getEndTime().toString(),
+                        booking.getUser().getEmail(),
+                        booking.getAgent().getEmail());
+                booking.setMeetingLink(link);
+            }
+        } else if ("COMPLETED".equals(newStatus)) {
+            // Task 5: Policy Issuance (After Consultation)
             if (booking.getPolicy() != null) {
+                // Check duplicate
+                List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(booking.getUser().getId(),
+                        booking.getPolicy().getId());
+                boolean hasActive = existing.stream().anyMatch(
+                        p -> "ACTIVE".equalsIgnoreCase(p.getStatus()) || "PENDING".equalsIgnoreCase(p.getStatus())
+                                || "PAYMENT_PENDING".equalsIgnoreCase(p.getStatus()));
+
+                if (hasActive) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "User already has an active or pending policy of this type.");
+                }
+
                 UserPolicy up = new UserPolicy();
                 up.setUser(booking.getUser());
                 up.setPolicy(booking.getPolicy());
-                up.setStatus("PAYMENT_PENDING"); // Require payment
+                up.setStatus("PAYMENT_PENDING"); // ISSUED
                 up.setStartDate(java.time.LocalDate.now());
                 up.setEndDate(java.time.LocalDate.now().plusYears(1));
                 userPolicyRepo.save(up);
 
-                // Notify User
                 notificationService.createNotification(
                         booking.getUser(),
-                        "Policy Purchase Approved for " + booking.getPolicy().getName() + ". Please complete payment.",
+                        "Policy Issued! Please complete payment for " + booking.getPolicy().getName(),
                         "SUCCESS");
+            }
+        } else if ("REJECTED".equals(newStatus)) {
+            // Phase 3: Rejection with AI
+            String reason = body.get("reason");
+            if (reason == null || reason.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rejection reason is mandatory.");
+            }
+            booking.setRejectionReason(reason);
 
-                // Auto-complete the booking since the policy request is handled
-                booking.setStatus("COMPLETED");
-                return bookingRepo.save(booking);
+            // AI Analysis
+            if (booking.getPolicy() != null) {
+                var analysis = aiService.analyzeRejection(reason, booking.getUser(), booking.getPolicy());
+                booking.setRiskScore(analysis.riskScore());
+                // Simple JSON-like string for now, or just explanation
+                booking.setAiAnalysis(
+                        "Explanation: " + analysis.explanation() + " | Recommendations: " + analysis.recommendations()
+                                .stream().map(r -> r.policyName()).collect(java.util.stream.Collectors.joining(", ")));
             }
         }
 
@@ -197,6 +235,16 @@ public class AgentController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(policyId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
+
+        // Check for existing active/pending policy
+        List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(userId, policyId);
+        boolean hasActive = existing.stream().anyMatch(
+                p -> "ACTIVE".equalsIgnoreCase(p.getStatus()) || "PENDING".equalsIgnoreCase(p.getStatus()));
+
+        if (hasActive) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "User already has an active or pending policy of this type.");
+        }
 
         UserPolicy up = new UserPolicy();
         up.setUser(user);
@@ -258,5 +306,35 @@ public class AgentController {
     @PreAuthorize("hasRole('ADMIN')")
     public com.insurai.dto.AgentPerformanceDTO getAgentPerformance(@PathVariable Long agentId) {
         return agentConsultationService.getAgentPerformance(agentId);
+    }
+
+    // NEW: Submit Review
+    @PostMapping("/{agentId}/reviews")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> submitReview(@PathVariable Long agentId, @RequestBody Map<String, Object> body,
+            Authentication auth) {
+        String email = auth.getName();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Long bookingId = Long.valueOf(body.get("bookingId").toString());
+        Integer rating = Integer.valueOf(body.get("rating").toString());
+        String feedback = (String) body.get("feedback");
+
+        agentConsultationService.submitReview(agentId, user.getId(), bookingId, rating, feedback);
+        return ResponseEntity.ok("Review submitted successfully");
+    }
+
+    // NEW: Get Reviews
+    @GetMapping("/{agentId}/reviews")
+    public List<com.insurai.model.AgentReview> getAgentReviews(@PathVariable Long agentId) {
+        return agentConsultationService.getAgentReviews(agentId);
+    }
+
+    // NEW: Admin - Get All Reviews
+    @GetMapping("/reviews/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<com.insurai.model.AgentReview> getAllReviews() {
+        return agentConsultationService.getAllReviews();
     }
 }

@@ -12,60 +12,77 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class PolicyController {
 
+    private final com.insurai.repository.UserRepository userRepo;
     private final PolicyService policyService;
 
-    public PolicyController(PolicyService policyService) {
+    public PolicyController(PolicyService policyService, com.insurai.repository.UserRepository userRepo) {
         this.policyService = policyService;
+        this.userRepo = userRepo;
+    }
+
+    private com.insurai.model.User getCurrentUser() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        // Assuming principal is email (from JwtTokenProvider)
+        // or we can cast principal if it's UserDetails
+        String email = (String) auth.getPrincipal(); // Check JwtTokenProvider implementation
+        // Actually JwtTokenProvider often sets email as principal
+        return userRepo.findByEmail(email).orElse(null);
     }
 
     @GetMapping
     public List<Policy> getAll() {
-        return policyService.getAll();
+        com.insurai.model.User user = getCurrentUser();
+        String role = (user != null) ? user.getRole() : "USER";
+        long userId = (user != null && user.getId() != null) ? user.getId() : 0L;
+        return policyService.getAll(role, userId);
     }
 
     @PostMapping
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'SUPER_ADMIN')")
     public Policy create(@RequestBody Policy policy) {
-        return policyService.create(java.util.Objects.requireNonNull(policy));
+        return policyService.create(java.util.Objects.requireNonNull(policy), getCurrentUser());
     }
 
     @PutMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    public Policy update(@PathVariable Long id, @RequestBody Policy policy) {
-        return policyService.update(java.util.Objects.requireNonNull(id), java.util.Objects.requireNonNull(policy));
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'SUPER_ADMIN', 'ADMIN')")
+    public Policy update(@PathVariable long id, @RequestBody Policy policy) {
+        return policyService.update(id, java.util.Objects.requireNonNull(policy),
+                getCurrentUser());
     }
 
     @DeleteMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable Long id) {
-        policyService.delete(java.util.Objects.requireNonNull(id));
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'SUPER_ADMIN', 'ADMIN')")
+    public void delete(@PathVariable long id) {
+        policyService.delete(id, getCurrentUser());
     }
 
     @PostMapping("/{policyId}/buy/{userId}")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('USER')")
-    public UserPolicy buyPolicy(@PathVariable Long policyId, @PathVariable Long userId) {
-        return policyService.buyPolicy(java.util.Objects.requireNonNull(policyId),
-                java.util.Objects.requireNonNull(userId));
+    public UserPolicy buyPolicy(@PathVariable long policyId, @PathVariable long userId) {
+        return policyService.buyPolicy(policyId, userId);
     }
 
     @PostMapping("/{policyId}/quote/{userId}")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('USER')")
-    public UserPolicy quotePolicy(@PathVariable Long policyId, @PathVariable Long userId,
+    public UserPolicy quotePolicy(@PathVariable long policyId, @PathVariable long userId,
             @RequestBody(required = false) com.insurai.dto.QuoteRequest request) {
         String note = (request != null) ? request.getNote() : null;
-        return policyService.quotePolicy(java.util.Objects.requireNonNull(policyId),
-                java.util.Objects.requireNonNull(userId), note);
+        return policyService.quotePolicy(policyId, userId, note);
     }
 
     @PostMapping("/{userPolicyId}/purchase")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('USER')")
-    public UserPolicy purchasePolicy(@PathVariable Long userPolicyId) {
-        return policyService.purchasePolicy(java.util.Objects.requireNonNull(userPolicyId));
+    public UserPolicy purchasePolicy(@PathVariable long userPolicyId) {
+        return policyService.purchasePolicy(userPolicyId);
     }
 
     @GetMapping("/user/{userId}")
-    public List<UserPolicy> getUserPolicies(@PathVariable Long userId) {
-        return policyService.getUserPolicies(java.util.Objects.requireNonNull(userId));
+    public List<UserPolicy> getUserPolicies(@PathVariable long userId) {
+        return policyService.getUserPolicies(userId);
     }
 
     @PostMapping("/upload/{userPolicyId}")
@@ -82,7 +99,7 @@ public class PolicyController {
 
             // Return URL (simulated local URL)
             String fileUrl = "http://localhost:8080/uploads/" + fileName;
-            return policyService.uploadDocument(java.util.Objects.requireNonNull(userPolicyId), fileUrl);
+            return policyService.uploadDocument(userPolicyId, fileUrl);
 
         } catch (java.io.IOException e) {
             throw new RuntimeException("Failed to upload file", e);
@@ -91,7 +108,7 @@ public class PolicyController {
 
     // NEW: Get AI-Powered Recommendations
     @GetMapping("/recommendations/{userId}")
-    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendations(@PathVariable Long userId) {
+    public List<com.insurai.dto.PolicyRecommendationDTO> getRecommendations(@PathVariable long userId) {
         return policyService.getRecommendedPolicies(userId);
     }
 
@@ -104,7 +121,7 @@ public class PolicyController {
     // NEW: Get Filtered Policies
     @PostMapping("/filter/{userId}")
     public List<com.insurai.dto.PolicyRecommendationDTO> filterPolicies(
-            @PathVariable Long userId,
+            @PathVariable long userId,
             @RequestBody com.insurai.dto.PolicyFilterRequest filter) {
         return policyService.getFilteredPolicies(userId, filter);
     }

@@ -23,10 +23,12 @@ public class BookingService {
     private final AuditService auditService;
     private final EmailService emailService;
     private final GoogleCalendarService calendarService;
+    private final com.insurai.repository.UserPolicyRepository userPolicyRepo;
 
     public BookingService(BookingRepository bookingRepo, UserRepository userRepo,
             NotificationService notificationService, PolicyRepository policyRepo, AIService aiService,
-            AuditService auditService, EmailService emailService, GoogleCalendarService calendarService) {
+            AuditService auditService, EmailService emailService, GoogleCalendarService calendarService,
+            com.insurai.repository.UserPolicyRepository userPolicyRepo) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.notificationService = notificationService;
@@ -35,6 +37,7 @@ public class BookingService {
         this.auditService = auditService;
         this.emailService = emailService;
         this.calendarService = calendarService;
+        this.userPolicyRepo = userPolicyRepo;
     }
 
     public double predictSuccess(@org.springframework.lang.NonNull Long bookingId) {
@@ -97,6 +100,20 @@ public class BookingService {
         if (policyId != null) {
             com.insurai.model.Policy policy = policyRepo.findById(policyId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
+
+            // Check if user already has this policy active/pending
+            java.util.List<com.insurai.model.UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(userId,
+                    policyId);
+            boolean alreadyHas = existing.stream()
+                    .anyMatch(up -> "ACTIVE".equalsIgnoreCase(up.getStatus())
+                            || "PENDING".equalsIgnoreCase(up.getStatus())
+                            || "PAYMENT_PENDING".equalsIgnoreCase(up.getStatus()));
+
+            if (alreadyHas) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "You already have this policy (Active or Pending). Cannot book another appointment for it.");
+            }
+
             booking.setPolicy(policy);
         }
 

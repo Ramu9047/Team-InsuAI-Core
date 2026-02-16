@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
@@ -10,11 +10,7 @@ export default function AgentConsultations() {
     const [filter, setFilter] = useState('all'); // all, pending, completed
     const { notify } = useNotification();
 
-    useEffect(() => {
-        fetchConsultations();
-    }, []);
-
-    const fetchConsultations = () => {
+    const fetchConsultations = useCallback(() => {
         setLoading(true);
         api.get('/agents/consultations')
             .then(r => {
@@ -26,7 +22,11 @@ export default function AgentConsultations() {
                 notify("Failed to load consultations", "error");
                 setLoading(false);
             });
-    };
+    }, [notify]);
+
+    useEffect(() => {
+        fetchConsultations();
+    }, [fetchConsultations]);
 
     const filteredConsultations = consultations.filter(c => {
         if (filter === 'pending') return c.status === 'PENDING';
@@ -382,14 +382,31 @@ function ConsultationDetailModal({ consultation, onClose, onDecisionMade }) {
             display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000,
             padding: 20,
             overflowY: 'auto'
-        }}>
+        }} onClick={onClose}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
+                onClick={e => e.stopPropagation()}
                 className="card"
-                style={{ width: 700, maxWidth: "100%", maxHeight: '90vh', overflowY: 'auto' }}
+                style={{ width: 700, maxWidth: "100%", maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
             >
-                <h2 style={{ marginTop: 0 }}>Consultation Review</h2>
+                <button
+                    onClick={onClose}
+                    style={{
+                        position: 'absolute',
+                        top: 20,
+                        right: 20,
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        fontSize: '1.5rem',
+                        cursor: 'pointer',
+                        zIndex: 10
+                    }}
+                >
+                    ×
+                </button>
+                <h2 style={{ marginTop: 0, paddingRight: 40 }}>Consultation Review</h2>
 
                 {/* User Profile */}
                 <div className="card" style={{ background: 'rgba(0,0,0,0.03)', marginBottom: 20 }}>

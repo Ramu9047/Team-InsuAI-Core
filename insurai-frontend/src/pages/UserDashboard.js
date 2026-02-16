@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
+import { policyService } from '../services/policyService';
 import {
   // LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   // PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
@@ -11,12 +12,46 @@ import {
 
 // New Enterprise Components
 import NotificationCenter from '../components/NotificationCenter';
-import DocumentManager from '../components/DocumentManager';
 import PolicyComparison from '../components/PolicyComparison';
 import InsuranceLiteracy from '../components/InsuranceLiteracy';
 
 // Services
-import { policyService } from '../services/policyService';
+
+
+
+const calculateRiskScore = (policies, bookings) => {
+  let score = 50; // Base score
+  if (policies.length > 0) score -= 15;
+  if (policies.length > 2) score -= 10;
+  if (bookings.filter(b => b.status === 'COMPLETED').length > 3) score -= 10;
+  return Math.max(5, Math.min(score, 95));
+};
+
+const calculateHealthScore = (policies) => {
+  let score = 60;
+  if (policies.length > 0) score += 15;
+  if (policies.length > 1) score += 10;
+  if (policies.some(p => p.category === 'HEALTH')) score += 10;
+  return Math.min(score, 95);
+};
+
+const formatTimeAgo = (date) => {
+  const now = new Date();
+  const diff = now - date;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+};
+
+const getRiskLevel = (score) => {
+  if (score < 30) return { label: 'LOW', color: '#10b981', emoji: '🟢' };
+  if (score < 60) return { label: 'MODERATE', color: '#f59e0b', emoji: '🟡' };
+  return { label: 'HIGH', color: '#ef4444', emoji: '🔴' };
+};
 
 export default function UserDashboard() {
   const { user } = useAuth();
@@ -34,7 +69,7 @@ export default function UserDashboard() {
   });
 
   const [appointments, setAppointments] = useState([]);
-  const [policies, setPolicies] = useState([]);
+  // const [policies, setPolicies] = useState([]); // policies removed as unused state, using local vars
   const [aiInsights, setAiInsights] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [comparisonPolicies, setComparisonPolicies] = useState([]);
@@ -46,111 +81,13 @@ export default function UserDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    loadDashboardData();
-  }, [user]);
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
 
-      const [policiesRes, bookingsRes, agentsRes, recommendedRes, riskRes] = await Promise.all([
-        api.get(`/policies/user/${user.id}`).catch(() => ({ data: [] })),
-        api.get(`/bookings/user/${user.id}`).catch(() => ({ data: [] })),
-        api.get('/agents').catch(() => ({ data: [] })),
-        policyService.getRecommendedPolicies(user),
-        api.get(`/ai/user-risk-profile/${user.id}`).catch(() => ({ data: null }))
-      ]);
 
-      const allBookings = bookingsRes.data || [];
-      const activePolicies = policiesRes.data || [];
-      const agents = agentsRes.data || [];
-      const recommendedPolicies = recommendedRes || [];
-      const riskProfile = riskRes.data;
 
-      setRiskData(riskProfile);
 
-      // Calculate stats
-      const upcomingAppointments = allBookings.filter(b => {
-        const bookingDate = new Date(b.startTime);
-        const now = new Date();
-        const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status);
-        return bookingDate > now && isActive;
-      });
 
-      const rejectedCount = allBookings.filter(b => b.status === 'REJECTED').length;
-      const activeAgentsCount = agents.filter(a => a.available).length;
-
-      setStats({
-        activeAgents: activeAgentsCount,
-        appointments: upcomingAppointments.length,
-        activePolicies: activePolicies.length,
-        rejectedRequests: rejectedCount,
-        riskScore: riskProfile ? riskProfile.riskScore : calculateRiskScore(activePolicies, allBookings),
-        healthScore: calculateHealthScore(activePolicies)
-      });
-
-      setAppointments(upcomingAppointments.slice(0, 1)); // Next appointment
-      setPolicies(activePolicies);
-
-      // Enhance recommended policies with features for comparison
-      const enhancedRecommendations = recommendedPolicies.map(p => ({
-        ...p,
-        id: p.policyId || p.id,
-        name: p.policyName || p.name,
-        // Ensure features object exists for PolicyComparison
-        features: p.features || {
-          cashless: true, // Default to true or random for demo
-          preExisting: p.benefits?.includes('Pre-existing') || false,
-          maternity: p.benefits?.includes('Maternity') || false,
-          ambulance: true,
-          roomRent: 'Standard',
-          copay: '0%',
-          restoration: true,
-          wellness: false
-        },
-        aiScore: p.matchScore ? Math.round(p.matchScore) : 75,
-        aiReasons: p.recommendationReason
-          ? [p.recommendationReason]
-          : ['AI Recommended based on your profile', 'Balanced coverage and premium'],
-        recommended: p.isRecommended || false,
-        provider: p.provider || 'InsurAI Partner'
-      }));
-
-      setComparisonPolicies(enhancedRecommendations);
-
-      // Generate AI Insights
-      generateAIInsights(activePolicies, user, recommendedPolicies, riskProfile);
-
-      // Generate Recent Activity
-      generateRecentActivity(allBookings, activePolicies);
-
-    } catch (err) {
-      console.error("Dashboard load error:", err);
-      notify("Failed to load dashboard data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateRiskScore = (policies, bookings) => {
-    let score = 50; // Base score
-    if (policies.length > 0) score -= 15;
-    if (policies.length > 2) score -= 10;
-    if (bookings.filter(b => b.status === 'COMPLETED').length > 3) score -= 10;
-    return Math.max(5, Math.min(score, 95));
-  };
-
-  const calculateHealthScore = (policies) => {
-    let score = 60;
-    if (policies.length > 0) score += 15;
-    if (policies.length > 1) score += 10;
-    if (policies.some(p => p.category === 'HEALTH')) score += 10;
-    return Math.min(score, 95);
-  };
-
-  const generateAIInsights = (policies, user, recommendedPolicies = [], riskProfile = null) => {
+  const generateAIInsights = useCallback((policies, user, recommendedPolicies = [], riskProfile = null) => {
     const insights = [];
 
     // 1. Risk-based Insights (Real Backend Data)
@@ -194,9 +131,9 @@ export default function UserDashboard() {
     }
 
     setAiInsights(insights.slice(0, 5)); // Limit to top 5
-  };
+  }, []);
 
-  const generateRecentActivity = (bookings, policies) => {
+  const generateRecentActivity = useCallback((bookings, policies) => {
     const activities = [];
 
     const sortedBookings = [...bookings].sort((a, b) =>
@@ -235,19 +172,9 @@ export default function UserDashboard() {
     }
 
     setRecentActivity(activities.slice(0, 5));
-  };
+  }, []);
 
-  const formatTimeAgo = (date) => {
-    const now = new Date();
-    const diff = now - date;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (hours < 1) return 'Just now';
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return 'Yesterday';
-    return `${days} days ago`;
-  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -256,11 +183,7 @@ export default function UserDashboard() {
     return 'Good Evening';
   };
 
-  const getRiskLevel = (score) => {
-    if (score < 30) return { label: 'LOW', color: '#10b981', emoji: '🟢' };
-    if (score < 60) return { label: 'MODERATE', color: '#f59e0b', emoji: '🟡' };
-    return { label: 'HIGH', color: '#ef4444', emoji: '🔴' };
-  };
+
 
   const getAppointmentStage = () => {
     if (appointments.length === 0) return 0;
@@ -272,6 +195,99 @@ export default function UserDashboard() {
     return 0;
   };
 
+
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const [policiesRes, bookingsRes, agentsRes, recommendedRes, riskRes] = await Promise.all([
+        api.get(`/policies/user/${user.id}`).catch(() => ({ data: [] })),
+        api.get(`/bookings/user/${user.id}`).catch(() => ({ data: [] })),
+        api.get('/agents').catch(() => ({ data: [] })),
+        policyService.getRecommendedPolicies(user),
+        api.get(`/ai/user-risk-profile/${user.id}`).catch(() => ({ data: null }))
+      ]);
+
+      const allBookings = bookingsRes.data || [];
+      const activePolicies = policiesRes.data || [];
+      const agents = agentsRes.data || [];
+      const recommendedPolicies = recommendedRes || [];
+      const riskProfile = riskRes.data;
+
+      setRiskData(riskProfile);
+
+      // Calculate stats
+      const upcomingAppointments = allBookings.filter(b => {
+        const bookingDate = new Date(b.startTime);
+        const now = new Date();
+        const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status);
+        return bookingDate > now && isActive;
+      });
+
+      const rejectedCount = allBookings.filter(b => b.status === 'REJECTED').length;
+      const activeAgentsCount = agents.filter(a => a.available).length;
+
+      setStats({
+        activeAgents: activeAgentsCount,
+        appointments: upcomingAppointments.length,
+        activePolicies: activePolicies.length,
+        rejectedRequests: rejectedCount,
+        riskScore: riskProfile ? riskProfile.riskScore : calculateRiskScore(activePolicies, allBookings),
+        healthScore: calculateHealthScore(activePolicies)
+      });
+
+      setAppointments(upcomingAppointments.slice(0, 1)); // Next appointment
+      // setPolicies(activePolicies);
+
+      // Enhance recommended policies with features for comparison
+      const enhancedRecommendations = recommendedPolicies.map(p => ({
+        ...p,
+        id: p.policyId || p.id,
+        name: p.policyName || p.name,
+        // Ensure features object exists for PolicyComparison
+        features: p.features || {
+          cashless: true, // Default to true or random for demo
+          preExisting: p.benefits?.includes('Pre-existing') || false,
+          maternity: p.benefits?.includes('Maternity') || false,
+          ambulance: true,
+          roomRent: 'Standard',
+          copay: '0%',
+          restoration: true,
+          wellness: false
+        },
+        aiScore: p.matchScore ? Math.round(p.matchScore) : 75,
+        aiReasons: p.recommendationReason
+          ? [p.recommendationReason]
+          : ['AI Recommended based on your profile', 'Balanced coverage and premium'],
+        recommended: p.isRecommended || false,
+        provider: p.provider || 'InsurAI Partner'
+      }));
+
+      setComparisonPolicies(enhancedRecommendations);
+
+      // Generate AI Insights
+      generateAIInsights(activePolicies, user, recommendedPolicies, riskProfile);
+
+      // Generate Recent Activity
+      generateRecentActivity(allBookings, activePolicies);
+
+    } catch (err) {
+      console.error("Dashboard load error:", err);
+      notify("Failed to load dashboard data", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [user, notify, generateAIInsights, generateRecentActivity]);
+
+  useEffect(() => {
+    if (!user) return;
+    loadDashboardData();
+  }, [user, loadDashboardData]);
+
+  const riskInfo = getRiskLevel(stats.riskScore);
+  const appointmentStage = getAppointmentStage();
+
   if (loading) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
@@ -280,9 +296,6 @@ export default function UserDashboard() {
       </div>
     );
   }
-
-  const riskInfo = getRiskLevel(stats.riskScore);
-  const appointmentStage = getAppointmentStage();
 
   return (
     <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -314,7 +327,8 @@ export default function UserDashboard() {
           { icon: '🧑‍💼', title: 'Active Agents', value: stats.activeAgents, subtitle: 'View Agents →', color: '#667eea', action: () => navigate('/choose-agent') },
           { icon: '📅', title: 'Appointments', value: stats.appointments, subtitle: 'View Timeline →', color: '#f59e0b', action: () => navigate('/my-bookings') },
           { icon: '📄', title: 'Active Policies', value: stats.activePolicies, subtitle: 'View Policies →', color: '#10b981', action: () => navigate('/my-policies') },
-          { icon: '❌', title: 'Rejected Requests', value: stats.rejectedRequests, subtitle: 'Why rejected? →', color: '#ef4444', action: () => navigate('/my-bookings') }
+          { icon: '❌', title: 'Rejected Requests', value: stats.rejectedRequests, subtitle: 'Why rejected? →', color: '#ef4444', action: () => navigate('/my-bookings') },
+          { icon: '💬', title: 'Help & Feedback', value: 'Support', subtitle: 'Contact Us →', color: '#8b5cf6', action: () => navigate('/feedback') }
         ].map((card, idx) => (
           <motion.div
             key={idx}
@@ -589,14 +603,7 @@ export default function UserDashboard() {
         />
       </motion.div>
 
-      {/* Document Management */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: 40 }}
-      >
-        <DocumentManager userId={user.id} userRole="USER" />
-      </motion.div>
+
 
       {/* Insurance Literacy Center */}
       <motion.div

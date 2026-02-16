@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/ws/**").permitAll() // Allow auth and websocket
                         .requestMatchers("/api/ai/**").permitAll() // Allow AI endpoints
+                        .requestMatchers("/api/test/**").permitAll() // Allow Test Data Generation
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

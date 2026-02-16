@@ -227,7 +227,7 @@ export default function AgentPerformance() {
             )}
 
             {/* Performance Summary */}
-            <div>
+            <div style={{ marginBottom: 40 }}>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>💬 Performance Summary</h2>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -253,6 +253,65 @@ export default function AgentPerformance() {
                         />
                     </div>
                 </motion.div>
+            </div>
+
+            {/* Customer Reviews */}
+            <ReviewsSection agentId={performance.agentId} />
+        </div>
+    );
+}
+
+function ReviewsSection({ agentId }) {
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!agentId) return;
+        api.get(`/agents/${agentId}/reviews`)
+            .then(res => setReviews(res.data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [agentId]);
+
+    if (loading) return <div>Loading reviews...</div>;
+
+    if (reviews.length === 0) {
+        return (
+            <div className="card" style={{ padding: 40, textAlign: 'center', opacity: 0.7 }}>
+                <h3>No reviews yet</h3>
+                <p>Complete consultations to receive feedback from customers.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>⭐ Customer Reviews ({reviews.length})</h2>
+            <div className="grid">
+                {reviews.map((review, idx) => (
+                    <motion.div
+                        key={review.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="card"
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <div style={{ display: 'flex', gap: 5 }}>
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <span key={star} style={{ color: star <= review.rating ? '#f59e0b' : '#374151', fontSize: '1.2rem' }}>★</span>
+                                ))}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                {new Date(review.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <p style={{ fontStyle: 'italic', marginBottom: 15 }}>"{review.feedback}"</p>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            - {review.user?.name || 'Customer'}
+                        </div>
+                    </motion.div>
+                ))}
             </div>
         </div>
     );

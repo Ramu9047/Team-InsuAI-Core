@@ -14,9 +14,10 @@ export default function Notifications() {
         const loadNotifications = async () => {
             try {
                 const data = await notificationService.getNotifications(user?.role);
-                setNotifications(data || notificationService.generateMockNotifications(user?.role));
+                setNotifications(data || []);
             } catch (err) {
-                setNotifications(notificationService.generateMockNotifications(user?.role));
+                console.error("Failed to load notifications", err);
+                setNotifications([]);
             }
         };
         loadNotifications();

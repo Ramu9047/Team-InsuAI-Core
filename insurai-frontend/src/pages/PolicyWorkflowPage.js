@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -14,13 +14,9 @@ export default function PolicyWorkflowPage() {
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            loadWorkflows();
-        }
-    }, [user]);
 
-    const loadWorkflows = async () => {
+
+    const loadWorkflows = useCallback(async () => {
         try {
             const response = await api.get(`/policy-workflow/user/${user.id}`);
             setWorkflows(response.data);
@@ -30,7 +26,13 @@ export default function PolicyWorkflowPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, notify]);
+
+    useEffect(() => {
+        if (user) {
+            loadWorkflows();
+        }
+    }, [user, loadWorkflows]);
 
     const requestConsultationForAlternative = async (policyId) => {
         try {

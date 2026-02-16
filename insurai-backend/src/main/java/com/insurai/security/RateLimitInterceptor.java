@@ -34,7 +34,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private Bucket createNewBucket(String key) {
-        Bandwidth limit = Bandwidth.classic(20, Refill.greedy(20, Duration.ofMinutes(1))); // 20 reqs / min
+        Bandwidth limit = Bandwidth.classic(1000, Refill.greedy(1000, Duration.ofMinutes(1))); // 1000 reqs / min
         return Bucket.builder().addLimit(limit).build();
     }
 }

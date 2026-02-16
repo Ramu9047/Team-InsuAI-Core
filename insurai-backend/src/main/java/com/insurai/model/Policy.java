@@ -19,6 +19,21 @@ public class Policy {
   private Double coverage; // Total coverage amount
   private String documentUrl; // Policy doc link
 
+  private String status = "ACTIVE"; // ACTIVE, SUSPENDED, EXPIRED
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  // Company Ownership
+  @jakarta.persistence.ManyToOne
+  @jakarta.persistence.JoinColumn(name = "company_id")
+  private Company company;
+
   // Transparency Features
   private Double claimSettlementRatio; // e.g. 98.5
 
@@ -153,5 +168,13 @@ public class Policy {
 
   public void setTenure(Integer tenure) {
     this.tenure = tenure;
+  }
+
+  public Company getCompany() {
+    return company;
+  }
+
+  public void setCompany(Company company) {
+    this.company = company;
   }
 }

@@ -32,23 +32,76 @@ public class AgentConsultationService {
     private final PolicyRepository policyRepo;
     private final UserPolicyRepository userPolicyRepo;
     private final NotificationService notificationService;
+    private final com.insurai.repository.AgentReviewRepository reviewRepo;
 
     private static final int SLA_HOURS = 24; // 24-hour SLA for first response
 
     public AgentConsultationService(BookingRepository bookingRepo, UserRepository userRepo,
             PolicyRepository policyRepo, UserPolicyRepository userPolicyRepo,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.insurai.repository.AgentReviewRepository reviewRepo) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.policyRepo = policyRepo;
         this.userPolicyRepo = userPolicyRepo;
         this.notificationService = notificationService;
+        this.reviewRepo = reviewRepo;
+    }
+
+    /**
+     * Submit a review for an agent
+     */
+    public void submitReview(long agentId, long userId, long bookingId, Integer rating, String feedbackText) {
+        User agent = userRepo.findById(agentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getAgent().getId().equals(agentId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking does not match Agent");
+        }
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking does not match User");
+        }
+
+        if (reviewRepo.existsByBooking(booking)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Review already exists for this booking");
+        }
+
+        com.insurai.model.AgentReview review = new com.insurai.model.AgentReview();
+        review.setAgent(agent);
+        review.setUser(user);
+        review.setBooking(booking);
+        review.setRating(rating);
+        review.setFeedback(feedbackText);
+        reviewRepo.save(review);
+
+        // Update Agent's Average Rating
+        Double avg = reviewRepo.calculateAverageRating(agent);
+        if (avg != null) {
+            agent.setRating(avg);
+            userRepo.save(agent);
+        }
+    }
+
+    public List<com.insurai.model.AgentReview> getAgentReviews(long agentId) {
+        User agent = userRepo.findById(agentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+        return reviewRepo.findByAgent(agent);
+    }
+
+    public List<com.insurai.model.AgentReview> getAllReviews() {
+        return reviewRepo.findAll();
     }
 
     /**
      * Get all consultations for an agent with AI-assisted risk indicators
      */
-    public List<ConsultationDTO> getAgentConsultations(Long agentId) {
+    public List<ConsultationDTO> getAgentConsultations(long agentId) {
         userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
 
@@ -159,7 +212,7 @@ public class AgentConsultationService {
     /**
      * Process agent's consultation decision
      */
-    public void processConsultationDecision(Long agentId, PolicyRecommendationRequest request) {
+    public void processConsultationDecision(long agentId, PolicyRecommendationRequest request) {
         Booking booking = bookingRepo.findById(java.util.Objects.requireNonNull(request.getBookingId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
 
@@ -291,7 +344,7 @@ public class AgentConsultationService {
     /**
      * Get agent performance metrics
      */
-    public AgentPerformanceDTO getAgentPerformance(Long agentId) {
+    public AgentPerformanceDTO getAgentPerformance(long agentId) {
         User agent = userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
 
@@ -300,6 +353,9 @@ public class AgentConsultationService {
         AgentPerformanceDTO performance = new AgentPerformanceDTO();
         performance.setAgentId(agentId);
         performance.setAgentName(agent.getName());
+
+        // Populate Rating
+        performance.setCustomerSatisfaction(agent.getRating() != null ? agent.getRating() : 0.0);
 
         // Total consultations
         performance.setTotalConsultations(allBookings.size());
@@ -377,6 +433,12 @@ public class AgentConsultationService {
         performance.setLastActiveTime(agent.getAvailable() ? LocalDateTime.now() : null);
 
         // --- Calculate Rank Percentile ---
+        calculateRankPercentile(performance, agentId);
+
+        return performance;
+    }
+
+    private void calculateRankPercentile(AgentPerformanceDTO performance, Long agentId) {
         try {
             List<User> allAgents = userRepo.findByRole("AGENT");
             int totalAgents = allAgents.size();
@@ -389,28 +451,19 @@ public class AgentConsultationService {
 
                 for (User a : allAgents) {
                     if (!a.getId().equals(agentId)) {
-                        // Count other agent's completed bookings
-                        // Note: Using list size is inefficient for large datasets but acceptable for
-                        // MVP
                         List<Booking> theirBookings = bookingRepo.findByAgentIdAndStatus(a.getId(), "COMPLETED");
                         int theirCompleted = theirBookings != null ? theirBookings.size() : 0;
-
                         if (theirCompleted > myCompleted) {
                             betterAgents++;
                         }
                     }
                 }
-
-                // Percentile
                 double percentile = 100.0 * (1.0 - ((double) betterAgents / totalAgents));
                 performance.setRankPercentile((int) percentile);
             }
         } catch (Exception e) {
-            // Fallback if calculation fails
             performance.setRankPercentile(50);
         }
-
-        return performance;
     }
 
     // Helper methods (simplified versions of PolicyService methods)
