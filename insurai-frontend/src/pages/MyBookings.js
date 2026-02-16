@@ -100,13 +100,21 @@ export default function MyBookings() {
   const upcoming = list.filter(b => {
     const isFuture = new Date(b.startTime) > now;
     const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status);
+
+    // If it's a policy purchase request (b.policy exists) which is APPROVED, it's considered done.
+    if (b.policy && b.status === 'APPROVED') return false;
+
     return isFuture && isActive;
   }).reverse(); // Ascending for upcoming
 
   const history = list.filter(b => {
     const isPast = new Date(b.startTime) <= now;
     const isInactive = ['CANCELLED', 'COMPLETED', 'EXPIRED'].includes(b.status);
-    return isPast || isInactive;
+
+    // Include Approved Policy Requests in history as they are fulfilled
+    const isApprovedPolicy = b.policy && b.status === 'APPROVED';
+
+    return isPast || isInactive || isApprovedPolicy;
   });
 
   const displayList = activeTab === 'upcoming' ? upcoming : history;
