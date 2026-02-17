@@ -177,6 +177,25 @@ export default function MyAppointmentsEnhanced() {
                 isOpen={paymentModal.isOpen}
                 onClose={() => setPaymentModal({ isOpen: false, policy: null })}
                 title="Activate Policy"
+                actions={
+                    paymentModal.policy && (
+                        <>
+                            <button
+                                className="secondary-btn"
+                                onClick={() => setPaymentModal({ isOpen: false, policy: null })}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="primary-btn"
+                                onClick={() => handlePayment(paymentModal.policy.id)}
+                                style={{ background: '#10b981', borderColor: '#10b981' }}
+                            >
+                                Pay ₹{paymentModal.policy.premium}
+                            </button>
+                        </>
+                    )
+                }
             >
                 {paymentModal.policy && (
                     <div style={{ color: 'var(--text-main)' }}>
@@ -191,23 +210,6 @@ export default function MyAppointmentsEnhanced() {
                                 💳 Complete payment to activate your policy
                             </p>
                         </div>
-
-                        <div style={{ display: 'flex', gap: 10 }}>
-                            <button
-                                className="secondary-btn"
-                                onClick={() => setPaymentModal({ isOpen: false, policy: null })}
-                                style={{ flex: 1 }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="primary-btn"
-                                onClick={() => handlePayment(paymentModal.policy.id)}
-                                style={{ flex: 1, background: '#10b981', borderColor: '#10b981' }}
-                            >
-                                Pay ₹{paymentModal.policy.premium}
-                            </button>
-                        </div>
                     </div>
                 )}
             </Modal>
@@ -217,6 +219,25 @@ export default function MyAppointmentsEnhanced() {
                 isOpen={reviewModal.isOpen}
                 onClose={() => setReviewModal({ isOpen: false, booking: null })}
                 title="Rate Agent & Consultation"
+                actions={
+                    reviewModal.booking && (
+                        <>
+                            <button
+                                className="secondary-btn"
+                                onClick={() => setReviewModal({ isOpen: false, booking: null })}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="primary-btn"
+                                onClick={handleReviewSubmit}
+                                style={{ background: '#fbbf24', borderColor: '#fbbf24', color: '#000' }}
+                            >
+                                Submit Review
+                            </button>
+                        </>
+                    )
+                }
             >
                 <div style={{ color: 'var(--text-main)' }}>
                     <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -250,23 +271,6 @@ export default function MyAppointmentsEnhanced() {
                             marginBottom: 20
                         }}
                     />
-
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <button
-                            className="secondary-btn"
-                            onClick={() => setReviewModal({ isOpen: false, booking: null })}
-                            style={{ flex: 1 }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            className="primary-btn"
-                            onClick={handleReviewSubmit}
-                            style={{ flex: 1, background: '#fbbf24', borderColor: '#fbbf24', color: '#000' }}
-                        >
-                            Submit Review
-                        </button>
-                    </div>
                 </div>
             </Modal>
 
@@ -275,6 +279,14 @@ export default function MyAppointmentsEnhanced() {
                 isOpen={!!rejectionDetails}
                 onClose={() => setRejectionDetails(null)}
                 title="Rejection Details & Alternatives"
+                actions={
+                    <button
+                        className="primary-btn"
+                        onClick={() => setRejectionDetails(null)}
+                    >
+                        Close
+                    </button>
+                }
             >
                 {rejectionDetails && (
                     <div style={{ color: 'var(--text-main)' }}>
@@ -326,14 +338,6 @@ export default function MyAppointmentsEnhanced() {
                                 </div>
                             </div>
                         )}
-
-                        <button
-                            className="primary-btn"
-                            onClick={() => setRejectionDetails(null)}
-                            style={{ width: '100%', marginTop: 20 }}
-                        >
-                            Close
-                        </button>
                     </div>
                 )}
             </Modal>

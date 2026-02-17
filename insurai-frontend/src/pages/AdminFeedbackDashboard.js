@@ -288,7 +288,21 @@ function FeedbackDetailModal({ isOpen, onClose, feedback, onUpdateStatus }) {
     if (!feedback) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Feedback Details">
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Feedback Details"
+            actions={
+                <>
+                    <button type="button" className="secondary-btn" onClick={onClose}>
+                        Cancel
+                    </button>
+                    <button type="button" className="primary-btn" onClick={handleSubmit}>
+                        Update
+                    </button>
+                </>
+            }
+        >
             <div style={{ color: 'var(--text-main)' }}>
                 <div style={{ marginBottom: 20, padding: 15, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
                     <h3 style={{ margin: '0 0 10px 0' }}>{feedback.subject}</h3>
@@ -339,15 +353,6 @@ function FeedbackDetailModal({ isOpen, onClose, feedback, onUpdateStatus }) {
                             }}
                         />
                     </div>
-
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <button type="button" className="secondary-btn" onClick={onClose} style={{ flex: 1 }}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="primary-btn" style={{ flex: 1 }}>
-                            Update
-                        </button>
-                    </div>
                 </form>
             </div>
         </Modal>
@@ -368,7 +373,21 @@ function AssignModal({ isOpen, onClose, feedback, agents, onAssign }) {
     if (!feedback) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Assign Feedback">
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Assign Feedback"
+            actions={
+                <>
+                    <button type="button" className="secondary-btn" onClick={onClose}>
+                        Cancel
+                    </button>
+                    <button type="button" className="primary-btn" onClick={handleSubmit}>
+                        Assign
+                    </button>
+                </>
+            }
+        >
             <div style={{ color: 'var(--text-main)' }}>
                 <div style={{ marginBottom: 20, padding: 15, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
                     <h3 style={{ margin: '0 0 10px 0' }}>{feedback.subject}</h3>
@@ -400,14 +419,6 @@ function AssignModal({ isOpen, onClose, feedback, agents, onAssign }) {
                         </select>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <button type="button" className="secondary-btn" onClick={onClose} style={{ flex: 1 }}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="primary-btn" style={{ flex: 1 }}>
-                            Assign
-                        </button>
-                    </div>
                 </form>
             </div>
         </Modal>

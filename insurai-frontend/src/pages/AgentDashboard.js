@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+    PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 export default function AgentDashboard() {
@@ -27,25 +26,18 @@ export default function AgentDashboard() {
         conversionRate: 0
     });
 
-    const [appointments, setAppointments] = useState([]);
     const [performanceData, setPerformanceData] = useState([]);
     const [statusBreakdown, setStatusBreakdown] = useState([]);
     const [upcomingAppointments, setUpcomingAppointments] = useState([]);
     const [recentActivities, setRecentActivities] = useState([]);
 
-    useEffect(() => {
-        if (!user || user.role !== 'AGENT') return;
-        loadAgentData();
-    }, [user]);
-
-    const loadAgentData = async () => {
+    const loadAgentData = useCallback(async () => {
         try {
             setLoading(true);
             setIsAvailable(user.available || false);
 
             const res = await api.get("/agents/appointments");
             const appts = res.data || [];
-            setAppointments(appts);
 
             // Calculate stats
             const pending = appts.filter(a => a.status === 'PENDING').length;
@@ -59,31 +51,32 @@ export default function AgentDashboard() {
                 new Date(a.startTime).toDateString() === today
             ).length;
 
-            const conversionRate = appts.length > 0
-                ? Math.round((completed / appts.length) * 100)
-                : 0;
+            // Fetch correct performance data
+            const perfRes = await api.get("/agents/performance").catch(() => ({ data: {} }));
+            const perf = perfRes.data || {};
+
+            // Fetch Today's Metrics (Real-time)
+            const todayRes = await api.get("/agents/dashboard/today-metrics").catch(() => ({ data: { approvedToday: 0, rejectedToday: 0, approvalRate: 0 } }));
+            const todayMetrics = todayRes.data;
 
             setStats({
                 pending,
-                approved,
+                approved: todayMetrics.approvedToday,
                 completed,
-                rejected,
+                rejected: todayMetrics.rejectedToday,
                 expired,
                 total: appts.length,
                 todayAppointments,
-                weeklyEarnings: completed * 500, // Mock calculation
-                conversionRate
+                weeklyEarnings: completed * 500,
+                conversionRate: todayMetrics.approvalRate
             });
-
-            // Generate performance data (last 7 days)
-            generatePerformanceData(appts);
 
             // Status breakdown for pie chart
             setStatusBreakdown([
                 { name: 'Completed', value: completed, color: '#10b981' },
-                { name: 'Approved', value: approved, color: '#3b82f6' },
+                { name: 'Approved', value: approved, color: '#3b82f6' }, // Lifetime
                 { name: 'Pending', value: pending, color: '#f59e0b' },
-                { name: 'Rejected', value: rejected, color: '#ef4444' },
+                { name: 'Rejected', value: rejected, color: '#ef4444' }, // Lifetime
                 { name: 'Expired', value: expired, color: '#6b7280' }
             ].filter(item => item.value > 0));
 
@@ -94,7 +87,67 @@ export default function AgentDashboard() {
                 .slice(0, 3);
             setUpcomingAppointments(upcoming);
 
-            // Recent activities
+
+
+
+
+            const generatePerformanceData = (appts) => {
+                const last7Days = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                    const dayAppts = appts.filter(a => {
+                        const apptDate = new Date(a.startTime).toDateString();
+                        return apptDate === date.toDateString();
+                    });
+
+                    last7Days.push({
+                        date: dateStr,
+                        appointments: dayAppts.length,
+                        completed: dayAppts.filter(a => a.status === 'COMPLETED').length,
+                        pending: dayAppts.filter(a => a.status === 'PENDING').length
+                    });
+                }
+                setPerformanceData(last7Days);
+            };
+
+            const generateRecentActivities = (appts) => {
+                const activities = [];
+                const sorted = [...appts]
+                    .sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
+                    .slice(0, 5);
+
+                sorted.forEach(appt => {
+                    const timeAgo = formatTimeAgo(new Date(appt.startTime));
+                    let icon = '📅'; let text = ''; let color = '#6b7280';
+
+                    if (appt.status === 'COMPLETED') {
+                        icon = '✅'; text = `Completed consultation with ${appt.user?.name || 'Client'}`; color = '#10b981';
+                    } else if (appt.status === 'APPROVED' || appt.status === 'CONFIRMED') {
+                        icon = '🎯'; text = `Appointment confirmed with ${appt.user?.name || 'Client'}`; color = '#3b82f6';
+                    } else if (appt.status === 'PENDING') {
+                        icon = '⏳'; text = `New appointment request from ${appt.user?.name || 'Client'}`; color = '#f59e0b';
+                    } else if (appt.status === 'REJECTED') {
+                        icon = '❌'; text = `Appointment declined for ${appt.user?.name || 'Client'}`; color = '#ef4444';
+                    } else if (appt.status === 'EXPIRED') {
+                        icon = '⚠️'; text = `Request expired for ${appt.user?.name || 'Client'}`; color = '#6b7280';
+                    }
+
+                    if (text) {
+                        activities.push({ id: appt.id, icon, text, time: timeAgo, color });
+                    }
+                });
+
+                if (activities.length === 0) {
+                    activities.push({ id: 0, icon: '😊', text: 'No recent activity', time: 'Just now', color: '#10b981' });
+                }
+                setRecentActivities(activities);
+            };
+
+            // Calculate Metrics
+            generatePerformanceData(appts);
             generateRecentActivities(appts);
 
         } catch (err) {
@@ -103,65 +156,12 @@ export default function AgentDashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, notify]); // Dependencies
 
-    const generatePerformanceData = (appts) => {
-        const last7Days = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-            const dayAppts = appts.filter(a => {
-                const apptDate = new Date(a.startTime).toDateString();
-                return apptDate === date.toDateString();
-            });
-
-            last7Days.push({
-                date: dateStr,
-                appointments: dayAppts.length,
-                completed: dayAppts.filter(a => a.status === 'COMPLETED').length,
-                pending: dayAppts.filter(a => a.status === 'PENDING').length
-            });
-        }
-        setPerformanceData(last7Days);
-    };
-
-    const generateRecentActivities = (appts) => {
-        const activities = [];
-        const sorted = [...appts]
-            .sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
-            .slice(0, 5);
-
-        sorted.forEach(appt => {
-            const timeAgo = formatTimeAgo(new Date(appt.startTime));
-            let icon = '📅';
-            let text = '';
-            let color = '#6b7280';
-
-            if (appt.status === 'COMPLETED') {
-                icon = '✅';
-                text = `Completed consultation with ${appt.user?.name || 'Client'}`;
-                color = '#10b981';
-            } else if (appt.status === 'APPROVED' || appt.status === 'CONFIRMED') {
-                icon = '🎯';
-                text = `Appointment confirmed with ${appt.user?.name || 'Client'}`;
-                color = '#3b82f6';
-            } else if (appt.status === 'PENDING') {
-                icon = '⏳';
-                text = `New appointment request from ${appt.user?.name || 'Client'}`;
-                color = '#f59e0b';
-            } else if (appt.status === 'REJECTED') {
-                icon = '❌';
-                text = `Appointment declined for ${appt.user?.name || 'Client'}`;
-                color = '#ef4444';
-            }
-
-            activities.push({ icon, text, time: timeAgo, color });
-        });
-
-        setRecentActivities(activities);
-    };
+    useEffect(() => {
+        if (!user || user.role !== 'AGENT') return;
+        loadAgentData();
+    }, [user, loadAgentData]);
 
     const formatTimeAgo = (date) => {
         const now = new Date();
@@ -249,11 +249,11 @@ export default function AgentDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 40 }}>
                 {[
                     { icon: '⏳', title: 'Pending Requests', value: stats.pending, color: '#f59e0b', action: () => navigate('/agent/requests') },
-                    { icon: '✅', title: 'Approved', value: stats.approved, color: '#3b82f6', action: () => navigate('/agent/requests') },
+                    { icon: '✅', title: 'Approved Today', value: stats.approved, color: '#3b82f6', action: () => navigate('/agent/requests') },
                     { icon: '🎯', title: 'Completed', value: stats.completed, color: '#10b981', action: () => navigate('/agent/consultations') },
-                    { icon: '📅', title: 'Today\'s Appointments', value: stats.todayAppointments, color: '#8b5cf6', action: () => navigate('/agent/requests') },
+                    { icon: '❌', title: 'Rejected Today', value: stats.rejected, color: '#ef4444', action: () => navigate('/agent/requests') },
                     { icon: '💰', title: 'Weekly Earnings', value: `₹${stats.weeklyEarnings}`, color: '#ec4899', action: () => navigate('/agent/performance') },
-                    { icon: '📈', title: 'Conversion Rate', value: `${stats.conversionRate}%`, color: '#06b6d4', action: () => navigate('/agent/performance') }
+                    { icon: '📈', title: 'Approval Rate', value: `${stats.conversionRate}%`, color: '#06b6d4', action: () => navigate('/agent/performance') }
                 ].map((metric, idx) => (
                     <motion.div
                         key={idx}

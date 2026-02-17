@@ -22,6 +22,8 @@ public class AgentPerformanceDTO {
     private java.util.Map<String, Integer> rejectionReasons;
     private Integer alternativesRecommended;
     private java.time.LocalDateTime lastActiveTime;
+    private Integer approvedToday;
+    private Integer rejectedToday;
 
     // Getters and Setters
     public Long getAgentId() {
@@ -166,5 +168,21 @@ public class AgentPerformanceDTO {
 
     public void setRankPercentile(Integer rankPercentile) {
         this.rankPercentile = rankPercentile;
+    }
+
+    public Integer getApprovedToday() {
+        return approvedToday;
+    }
+
+    public void setApprovedToday(Integer approvedToday) {
+        this.approvedToday = approvedToday;
+    }
+
+    public Integer getRejectedToday() {
+        return rejectedToday;
+    }
+
+    public void setRejectedToday(Integer rejectedToday) {
+        this.rejectedToday = rejectedToday;
     }
 }

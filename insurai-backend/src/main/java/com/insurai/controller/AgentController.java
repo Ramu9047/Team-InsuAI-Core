@@ -141,6 +141,10 @@ public class AgentController {
 
         if ("APPROVED".equals(newStatus)) {
             // Task 2: Approve Meeting (Scenario 1)
+            if (booking.getRespondedAt() == null) {
+                booking.setRespondedAt(java.time.LocalDateTime.now());
+            }
+
             // Just generate link, DO NOT create policy yet.
             if (booking.getMeetingLink() == null) {
                 String link = calendarService.createMeeting(
@@ -154,6 +158,8 @@ public class AgentController {
                 booking.setMeetingLink(link);
             }
         } else if ("COMPLETED".equals(newStatus)) {
+            booking.setCompletedAt(java.time.LocalDateTime.now());
+
             // Task 5: Policy Issuance (After Consultation)
             if (booking.getPolicy() != null) {
                 // Check duplicate
@@ -182,6 +188,7 @@ public class AgentController {
                         "SUCCESS");
             }
         } else if ("REJECTED".equals(newStatus)) {
+            booking.setCompletedAt(java.time.LocalDateTime.now());
             // Phase 3: Rejection with AI
             String reason = body.get("reason");
             if (reason == null || reason.isBlank()) {
@@ -341,5 +348,41 @@ public class AgentController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<com.insurai.model.AgentReview> getAllReviews() {
         return agentConsultationService.getAllReviews();
+    }
+
+    @GetMapping("/dashboard/today-metrics")
+    public ResponseEntity<Map<String, Object>> getTodayMetrics(Authentication auth) {
+        User agent = userRepo.findByEmail(auth.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+
+        if (!"AGENT".equals(agent.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        List<Booking> appts = bookingRepo.findByAgentId(agent.getId());
+
+        long approvedToday = appts.stream()
+                .filter(b -> ("APPROVED".equals(b.getStatus()) || "CONFIRMED".equals(b.getStatus()))
+                        && b.getRespondedAt() != null
+                        && b.getRespondedAt().toLocalDate().equals(today))
+                .count();
+
+        long rejectedToday = appts.stream()
+                .filter(b -> "REJECTED".equals(b.getStatus())
+                        && b.getCompletedAt() != null
+                        && b.getCompletedAt().toLocalDate().equals(today))
+                .count();
+
+        // Recalculate daily approval rate
+        double approvalRate = 0.0;
+        if ((approvedToday + rejectedToday) > 0) {
+            approvalRate = ((double) approvedToday / (approvedToday + rejectedToday)) * 100;
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "approvedToday", approvedToday,
+                "rejectedToday", rejectedToday,
+                "approvalRate", Math.round(approvalRate)));
     }
 }

@@ -101,7 +101,9 @@ export default function AdminDashboardEnterprise() {
             const totalUsers = users.filter(u => u.role === 'USER').length;
             const totalAgents = agents.length;
             const policiesIssued = issuedPolicies.length;
-            const fraudAlerts = calculateFraudAlerts(bookings, issuedPolicies);
+            const fraudAlerts = (dashboardStats && dashboardStats.fraudAlerts !== undefined)
+                ? dashboardStats.fraudAlerts
+                : calculateFraudAlerts(bookings, issuedPolicies);
 
             setMetrics({
                 totalUsers,

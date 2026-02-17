@@ -59,7 +59,7 @@ export default function AgentAppointmentsEnhanced() {
       };
 
       const res = await api.post("/appointment-workflow/agent/decision", payload);
-      
+
       notify(res.data.message || "Action completed successfully", "success");
       setActionModal({ isOpen: false, action: null });
       setSelectedAppointment(null);
@@ -140,6 +140,34 @@ export default function AgentAppointmentsEnhanced() {
           setAiInsights(null);
         }}
         title={`${getActionLabel(actionModal.action)} - ${selectedAppointment?.user?.name || ''}`}
+        actions={
+          selectedAppointment && (
+            <>
+              <button
+                className="secondary-btn"
+                onClick={() => {
+                  setActionModal({ isOpen: false, action: null });
+                  setSelectedAppointment(null);
+                  setNotes("");
+                  setRejectionReason("");
+                  setAiInsights(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="primary-btn"
+                onClick={() => handleAction(actionModal.action)}
+                style={{
+                  background: actionModal.action === 'REJECT' ? '#ef4444' : 'var(--primary)',
+                  borderColor: actionModal.action === 'REJECT' ? '#ef4444' : 'var(--primary)'
+                }}
+              >
+                Confirm
+              </button>
+            </>
+          )
+        }
       >
         <div style={{ color: 'var(--text-main)' }}>
           {selectedAppointment && (
@@ -235,33 +263,6 @@ export default function AgentAppointmentsEnhanced() {
                   marginBottom: 20
                 }}
               />
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  className="secondary-btn"
-                  onClick={() => {
-                    setActionModal({ isOpen: false, action: null });
-                    setSelectedAppointment(null);
-                    setNotes("");
-                    setRejectionReason("");
-                    setAiInsights(null);
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="primary-btn"
-                  onClick={() => handleAction(actionModal.action)}
-                  style={{
-                    flex: 1,
-                    background: actionModal.action === 'REJECT' ? '#ef4444' : 'var(--primary)',
-                    borderColor: actionModal.action === 'REJECT' ? '#ef4444' : 'var(--primary)'
-                  }}
-                >
-                  Confirm
-                </button>
-              </div>
             </>
           )}
         </div>
@@ -326,7 +327,7 @@ export default function AgentAppointmentsEnhanced() {
 
                 <div style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: 15 }}>
                   📅 {new Date(apt.startTime).toLocaleDateString()}<br />
-                  ⏰ {new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+                  ⏰ {new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -
                   {new Date(apt.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
 

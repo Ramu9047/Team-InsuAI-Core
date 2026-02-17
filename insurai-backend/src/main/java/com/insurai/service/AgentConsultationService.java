@@ -429,6 +429,58 @@ public class AgentConsultationService {
                 .count();
         performance.setAlternativesRecommended((int) alternatives);
 
+        // --- NEW: Today's Metrics ---
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        // Approved Today: Bookings where respondedAt is today (assuming respondedAt is
+        // set on approval)
+        long approvedToday = allBookings.stream()
+                .filter(b -> b.getRespondedAt() != null && b.getRespondedAt().toLocalDate().equals(today))
+                .count();
+
+        // Rejected Today: Bookings where status is REJECTED and completedAt is today
+        long rejectedToday = allBookings.stream()
+                .filter(b -> "REJECTED".equals(b.getStatus()) && b.getCompletedAt() != null
+                        && b.getCompletedAt().toLocalDate().equals(today))
+                .count();
+
+        performance.setApprovedToday((int) approvedToday);
+        performance.setRejectedToday((int) rejectedToday);
+
+        // Recalculate Approval Rate using TODAY'S data (per requirement: (Approved
+        // Today / (Approved Today + Rejected Today)) * 100)
+        // Wait, normally approval rate is lifetime. The prompt asks: "Recalculate
+        // Approval Rate based on: (Approved Today / (Approved Today + Rejected Today))
+        // * 100"
+        // This is a specific request for "Today's Approval Rate" or maybe just override
+        // the global one?
+        // "Approval Rate remains inaccurate because it is derived from wrong data...
+        // Recalculate Approval Rate based on..."
+        // I will stick to the prompt.
+        if ((approvedToday + rejectedToday) > 0) {
+            performance.setApprovalRate((double) approvedToday / (approvedToday + rejectedToday) * 100.0);
+        } else {
+            // Fallback to lifetime if no activity today? Or just 0?
+            // Prompt implies the current one is wrong. Let's set it to today's if there's
+            // data.
+            if (performance.getTotalConsultations() > 0) {
+                // Keep lifetime as fallback, or set to 0?
+                // Let's keep the lifetime calculation done above if today is 0 to avoid showing
+                // 0% for active agents.
+                // Actually, let's override ONLY if there is activity today, otherwise users
+                // might be confused.
+                // But the prompt says "Approval Rate remains inaccurate...".
+                // Let's strictly follow: approvedToday / (approvedToday + rejectedToday).
+                // If 0 denominator, set to 0 or leave previous?
+                performance.setApprovalRate(0.0);
+            }
+        }
+
+        // Re-override if data exists
+        if ((approvedToday + rejectedToday) > 0) {
+            performance.setApprovalRate((double) approvedToday / (approvedToday + rejectedToday) * 100.0);
+        }
+
         // Last active time
         performance.setLastActiveTime(agent.getAvailable() ? LocalDateTime.now() : null);
 

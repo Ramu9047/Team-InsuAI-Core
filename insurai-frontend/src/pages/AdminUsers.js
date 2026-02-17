@@ -249,7 +249,7 @@ export default function AdminUsers() {
                     >
                         <option value="USER">User</option>
                         <option value="AGENT">Agent</option>
-                        <option value="ADMIN">Admin</option>
+                        {isEditMode && <option value="ADMIN">Admin</option>}
                     </select>
                 </div>
 

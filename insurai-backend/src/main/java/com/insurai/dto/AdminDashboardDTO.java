@@ -8,8 +8,17 @@ public class AdminDashboardDTO {
     private Map<String, Integer> claimRiskDistribution; // "Low": 50, "Medium": 20...
     private List<AgentPerformanceDTO> agentLeaderboard;
     private SLAMetricsDTO slaMetrics;
+    private Integer fraudAlerts;
 
-    // Getters and Setters
+    public Integer getFraudAlerts() {
+        return fraudAlerts;
+    }
+
+    public void setFraudAlerts(Integer fraudAlerts) {
+        this.fraudAlerts = fraudAlerts;
+    }
+
+    // Inner DTO for SLA
     public Map<String, Integer> getClaimRiskDistribution() {
         return claimRiskDistribution;
     }

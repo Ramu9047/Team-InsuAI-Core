@@ -92,7 +92,7 @@ export default function App() {
                                 </Route>
 
                                 {/* Admin Routes */}
-                                <Route element={<RequireAuth allowedRoles={['ADMIN']} />}>
+                                <Route element={<RequireAuth allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
                                     <Route path="/admin" element={<AdminDashboardEnterprise />} />
                                     <Route path="/admin/analytics" element={<AdminAnalytics />} />
                                     <Route path="/admin/agents" element={<AgentGovernance />} />

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
@@ -7,6 +8,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function SuperAdminDashboard() {
     const { notify } = useNotification();
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
@@ -74,6 +76,14 @@ export default function SuperAdminDashboard() {
         { name: 'High Risk', value: riskOversight.highRisk || 0, color: '#ef4444' }
     ];
 
+    const scrollToSection = (id, filterValue) => {
+        if (filterValue) setFilter(filterValue);
+        setTimeout(() => {
+            const element = document.getElementById(id);
+            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
+
     return (
         <div style={{ padding: '40px', maxWidth: '1600px', margin: '0 auto', color: 'white' }}>
             {/* Header */}
@@ -98,18 +108,19 @@ export default function SuperAdminDashboard() {
             {/* Metrics Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
                 {[
-                    { icon: '🏢', title: 'Total Companies', value: metrics.totalCompanies, color: '#3b82f6' },
-                    { icon: '⏳', title: 'Pending Approval', value: metrics.pendingApprovals, color: '#f59e0b' },
-                    { icon: '✅', title: 'Active Companies', value: metrics.activeCompanies, color: '#10b981' },
-                    { icon: '🚫', title: 'Suspended', value: metrics.suspendedCompanies, color: '#ef4444' },
-                    { icon: '⚠️', title: 'Fraud Alerts', value: metrics.fraudAlerts, color: '#ec4899' }
+                    { icon: '🏢', title: 'Total Companies', value: metrics.totalCompanies, color: '#3b82f6', action: () => scrollToSection('company-governance', 'ALL') },
+                    { icon: '⏳', title: 'Pending Approval', value: metrics.pendingApprovals, color: '#f59e0b', action: () => scrollToSection('company-governance', 'PENDING_APPROVAL') },
+                    { icon: '✅', title: 'Active Companies', value: metrics.activeCompanies, color: '#10b981', action: () => scrollToSection('company-governance', 'APPROVED') },
+                    { icon: '🚫', title: 'Suspended', value: metrics.suspendedCompanies, color: '#ef4444', action: () => scrollToSection('company-governance', 'SUSPENDED') },
+                    { icon: '⚠️', title: 'Fraud Alerts', value: metrics.fraudAlerts, color: '#ec4899', action: () => navigate('/admin/exceptions') } // Shared route
                 ].map((metric, idx) => (
                     <motion.div
                         key={idx}
+                        onClick={metric.action}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, cursor: 'pointer' }}
                         className="card"
                         style={{
                             borderTop: `4px solid ${metric.color}`,
@@ -117,7 +128,8 @@ export default function SuperAdminDashboard() {
                             background: 'rgba(30, 41, 59, 0.7)',
                             backdropFilter: 'blur(10px)',
                             border: '1px solid rgba(255,255,255,0.05)',
-                            borderRadius: 16
+                            borderRadius: 16,
+                            cursor: 'pointer'
                         }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 }}>
@@ -216,6 +228,7 @@ export default function SuperAdminDashboard() {
 
             {/* Company Governance Table */}
             <motion.div
+                id="company-governance"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
@@ -305,7 +318,17 @@ export default function SuperAdminDashboard() {
             </motion.div>
 
             {/* Action Modal */}
-            <Modal isOpen={actionModal.isOpen} onClose={() => setActionModal({ isOpen: false, company: null, action: null })} title={`${actionModal.action === 'approve' ? 'Approve' : actionModal.action === 'reject' ? 'Reject' : 'Suspend'} Company`}>
+            <Modal
+                isOpen={actionModal.isOpen}
+                onClose={() => setActionModal({ isOpen: false, company: null, action: null })}
+                title={`${actionModal.action === 'approve' ? 'Approve' : actionModal.action === 'reject' ? 'Reject' : 'Suspend'} Company`}
+                actions={
+                    <>
+                        <button onClick={() => setActionModal({ isOpen: false, company: null, action: null })} className="secondary-btn">Cancel</button>
+                        <button onClick={handleAction} className="primary-btn" style={{ background: actionModal.action === 'approve' ? '#10b981' : '#ef4444' }}>Confirm</button>
+                    </>
+                }
+            >
                 <div>
                     <p>Are you sure you want to {actionModal.action} <strong>{actionModal.company?.name}</strong>?</p>
                     {(actionModal.action === 'reject' || actionModal.action === 'suspend') && (
@@ -326,10 +349,6 @@ export default function SuperAdminDashboard() {
                             rows={4}
                         />
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-                        <button onClick={() => setActionModal({ isOpen: false, company: null, action: null })} className="secondary-btn">Cancel</button>
-                        <button onClick={handleAction} className="primary-btn" style={{ background: actionModal.action === 'approve' ? '#10b981' : '#ef4444' }}>Confirm</button>
-                    </div>
                 </div>
             </Modal>
         </div>

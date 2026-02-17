@@ -29,11 +29,12 @@ export default function CompanyDashboard() {
             api.get('/company/policies')
         ])
             .then(([dashRes, agentsRes, policiesRes]) => {
-                setStats(dashRes.data.metrics);
-                setSalesData(dashRes.data.salesData || []);
-                setAiInsights(dashRes.data.aiInsights || []);
-                setAgents(agentsRes.data);
-                setPolicies(policiesRes.data);
+                const dashboardData = dashRes.data || {};
+                setStats(dashboardData.metrics || null);
+                setSalesData(dashboardData.salesData || []);
+                setAiInsights(dashboardData.aiInsights || []);
+                setAgents(Array.isArray(agentsRes.data) ? agentsRes.data : []);
+                setPolicies(Array.isArray(policiesRes.data) ? policiesRes.data : []);
             })
             .catch(err => {
                 console.error(err);
@@ -110,6 +111,11 @@ export default function CompanyDashboard() {
         setPolicyModal({ isOpen: true, mode: 'add', policy: null });
     };
 
+    const scrollToSection = (id) => {
+        const element = document.getElementById(id);
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     if (loading && !stats) return <div style={{ padding: 40, textAlign: 'center', color: 'white' }}>Loading Company Dashboard...</div>;
 
     return (
@@ -141,20 +147,22 @@ export default function CompanyDashboard() {
             {/* Business KPI Snapshot */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 40 }}>
                 {[
-                    { label: 'Total Policies', value: stats?.totalPolicies || 0, color: '#3b82f6', icon: '📄' },
-                    { label: 'Active Policies', value: stats?.activePolicies || 0, color: '#10b981', icon: '✅' },
-                    { label: 'Policies Sold', value: stats?.policiesSold || 0, color: '#8b5cf6', icon: '🛒' },
-                    { label: 'Revenue', value: `₹${(stats?.revenue || 0).toLocaleString()}`, color: '#f59e0b', icon: '💰' },
-                    { label: 'Conversion Rate', value: `${stats?.conversionRate || 0}%`, color: '#ec4899', icon: '📈' }
+                    { label: 'Total Policies', value: stats?.totalPolicies || 0, color: '#3b82f6', icon: '📄', action: () => scrollToSection('policy-management') },
+                    { label: 'Active Policies', value: stats?.activePolicies || 0, color: '#10b981', icon: '✅', action: () => scrollToSection('policy-management') },
+                    { label: 'Policies Sold', value: stats?.policiesSold || 0, color: '#8b5cf6', icon: '🛒', action: () => scrollToSection('sales-analytics') },
+                    { label: 'Revenue', value: `₹${(stats?.revenue || 0).toLocaleString()}`, color: '#f59e0b', icon: '💰', action: () => scrollToSection('sales-analytics') },
+                    { label: 'Conversion Rate', value: `${stats?.conversionRate || 0}%`, color: '#ec4899', icon: '📈', action: () => scrollToSection('sales-analytics') }
                 ].map((kpi, index) => (
                     <motion.div
                         key={index}
+                        onClick={kpi.action}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, cursor: 'pointer' }}
                         className="card"
                         style={{
+                            cursor: 'pointer',
                             borderTop: `4px solid ${kpi.color}`,
                             padding: 25,
                             background: 'rgba(30, 41, 59, 0.7)',
@@ -173,6 +181,7 @@ export default function CompanyDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 30, marginBottom: 40 }}>
                 {/* Sales Analytics */}
                 <motion.div
+                    id="sales-analytics"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="card"
@@ -194,6 +203,7 @@ export default function CompanyDashboard() {
 
                 {/* AI Insights */}
                 <motion.div
+                    id="ai-insights"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="card"
@@ -220,6 +230,7 @@ export default function CompanyDashboard() {
 
             {/* Policy Management Section */}
             <motion.div
+                id="policy-management"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
@@ -283,6 +294,7 @@ export default function CompanyDashboard() {
 
             {/* Agent Performance */}
             <motion.div
+                id="agent-performance"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
@@ -371,13 +383,19 @@ export default function CompanyDashboard() {
             </Modal>
 
             {/* Confirm Modal */}
-            <Modal isOpen={confirmModal.isOpen} onClose={() => setConfirmModal({ isOpen: false, action: null, policyId: null })} title="Confirm Action">
-                <div style={{ color: 'var(--text-main)' }}>
-                    <p>Are you sure you want to {confirmModal.action === 'delete' ? 'DELETE' : 'change status of'} this policy?</p>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+            <Modal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, action: null, policyId: null })}
+                title="Confirm Action"
+                actions={
+                    <>
                         <button onClick={() => setConfirmModal({ isOpen: false, action: null, policyId: null })} className="secondary-btn" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)' }}>Cancel</button>
                         <button onClick={confirmModal.action === 'delete' ? handleDelete : handleToggleStatus} className="primary-btn" style={{ background: confirmModal.action === 'delete' ? '#ef4444' : '#3b82f6' }}>Confirm</button>
-                    </div>
+                    </>
+                }
+            >
+                <div style={{ color: 'var(--text-main)' }}>
+                    <p>Are you sure you want to {confirmModal.action === 'delete' ? 'DELETE' : 'change status of'} this policy?</p>
                 </div>
             </Modal>
         </div>

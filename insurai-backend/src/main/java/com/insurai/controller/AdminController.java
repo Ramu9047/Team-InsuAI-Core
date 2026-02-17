@@ -2,6 +2,7 @@ package com.insurai.controller;
 
 import com.insurai.repository.UserRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,7 +74,16 @@ public class AdminController {
 
     @DeleteMapping("/users/{id}")
     public void deleteUser(@PathVariable Long id) {
-        userRepo.deleteById(java.util.Objects.requireNonNull(id));
+        com.insurai.model.User user = userRepo.findById(java.util.Objects.requireNonNull(id))
+                .orElseThrow(() -> new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND,
+                        "User not found"));
+
+        if ("SUPER_ADMIN".equalsIgnoreCase(user.getRole())) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Admins cannot delete Super Admin accounts.");
+        }
+
+        userRepo.deleteById(id);
     }
 
     // --- New Admin Features ---
@@ -222,6 +232,13 @@ public class AdminController {
         sla.setUrgentTasks(urgent);
 
         dashboard.setSlaMetrics(sla);
+
+        // 4. Fraud Alerts (Active/Unresolved) - MATCHES SuperAdmin Logic
+        long fraudAlerts = claimService.getAllClaims().stream()
+                .filter(c -> c.getFraudScore() != null && c.getFraudScore() > 0.7)
+                .filter(c -> !"REJECTED".equals(c.getStatus()) && !"APPROVED".equals(c.getStatus()))
+                .count();
+        dashboard.setFraudAlerts((int) fraudAlerts);
 
         return dashboard;
     }

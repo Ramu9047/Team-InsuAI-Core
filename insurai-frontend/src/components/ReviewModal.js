@@ -48,8 +48,50 @@ export default function ReviewModal({ isOpen, onClose, booking, onReviewSubmitte
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Rate Your Consultation">
-            <form onSubmit={handleSubmit}>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Rate Your Consultation"
+            actions={
+                <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={submitting}
+                        style={{
+                            flex: 1,
+                            padding: 12,
+                            borderRadius: 8,
+                            background: 'transparent',
+                            border: '1px solid var(--card-border)',
+                            color: 'var(--text-main)',
+                            cursor: 'pointer',
+                            opacity: submitting ? 0.5 : 1
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={submitting || rating === 0}
+                        style={{
+                            flex: 1,
+                            padding: 12,
+                            borderRadius: 8,
+                            background: rating === 0 ? 'var(--card-border)' : 'var(--primary)',
+                            border: 'none',
+                            color: 'white',
+                            cursor: rating === 0 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600
+                        }}
+                    >
+                        {submitting ? 'Submitting...' : 'Submit Review'}
+                    </button>
+                </div>
+            }
+        >
+            <form id="review-form" onSubmit={(e) => e.preventDefault()}>
                 <div style={{ marginBottom: 20 }}>
                     <p style={{ color: 'var(--text-main)', marginBottom: 10 }}>
                         How was your consultation with <strong>{booking?.agent?.name}</strong>?
@@ -89,42 +131,6 @@ export default function ReviewModal({ isOpen, onClose, booking, onReviewSubmitte
                     <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 5 }}>
                         {feedback.length}/1000
                     </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: 10 }}>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={submitting}
-                        style={{
-                            flex: 1,
-                            padding: 12,
-                            borderRadius: 8,
-                            background: 'transparent',
-                            border: '1px solid var(--card-border)',
-                            color: 'var(--text-main)',
-                            cursor: 'pointer',
-                            opacity: submitting ? 0.5 : 1
-                        }}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={submitting || rating === 0}
-                        style={{
-                            flex: 1,
-                            padding: 12,
-                            borderRadius: 8,
-                            background: rating === 0 ? 'var(--card-border)' : 'var(--primary)',
-                            border: 'none',
-                            color: 'white',
-                            cursor: rating === 0 ? 'not-allowed' : 'pointer',
-                            fontWeight: 600
-                        }}
-                    >
-                        {submitting ? 'Submitting...' : 'Submit Review'}
-                    </button>
                 </div>
             </form>
         </Modal>
