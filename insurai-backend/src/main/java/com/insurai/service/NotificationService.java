@@ -38,4 +38,10 @@ public class NotificationService {
         unread.forEach(n -> n.setRead(true));
         notificationRepo.saveAll(unread);
     }
+
+    public void markAllAsReadForCompany(Long companyId) {
+        List<Notification> unread = notificationRepo.findByCompanyIdAndIsReadFalseOrderByCreatedAtDesc(companyId);
+        unread.forEach(n -> n.setRead(true));
+        notificationRepo.saveAll(unread);
+    }
 }

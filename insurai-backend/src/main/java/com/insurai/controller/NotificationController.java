@@ -44,9 +44,8 @@ public class NotificationController {
     @PutMapping("/read-all")
     public void markAllAsRead(Authentication auth) {
         String email = auth.getName();
-        // TODO: Implement markAllAsReadForCompany in service if needed.
-        // For now, only User supported for markAllAsRead or extend service.
-        // Just silencing error if not found.
         userRepo.findByEmail(email).ifPresent(u -> notificationService.markAllAsRead(u.getId()));
+        companyRepo.findFirstByEmailIgnoreCase(email)
+                .ifPresent(c -> notificationService.markAllAsReadForCompany(c.getId()));
     }
 }

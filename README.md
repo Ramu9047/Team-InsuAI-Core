@@ -179,7 +179,7 @@ VALUES ('Super Admin', 'admin@insurai.com', '$2a$10$YourHashedPasswordHere', 'SU
 
 ## 📂 Project Structure
 
-```
+```plaintext
 insurai/
 ├── insurai-backend/      # Spring Boot Application
 │   ├── src/main/java/    # Source Code (Controllers, Services, Models)
