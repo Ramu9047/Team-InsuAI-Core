@@ -127,6 +127,11 @@ public class AgentController {
         if (newStatus == null)
             return booking;
 
+        if ("EXPIRED".equals(newStatus)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Status option for expiry is now disabled and system-managed.");
+        }
+
         // Allow transitions from PENDING or APPROVED or CONSULTED
         if (!"PENDING".equals(booking.getStatus()) && !"APPROVED".equals(booking.getStatus())
                 && !"CONSULTED".equals(booking.getStatus())) {

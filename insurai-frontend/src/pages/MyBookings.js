@@ -359,7 +359,7 @@ export default function MyBookings() {
               {activeTab === 'history' && b.status === 'EXPIRED' && (
                 <div style={{ marginTop: "auto", paddingTop: 15, borderTop: "1px solid var(--glass-border)" }}>
                   <div style={{ fontSize: "0.85rem", color: "#f59e0b", marginBottom: 10, textAlign: "center" }}>
-                    ⚠️ Appointment missed/expired
+                    ⚠️ Your consultation slot has expired. Please reschedule.
                   </div>
                   <button
                     onClick={() => reschedule(b.id)}

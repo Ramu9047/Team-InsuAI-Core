@@ -23,15 +23,16 @@ public class SchedulerService {
         LocalDateTime now = LocalDateTime.now();
 
         // 1. Expire Pending bookings that are past their time
-        // If a booking is PENDING and startTime < now, it should be expired/cancelled
-        // (or maybe just if endTime < now)
-        // Let's say if it hasn't been approved by the time it happens, it's expired.
-        bookingRepo.expirePending(now);
+        int expiredPending = bookingRepo.expirePending(now);
 
         // 2. Expire Approved bookings that have finished without agent action
-        // If booking is APPROVED/CONFIRMED and endTime < now, mark as EXPIRED
-        bookingRepo.expireUnattended(now);
+        int expiredApproved = bookingRepo.expireUnattended(now);
 
-        System.out.println("Scheduler run: Updated booking statuses at " + now);
+        if (expiredPending > 0 || expiredApproved > 0) {
+            System.out.println("SYSTEM_AUTO_EXPIRED: Time slot exceeded. Expired Pending: " + expiredPending
+                    + ", Expired Approved: " + expiredApproved + " at " + now);
+        } else {
+            System.out.println("Scheduler run: No expirations at " + now);
+        }
     }
 }

@@ -231,9 +231,9 @@ export default function AgentRequests() {
                   <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>{b.user.name}</span>
                   <span style={{
                     padding: "2px 8px", borderRadius: 10, fontSize: "0.8rem",
-                    background: b.status === "PENDING" ? "rgba(245, 158, 11, 0.1)" : b.status === "APPROVED" ? "rgba(16, 185, 129, 0.1)" : b.status === "COMPLETED" ? "rgba(59, 130, 246, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                    color: b.status === "PENDING" ? "#f59e0b" : b.status === "APPROVED" ? "#10b981" : b.status === "COMPLETED" ? "#3b82f6" : "#ef4444",
-                    border: b.status === "PENDING" ? "1px solid rgba(245, 158, 11, 0.4)" : b.status === "APPROVED" ? "1px solid rgba(16, 185, 129, 0.4)" : b.status === "COMPLETED" ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(239, 68, 68, 0.4)"
+                    background: b.status === "PENDING" ? "rgba(245, 158, 11, 0.1)" : b.status === "APPROVED" ? "rgba(16, 185, 129, 0.1)" : b.status === "COMPLETED" ? "rgba(59, 130, 246, 0.1)" : b.status === "EXPIRED" ? "rgba(107, 114, 128, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                    color: b.status === "PENDING" ? "#f59e0b" : b.status === "APPROVED" ? "#10b981" : b.status === "COMPLETED" ? "#3b82f6" : b.status === "EXPIRED" ? "#6b7280" : "#ef4444",
+                    border: b.status === "PENDING" ? "1px solid rgba(245, 158, 11, 0.4)" : b.status === "APPROVED" ? "1px solid rgba(16, 185, 129, 0.4)" : b.status === "COMPLETED" ? "1px solid rgba(59, 130, 246, 0.4)" : b.status === "EXPIRED" ? "1px solid rgba(107, 114, 128, 0.4)" : "1px solid rgba(239, 68, 68, 0.4)"
                   }}>{b.status === "COMPLETED" ? "CONSULTED" : b.status}</span>
                 </div>
                 <p style={{ margin: "5px 0", fontSize: "0.9rem", color: "var(--text-muted)" }}>📅 {new Date(b.startTime).toLocaleString()}</p>
@@ -351,13 +351,6 @@ export default function AgentRequests() {
                           onClick={() => updateStatus(b.id, "COMPLETED")}
                         >
                           ✅ Complete Consultation & Issue Policy
-                        </button>
-                        <button
-                          className="secondary-btn"
-                          style={{ width: "100%", color: "#6b7280", borderColor: "#6b7280" }}
-                          onClick={() => updateStatus(b.id, "EXPIRED")}
-                        >
-                          ⏳ Mark as Expired
                         </button>
                       </div>
                     )}
