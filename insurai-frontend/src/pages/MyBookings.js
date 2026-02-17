@@ -102,7 +102,9 @@ export default function MyBookings() {
     const isActive = ['PENDING', 'APPROVED', 'CONFIRMED'].includes(b.status);
 
     // If it's a policy purchase request (b.policy exists) which is APPROVED, it's considered done.
-    if (b.policy && b.status === 'APPROVED') return false;
+    // FIX: APPROVED means the appointment is confirmed, NOT that the policy is issued/completed.
+    // We should only hide it if status is COMPLETED.
+    // if (b.policy && b.status === 'APPROVED') return false; 
 
     return isFuture && isActive;
   }).reverse(); // Ascending for upcoming
@@ -294,9 +296,14 @@ export default function MyBookings() {
                           display: "block",
                           textAlign: "center",
                           width: "100%",
+                          padding: "10px",
+                          marginTop: "5px",
                           background: "#22c55e",
+                          color: "white",
                           borderColor: "#22c55e",
-                          textDecoration: "none"
+                          textDecoration: "none",
+                          borderRadius: "6px",
+                          fontWeight: "600"
                         }}
                       >
                         🎥 Join Google Meet

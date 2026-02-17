@@ -47,7 +47,7 @@ export default function ScheduleAppointment() {
   const [error, setError] = useState("");
 
   const confirmBooking = async () => {
-    if (!reason) {
+    if (!reason.trim()) {
       setError("Please enter a reason for the appointment");
       notify("Please enter a reason", "error");
       return;
@@ -72,13 +72,16 @@ export default function ScheduleAppointment() {
         });
         notify("Appointment Rescheduled Successfully! 📅", "success");
       } else {
-        await api.post("/bookings", {
+        const payload = {
           userId: user.id,
           agentId: selectedAgent.id,
           start: startISO,
           end: endISO,
-          policyId: selectedPolicyId || null
-        });
+          reason: reason,
+          policyId: selectedPolicyId ? parseInt(selectedPolicyId) : null
+        };
+        console.log("Booking Payload:", payload);
+        await api.post("/bookings", payload);
         notify("Appointment Confirmed! 📅", "success");
       }
 

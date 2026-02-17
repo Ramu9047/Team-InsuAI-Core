@@ -93,7 +93,7 @@ public class TestDataGeneratorService {
         String[] categories = {
                 "Personal Insurance", "Health Insurance", "Investment Plans",
                 "Business Insurance", "Employee Benefits", "Liability",
-                "Engineering", "Other Plans"
+                "Engineering", "Other Plans", "Small Business", "Corporate"
         };
 
         for (String category : categories) {

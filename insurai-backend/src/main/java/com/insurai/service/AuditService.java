@@ -21,8 +21,11 @@ public class AuditService {
     // Set default values for required fields to prevent DB errors
     l.setEntityType("GENERAL");
     l.setEntityId(0L);
+    l.setPerformedBy(userId); // Explicitly set performedBy
     l.setPerformedByRole("UNKNOWN");
     l.setPerformedByName("User " + userId);
+    l.setTimestamp(java.time.LocalDateTime.now());
+    l.setSuccess(true);
 
     repo.save(l);
   }
