@@ -355,6 +355,29 @@ export default function MyBookings() {
                   </button>
                 </div>
               )}
+
+              {activeTab === 'history' && b.status === 'EXPIRED' && (
+                <div style={{ marginTop: "auto", paddingTop: 15, borderTop: "1px solid var(--glass-border)" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#f59e0b", marginBottom: 10, textAlign: "center" }}>
+                    ⚠️ Appointment missed/expired
+                  </div>
+                  <button
+                    onClick={() => reschedule(b.id)}
+                    style={{
+                      width: '100%',
+                      padding: 8,
+                      background: 'var(--primary)',
+                      border: 'none',
+                      color: 'white',
+                      borderRadius: 6,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Reschedule
+                  </button>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -367,6 +390,7 @@ function getColor(status) {
   if (status === 'APPROVED' || status === 'CONFIRMED') return '#22c55e';
   if (status === 'PENDING') return '#f59e0b';
   if (status === 'COMPLETED') return '#6366f1';
+  if (status === 'EXPIRED') return '#6b7280';
   return '#ef4444';
 }
 

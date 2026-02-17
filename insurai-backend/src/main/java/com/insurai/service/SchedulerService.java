@@ -28,9 +28,9 @@ public class SchedulerService {
         // Let's say if it hasn't been approved by the time it happens, it's expired.
         bookingRepo.expirePending(now);
 
-        // 2. Complete Approved bookings that have finished
-        // If booking is APPROVED/CONFIRMED and endTime < now, mark as COMPLETED
-        bookingRepo.completeApproved(now);
+        // 2. Expire Approved bookings that have finished without agent action
+        // If booking is APPROVED/CONFIRMED and endTime < now, mark as EXPIRED
+        bookingRepo.expireUnattended(now);
 
         System.out.println("Scheduler run: Updated booking statuses at " + now);
     }

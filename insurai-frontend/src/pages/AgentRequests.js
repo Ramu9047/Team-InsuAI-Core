@@ -23,7 +23,7 @@ export default function AgentRequests() {
     if (user?.id) {
       api.get("/agents/appointments").then(res => {
         // Show all active/relevant statuses
-        setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED"].includes(b.status)));
+        setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED", "EXPIRED"].includes(b.status)));
       });
       api.get("/claims").then(res => setClaims(res.data)); // Agents view all claims
       api.get("/policies").then(res => setPolicies(res.data));
@@ -34,7 +34,7 @@ export default function AgentRequests() {
     try {
       await api.put(`/agents/appointments/${id}/status`, { status, ...extraBody });
       const res = await api.get("/agents/appointments"); // Refresh to get latest data (AI fields)
-      setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED"].includes(b.status)));
+      setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED", "EXPIRED"].includes(b.status)));
 
       if (status === 'APPROVED') notify("Meeting Approved!", "success");
       else if (status === 'COMPLETED') notify("Consultation Completed & Policy Issued!", "success");
@@ -347,10 +347,17 @@ export default function AgentRequests() {
                       <div style={{ marginTop: 10 }}>
                         <button
                           className="primary-btn"
-                          style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6" }}
+                          style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6", marginBottom: 10 }}
                           onClick={() => updateStatus(b.id, "COMPLETED")}
                         >
                           ✅ Complete Consultation & Issue Policy
+                        </button>
+                        <button
+                          className="secondary-btn"
+                          style={{ width: "100%", color: "#6b7280", borderColor: "#6b7280" }}
+                          onClick={() => updateStatus(b.id, "EXPIRED")}
+                        >
+                          ⏳ Mark as Expired
                         </button>
                       </div>
                     )}
@@ -361,6 +368,13 @@ export default function AgentRequests() {
                   <div style={{ marginTop: 15, padding: 10, background: "rgba(59, 130, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
                     <div style={{ fontWeight: "bold", color: "#3b82f6", marginBottom: 5 }}>Consultation Completed</div>
                     <div style={{ fontSize: "0.9rem" }}>Policy <strong>{b.policy?.name}</strong> has been issued (Payment Pending).</div>
+                  </div>
+                )}
+
+                {b.status === "EXPIRED" && (
+                  <div style={{ marginTop: 15, padding: 10, background: "rgba(107, 114, 128, 0.1)", borderRadius: 8, border: "1px solid rgba(107, 114, 128, 0.3)" }}>
+                    <div style={{ fontWeight: "bold", color: "#6b7280", marginBottom: 5 }}>Consultation Expired</div>
+                    <div style={{ fontSize: "0.9rem" }}>No action was taken during the scheduled time slot.</div>
                   </div>
                 )}
 

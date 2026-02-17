@@ -52,6 +52,7 @@ export default function AgentDashboard() {
             const approved = appts.filter(a => a.status === 'APPROVED' || a.status === 'CONFIRMED').length;
             const completed = appts.filter(a => a.status === 'COMPLETED').length;
             const rejected = appts.filter(a => a.status === 'REJECTED').length;
+            const expired = appts.filter(a => a.status === 'EXPIRED').length;
 
             const today = new Date().toDateString();
             const todayAppointments = appts.filter(a =>
@@ -67,6 +68,7 @@ export default function AgentDashboard() {
                 approved,
                 completed,
                 rejected,
+                expired,
                 total: appts.length,
                 todayAppointments,
                 weeklyEarnings: completed * 500, // Mock calculation
@@ -81,7 +83,8 @@ export default function AgentDashboard() {
                 { name: 'Completed', value: completed, color: '#10b981' },
                 { name: 'Approved', value: approved, color: '#3b82f6' },
                 { name: 'Pending', value: pending, color: '#f59e0b' },
-                { name: 'Rejected', value: rejected, color: '#ef4444' }
+                { name: 'Rejected', value: rejected, color: '#ef4444' },
+                { name: 'Expired', value: expired, color: '#6b7280' }
             ].filter(item => item.value > 0));
 
             // Upcoming appointments (next 3)
