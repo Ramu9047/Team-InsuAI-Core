@@ -2,7 +2,6 @@
 import { useAuth } from "../context/AuthContext";
 import UserDashboard from "./UserDashboard";
 import AgentDashboardAdvanced from "./AgentDashboardAdvanced";
-import AdminDashboardEnterprise from "./AdminDashboardEnterprise";
 import { Navigate } from "react-router-dom";
 
 export default function Dashboard() {
@@ -11,9 +10,7 @@ export default function Dashboard() {
   if (!user) return null;
 
   // Render role-specific dashboards
-  if (user.role === 'ADMIN') {
-    return <AdminDashboardEnterprise />;
-  }
+  // ADMIN role removed
 
   if (user.role === 'AGENT') {
     return <AgentDashboardAdvanced />;
@@ -23,7 +20,7 @@ export default function Dashboard() {
     return <UserDashboard />;
   }
 
-  if (user.role === 'COMPANY') {
+  if (user.role === 'COMPANY' || user.role === 'COMPANY_ADMIN') {
     return <Navigate to="/company" replace />;
   }
 

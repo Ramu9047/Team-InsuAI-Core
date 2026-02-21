@@ -13,6 +13,7 @@ import NotificationCenter from '../components/NotificationCenter';
 import CalendarView from '../components/CalendarView';
 import SLATimer from '../components/SLATimer';
 import DocumentManager from '../components/DocumentManager';
+import KPICard from '../components/KPICard';
 
 export default function AgentDashboardAdvanced() {
     const { user } = useAuth();
@@ -377,34 +378,12 @@ export default function AgentDashboardAdvanced() {
                 <div style={{ height: 2, background: 'linear-gradient(90deg, #4f46e5, transparent)', marginTop: 15 }}></div>
             </motion.div>
 
-            {/* KPI Strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
-                {[
-                    { icon: '⏳', title: 'Pending Reviews', value: stats.pendingReviews, color: '#f59e0b', route: '/agent/requests' },
-                    { icon: '✅', title: 'Approved Today', value: stats.approvedToday, color: '#10b981', route: '/agent/consultations' },
-                    { icon: '❌', title: 'Rejected Today', value: stats.rejectedToday, color: '#ef4444', route: '/agent/consultations' },
-                    { icon: '📊', title: 'Avg Decision Time', value: `${stats.avgDecisionTime} mins`, color: '#3b82f6', route: '/agent/performance' }
-                ].map((kpi, idx) => (
-                    <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        whileHover={{ scale: 1.03, cursor: 'pointer' }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(kpi.route)}
-                        transition={{ delay: idx * 0.05 }}
-                        className="card"
-                        style={{
-                            borderTop: `4px solid ${kpi.color}`,
-                            textAlign: 'center',
-                            padding: '25px 20px'
-                        }}
-                    >
-                        <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>{kpi.icon}</div>
-                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.5px', marginBottom: 8 }}>{kpi.title}</div>
-                        <div style={{ fontSize: '2.2rem', fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
-                    </motion.div>
-                ))}
+            {/* ── Agent KPI Strip ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginBottom: 40 }}>
+                <KPICard icon="⏳" label="Pending Reviews" value={stats.pendingReviews} color="#f59e0b" link="/agent/requests" linkText="View Queue →" idx={0} />
+                <KPICard icon="✅" label="Approved Today" value={stats.approvedToday} color="#10b981" link="/agent/consultations" linkText="View Approvals →" idx={1} />
+                <KPICard icon="❌" label="Rejected Today" value={stats.rejectedToday} color="#ef4444" link="/agent/consultations" linkText="View Rejected →" idx={2} />
+                <KPICard icon="📊" label="Avg Decision Time" value={`${stats.avgDecisionTime} mins`} color="#3b82f6" link="/agent/performance" linkText="Performance →" idx={3} />
             </div>
 
             {/* Main Content Grid */}

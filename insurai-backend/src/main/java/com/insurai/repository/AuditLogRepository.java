@@ -32,4 +32,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
     @Query("SELECT a FROM AuditLog a WHERE a.severity = 'CRITICAL' ORDER BY a.timestamp DESC")
     List<AuditLog> findCriticalActions();
+
+    @Query("SELECT a FROM AuditLog a, User u WHERE a.performedBy = u.id AND u.company.id = :companyId ORDER BY a.timestamp DESC")
+    List<AuditLog> findByCompanyId(Long companyId);
 }

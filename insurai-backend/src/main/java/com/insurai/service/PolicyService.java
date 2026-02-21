@@ -18,13 +18,16 @@ public class PolicyService {
     private final PolicyRepository policyRepo;
     private final UserPolicyRepository userPolicyRepo;
     private final UserRepository userRepo;
+    private final com.insurai.repository.UserCompanyMapRepository userCompanyMapRepo;
 
     public PolicyService(PolicyRepository policyRepo,
             UserPolicyRepository userPolicyRepo,
-            UserRepository userRepo) {
+            UserRepository userRepo,
+            com.insurai.repository.UserCompanyMapRepository userCompanyMapRepo) {
         this.policyRepo = policyRepo;
         this.userPolicyRepo = userPolicyRepo;
         this.userRepo = userRepo;
+        this.userCompanyMapRepo = userCompanyMapRepo;
     }
 
     // Role-based retrieval
@@ -32,7 +35,7 @@ public class PolicyService {
         if ("USER".equals(role)) {
             // Users see only ACTIVE policies from APPROVED companies
             return policyRepo.findByStatusAndCompany_Status("ACTIVE", "APPROVED");
-        } else if ("COMPANY".equals(role)) {
+        } else if ("COMPANY".equals(role) || "COMPANY_ADMIN".equals(role)) {
             // Company sees only their own policies
             // (Assuming User entity links to Company via getCompany())
             User user = userRepo.findById(userId).orElseThrow();
@@ -40,13 +43,13 @@ public class PolicyService {
                 return List.of();
             return policyRepo.findByCompanyId(user.getCompany().getId());
         } else {
-            // ADMIN / SUPER_ADMIN see all
+            // SUPER_ADMIN see all
             return policyRepo.findAll();
         }
     }
 
     public Policy create(@org.springframework.lang.NonNull Policy policy, User creator) {
-        if ("COMPANY".equals(creator.getRole())) {
+        if ("COMPANY".equals(creator.getRole()) || "COMPANY_ADMIN".equals(creator.getRole())) {
             if (creator.getCompany() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not linked to a company profile.");
             }
@@ -66,13 +69,10 @@ public class PolicyService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
 
         // Auth Check
-        if ("COMPANY".equals(updater.getRole())) {
+        if ("COMPANY".equals(updater.getRole()) || "COMPANY_ADMIN".equals(updater.getRole())) {
             if (policy.getCompany() == null || !policy.getCompany().getId().equals(updater.getCompany().getId())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this policy.");
             }
-        } else if ("ADMIN".equals(updater.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Admins cannot edit policies. Contact the Company.");
         } else if (!"SUPER_ADMIN".equals(updater.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized.");
         }
@@ -104,12 +104,10 @@ public class PolicyService {
         Policy policy = policyRepo.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
 
-        if ("COMPANY".equals(deleter.getRole())) {
+        if ("COMPANY".equals(deleter.getRole()) || "COMPANY_ADMIN".equals(deleter.getRole())) {
             if (policy.getCompany() == null || !policy.getCompany().getId().equals(deleter.getCompany().getId())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this policy.");
             }
-        } else if ("ADMIN".equals(deleter.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admins cannot delete policies.");
         } else if (!"SUPER_ADMIN".equals(deleter.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized.");
         }
@@ -144,7 +142,14 @@ public class PolicyService {
         // first if payment gateway existed
         up.setStatus("ACTIVE");
 
-        return userPolicyRepo.save(up);
+        UserPolicy saved = userPolicyRepo.save(up);
+
+        // Update User-Company Map
+        if (policy.getCompany() != null) {
+            updateUserCompanyMap(user, policy.getCompany(), policy);
+        }
+
+        return saved;
     }
 
     public UserPolicy quotePolicy(long policyId, long userId, String note) {
@@ -187,6 +192,11 @@ public class PolicyService {
         up.setStatus("ACTIVE"); // Final state after payment
         up.setStartDate(java.time.LocalDate.now());
         up.setEndDate(up.getStartDate().plusYears(1));
+
+        // Update User-Company Map
+        if (up.getPolicy().getCompany() != null) {
+            updateUserCompanyMap(up.getUser(), up.getPolicy().getCompany(), up.getPolicy());
+        }
 
         return userPolicyRepo.save(up);
     }
@@ -400,5 +410,24 @@ public class PolicyService {
         }
 
         return Math.min(100, Math.max(0, score));
+    }
+
+    // Helper: Update or Create UserCompanyMap
+    private void updateUserCompanyMap(User user, com.insurai.model.Company company, Policy policy) {
+        com.insurai.model.UserCompanyMap map = userCompanyMapRepo
+                .findByUserAndCompany(user.getId(), company.getId())
+                .orElse(new com.insurai.model.UserCompanyMap());
+
+        if (map.getId() == null) {
+            map.setUser(user);
+            map.setCompany(company);
+            map.setCreatedAt(java.time.LocalDateTime.now());
+        }
+
+        map.setPolicy(policy); // Link most recent policy
+        map.setStatus("ACTIVE");
+        map.setUpdatedAt(java.time.LocalDateTime.now());
+
+        userCompanyMapRepo.save(map);
     }
 }

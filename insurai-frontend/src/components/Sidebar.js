@@ -28,8 +28,8 @@ export default function Sidebar() {
           <div style={{ marginTop: 5 }}>
             <span style={{
               fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em",
-              background: user.role === 'ADMIN' ? 'rgba(236, 72, 153, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-              color: user.role === 'ADMIN' ? 'var(--secondary)' : 'var(--primary)',
+              background: (user.role === 'SUPER_ADMIN' || user.role === 'COMPANY_ADMIN') ? 'rgba(236, 72, 153, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+              color: (user.role === 'SUPER_ADMIN' || user.role === 'COMPANY_ADMIN') ? 'var(--secondary)' : 'var(--primary)',
               padding: "2px 8px", borderRadius: 4
             }}>
               {user.role} Portal

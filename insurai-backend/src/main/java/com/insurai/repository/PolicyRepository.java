@@ -7,4 +7,6 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
     java.util.List<Policy> findByStatusAndCompany_Status(String status, String companyStatus);
 
     java.util.List<Policy> findByCompanyId(Long companyId);
+
+    long countByCompanyId(Long companyId);
 }

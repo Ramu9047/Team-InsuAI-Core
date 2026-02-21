@@ -14,24 +14,43 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final com.insurai.repository.UserRepository userRepo;
 
-    public BookingController(BookingService bookingService) {
+    public BookingController(BookingService bookingService, com.insurai.repository.UserRepository userRepo) {
         this.bookingService = bookingService;
+        this.userRepo = userRepo;
     }
 
     @GetMapping
-    public List<Booking> getAll() {
-        return bookingService.getAllBookings();
+    public List<Booking> getAll(org.springframework.security.core.Authentication auth) {
+        com.insurai.model.User user = null;
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            user = userRepo.findByEmail(email).orElse(null);
+        }
+        return bookingService.getAllBookings(user);
     }
 
     @PostMapping
-    public Booking create(@RequestBody BookingRequest request) {
+    public Booking create(@RequestBody BookingRequest request, org.springframework.security.core.Authentication auth) {
         Long userId = request.getUserId();
         Long agentId = request.getAgentId();
 
         if (userId == null || agentId == null) {
             throw new IllegalArgumentException("User ID and Agent ID are required");
         }
+
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            com.insurai.model.User currentUser = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (!currentUser.getId().equals(userId)
+                    && !"SUPER_ADMIN".equals(currentUser.getRole())) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Cannot book for another user");
+            }
+        }
+
         return bookingService.createBooking(
                 userId,
                 agentId,
@@ -42,12 +61,35 @@ public class BookingController {
     }
 
     @GetMapping("/user/{id}")
-    public List<Booking> userBookings(@PathVariable Long id) {
+    public List<Booking> userBookings(@PathVariable Long id, org.springframework.security.core.Authentication auth) {
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            com.insurai.model.User currentUser = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            boolean isAdmin = "SUPER_ADMIN".equals(currentUser.getRole())
+                    || "COMPANY_ADMIN".equals(currentUser.getRole());
+            if (!currentUser.getId().equals(id) && !isAdmin) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
         return bookingService.getUserBookings(java.util.Objects.requireNonNull(id));
     }
 
     @GetMapping("/agent/{id}")
-    public List<Booking> agentBookings(@PathVariable Long id) {
+    public List<Booking> agentBookings(@PathVariable Long id, org.springframework.security.core.Authentication auth) {
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            com.insurai.model.User currentUser = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Agents can only see their own. Admins can see any.
+            boolean isAdmin = "SUPER_ADMIN".equals(currentUser.getRole())
+                    || "COMPANY_ADMIN".equals(currentUser.getRole());
+            if (!currentUser.getId().equals(id) && !isAdmin) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
         return bookingService.getAgentBookings(java.util.Objects.requireNonNull(id));
     }
 

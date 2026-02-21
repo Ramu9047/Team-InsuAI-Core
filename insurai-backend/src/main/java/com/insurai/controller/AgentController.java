@@ -50,7 +50,15 @@ public class AgentController {
 
     // Public/User: Find agents
     @GetMapping
-    public List<User> getAllAgents() {
+    public List<User> getAllAgents(Authentication auth) {
+        if (auth != null && auth.isAuthenticated()) {
+            User currentUser = userRepo.findByEmail(auth.getName()).orElse(null);
+            if (currentUser != null && "COMPANY_ADMIN".equals(currentUser.getRole())) {
+                if (currentUser.getCompany() != null) {
+                    return userRepo.findByCompanyIdAndRole(currentUser.getCompany().getId(), "AGENT");
+                }
+            }
+        }
         return userRepo.findByRole("AGENT");
     }
 

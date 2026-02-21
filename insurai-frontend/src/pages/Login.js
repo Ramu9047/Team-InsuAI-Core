@@ -33,8 +33,7 @@ export default function Login() {
       login(data);
       notify(`Welcome back, ${data.user.name}!`, "success");
 
-      if (data.user.role === 'ADMIN') navigate('/admin');
-      else if (data.user.role === 'COMPANY') navigate('/company');
+      if (data.user.role === 'COMPANY' || data.user.role === 'COMPANY_ADMIN') navigate('/company');
       else if (data.user.role === 'SUPER_ADMIN') navigate('/super-admin');
       else navigate('/dashboard');
 

@@ -1,0 +1,9 @@
+DataSeeder: clean DB detected - seeding all data...
+Companies seeded (3)
+Policies seeded (18)
+2026-02-20T22:31:05.420+05:30 ERROR 7828 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Duplicate entry '1' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [Duplicate entry '1' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'] [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]; SQL [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]; constraint [users.UKcamlvklbluxpcvlps0s8vs8wp]
+	at com.insurai.config.DataSeeder.run(DataSeeder.java:123) ~[classes/:na]
+	at com.insurai.config.DataSeeder$$SpringCGLIB$$0.run(<generated>) ~[classes/:na]
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [Duplicate entry '1' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'] [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]
+Caused by: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '1' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'

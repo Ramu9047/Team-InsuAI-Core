@@ -44,8 +44,9 @@ public class User {
     private String deactivationReason; // Reason for deactivation (if isActive = false)
     private java.time.LocalDateTime deactivatedAt; // When agent was deactivated
 
-    @OneToOne
-    private Company company; // Linked Company Profile if role is COMPANY
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company; // Linked Company for COMPANY role, or agent's employer company
 
     public Company getCompany() {
         return company;

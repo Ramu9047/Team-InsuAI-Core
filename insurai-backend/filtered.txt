@@ -1,0 +1,41 @@
+﻿2026-02-20T22:24:34.769+05:30  INFO 29244 --- [           main] com.insurai.InsuraiBackendApplication    : Starting InsuraiBackendApplication using Java 25 with PID 29244 (C:\Projects\insurai_corp\insurai-backend\target\classes started by Neo_RK in C:\Projects\insurai_corp\insurai-backend)
+2026-02-20T22:24:35.785+05:30  INFO 29244 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 981 ms
+2026-02-20T22:24:36.332+05:30  INFO 29244 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-02-20T22:24:38.998+05:30  INFO 29244 --- [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-02-20T22:24:39.010+05:30  INFO 29244 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-02-20T22:24:39.017+05:30  INFO 29244 --- [           main] com.insurai.InsuraiBackendApplication    : Started InsuraiBackendApplication in 4.536 seconds (process running for 4.762)
+DataSeeder: clean DB detected - seeding all data...
+Companies seeded (3)
+Policies seeded (18)
+2026-02-20T22:24:39.621+05:30  WARN 29244 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 1062, SQLState: 23000
+2026-02-20T22:24:39.621+05:30 ERROR 29244 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Duplicate entry '28' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-02-20T22:24:39.643+05:30 ERROR 29244 --- [           main] o.s.boot.SpringApplication               : Application run failed
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [Duplicate entry '28' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'] [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]; SQL [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]; constraint [users.UKcamlvklbluxpcvlps0s8vs8wp]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:294) ~[spring-orm-6.2.15.jar:6.2.15]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:256) ~[spring-orm-6.2.15.jar:6.2.15]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241) ~[spring-orm-6.2.15.jar:6.2.15]
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:560) ~[spring-orm-6.2.15.jar:6.2.15]
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61) ~[spring-tx-6.2.15.jar:6.2.15]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:160) ~[spring-tx-6.2.15.jar:6.2.15]
+	at com.insurai.config.DataSeeder.run(DataSeeder.java:123) ~[classes/:na]
+	at com.insurai.config.DataSeeder$$SpringCGLIB$$0.run(<generated>) ~[classes/:na]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:82) ~[spring-core-6.2.15.jar:6.2.15]
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [Duplicate entry '28' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'] [insert into users (address,age,available,bio,company_id,deactivated_at,deactivation_reason,dependents,email,health_info,income,is_active,name,password,phone,rating,reset_token,role,specialization,verified) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]
+	at org.hibernate.dialect.MySQLDialect.lambda$buildSQLExceptionConversionDelegate$3(MySQLDialect.java:1240) ~[hibernate-core-6.6.41.Final.jar:6.6.41.Final]
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.6.41.Final.jar:6.6.41.Final]
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.6.41.Final.jar:6.6.41.Final]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138) ~[spring-tx-6.2.15.jar:6.2.15]
+Caused by: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '28' for key 'users.UKcamlvklbluxpcvlps0s8vs8wp'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:109) ~[mysql-connector-j-9.0.0.jar:9.0.0]
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:114) ~[mysql-connector-j-9.0.0.jar:9.0.0]
+2026-02-20T22:24:39.650+05:30  INFO 29244 --- [           main] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-20T22:24:39.657+05:30  INFO 29244 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-02-20T22:24:39.669+05:30  INFO 29244 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.10:run (default-cli) on project insurai-backend: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

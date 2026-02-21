@@ -14,4 +14,6 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     List<Claim> findByStatus(String status);
 
     Page<Claim> findByStatus(String status, Pageable pageable);
+
+    List<Claim> findByPolicyNameIn(List<String> policyNames);
 }

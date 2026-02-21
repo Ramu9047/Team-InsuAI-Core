@@ -177,17 +177,6 @@ public class TestDataGeneratorService {
             superAdmin.setIsActive(true);
             userRepository.save(superAdmin);
         }
-
-        // Admin
-        if (userRepository.findByEmail("admin@insurai.com").isEmpty()) {
-            User admin = new User();
-            admin.setName("Admin User");
-            admin.setEmail("admin@insurai.com");
-            admin.setPassword(passwordEncoder.encode("password"));
-            admin.setRole("ADMIN");
-            admin.setIsActive(true);
-            userRepository.save(admin);
-        }
     }
 
     private void generateWorkflows() {

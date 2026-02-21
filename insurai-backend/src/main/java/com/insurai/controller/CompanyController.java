@@ -2,13 +2,23 @@ package com.insurai.controller;
 
 import com.insurai.model.Company;
 import com.insurai.model.Policy;
+import com.insurai.model.User;
 import com.insurai.service.CompanyService;
+import com.insurai.repository.UserRepository;
+import com.insurai.repository.AuditLogRepository;
+import com.insurai.repository.ClaimRepository;
+import com.insurai.repository.UserPolicyRepository;
+import com.insurai.repository.BookingRepository;
+import com.insurai.repository.UserCompanyMapRepository;
+
+import com.insurai.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +31,73 @@ public class CompanyController {
     @Autowired
     private CompanyService companyService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
+    @Autowired
+    private ClaimRepository claimRepository;
+
+    @Autowired
+    private UserPolicyRepository userPolicyRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private UserCompanyMapRepository userCompanyMapRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
+
     /**
-     * Register a new company
+     * Resolves the authenticated company from JWT.
+     * Company admins log in with a Company email (stored in company table).
+     * Falls back to User→Company for agent/user accounts linked to a company.
+     */
+    private Company getAuthenticatedCompany(Authentication auth) {
+        String email = auth.getName();
+
+        // Primary: Company logged in directly
+        var companyByEmail = companyRepository.findByEmail(email);
+        if (companyByEmail.isPresent()) {
+            Company c = companyByEmail.get();
+            if (Boolean.FALSE.equals(c.getIsActive())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Company account is deactivated");
+            }
+            return c;
+        }
+
+        // Fallback: agent/user account linked to a company
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No company or user found for email: " + email));
+        Company company = user.getCompany();
+        if (company == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "User '" + email + "' is not associated with any company");
+        }
+        return company;
+    }
+
+    /**
+     * Get Company Audit Logs
+     */
+    @GetMapping("/audit-logs")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<?> getCompanyAuditLogs(Authentication auth) {
+        Company company = getAuthenticatedCompany(auth);
+        List<com.insurai.model.AuditLog> logs = auditLogRepository.findByCompanyId(company.getId());
+        return ResponseEntity.ok(logs);
+    }
+
+    /**
+     * Register a new company (Public Endpoint)
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerCompany(@RequestBody Company company) {
@@ -42,8 +117,7 @@ public class CompanyController {
     @GetMapping("/profile")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<Company> getProfile(Authentication auth) {
-        String email = auth.getName();
-        Company company = companyService.getCompanyByEmail(email);
+        Company company = getAuthenticatedCompany(auth);
         return ResponseEntity.ok(company);
     }
 
@@ -53,8 +127,7 @@ public class CompanyController {
     @PutMapping("/profile")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<Company> updateProfile(@RequestBody Company updatedCompany, Authentication auth) {
-        String email = auth.getName();
-        Company company = companyService.getCompanyByEmail(email);
+        Company company = getAuthenticatedCompany(auth);
         Company updated = companyService.updateCompany(company.getId(), updatedCompany);
         return ResponseEntity.ok(updated);
     }
@@ -65,8 +138,7 @@ public class CompanyController {
     @GetMapping("/policies")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<List<Policy>> getCompanyPolicies(Authentication auth) {
-        String email = auth.getName();
-        Company company = companyService.getCompanyByEmail(email);
+        Company company = getAuthenticatedCompany(auth);
         List<Policy> policies = companyService.getCompanyPolicies(company.getId());
         return ResponseEntity.ok(policies);
     }
@@ -78,8 +150,7 @@ public class CompanyController {
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<?> addPolicy(@RequestBody Policy policy, Authentication auth) {
         try {
-            String email = auth.getName();
-            Company company = companyService.getCompanyByEmail(email);
+            Company company = getAuthenticatedCompany(auth);
             Policy created = companyService.addPolicy(company.getId(), policy);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (Exception e) {
@@ -97,8 +168,7 @@ public class CompanyController {
             @RequestBody Policy updatedPolicy,
             Authentication auth) {
         try {
-            String email = auth.getName();
-            Company company = companyService.getCompanyByEmail(email);
+            Company company = getAuthenticatedCompany(auth);
             Policy updated = companyService.updatePolicy(company.getId(), policyId, updatedPolicy);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
@@ -113,24 +183,13 @@ public class CompanyController {
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<?> deletePolicy(@PathVariable Long policyId, Authentication auth) {
         try {
-            String email = auth.getName();
-            Company company = companyService.getCompanyByEmail(email);
+            Company company = getAuthenticatedCompany(auth);
             companyService.deletePolicy(company.getId(), policyId);
             return ResponseEntity.ok(Map.of("message", "Policy deleted successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
-    /**
-     * Get all active companies (public endpoint for users to see available
-     * companies)
-     */
-    @Autowired
-    private com.insurai.repository.UserPolicyRepository userPolicyRepository;
-
-    @Autowired
-    private com.insurai.repository.BookingRepository bookingRepository;
 
     /**
      * Get active companies (public endpoint)
@@ -147,13 +206,15 @@ public class CompanyController {
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<Map<String, Object>> getDashboardStats(Authentication auth) {
-        String email = auth.getName();
-        Company company = companyService.getCompanyByEmail(email);
+        Company company = getAuthenticatedCompany(auth);
         Long companyId = company.getId();
 
         List<Policy> allPolicies = companyService.getCompanyPolicies(companyId);
         long totalPolicies = allPolicies.size();
         long activePolicies = allPolicies.stream().filter(p -> "ACTIVE".equals(p.getStatus())).count();
+
+        // Get total unique users who have purchased policies from this company
+        long totalCompanyUsers = userCompanyMapRepository.countActiveUsersByCompany(companyId);
 
         List<com.insurai.model.UserPolicy> soldPolicies = userPolicyRepository.findByPolicyCompanyId(companyId);
         long policiesSold = soldPolicies.size();
@@ -216,18 +277,42 @@ public class CompanyController {
                     "Promote your policies to attract customers."));
         }
 
+        long totalAgents = userRepository.findAll().stream()
+                .filter(u -> "AGENT".equals(u.getRole()) && u.getCompany() != null
+                        && u.getCompany().getId().equals(companyId))
+                .count();
+
+        // Policy names for fraud alert lookup
+        List<String> policyNamesForClaims = allPolicies.stream()
+                .map(Policy::getName)
+                .collect(java.util.stream.Collectors.toList());
+
+        // Fraud Alerts: claims with fraud score > 0.7 not yet resolved
+        List<com.insurai.model.Claim> companyClaims = policyNamesForClaims.isEmpty()
+                ? new java.util.ArrayList<>()
+                : claimRepository.findByPolicyNameIn(policyNamesForClaims);
+        long fraudAlerts = companyClaims.stream()
+                .filter(c -> c.getFraudScore() != null && c.getFraudScore() > 0.7)
+                .filter(c -> !"REJECTED".equals(c.getStatus()) && !"APPROVED".equals(c.getStatus()))
+                .count();
+
         Map<String, Object> response = new java.util.HashMap<>();
         response.put("metrics", Map.of(
+                "name", company.getName(),
                 "totalPolicies", totalPolicies,
                 "activePolicies", activePolicies,
                 "policiesSold", policiesSold,
                 "revenue", revenue,
+                "totalUsers", totalCompanyUsers,
+                "totalAgents", totalAgents,
+                "fraudAlerts", fraudAlerts,
                 "conversionRate", String.format("%.1f", conversionRate)));
         response.put("recentPolicies", allPolicies.stream().limit(5).collect(java.util.stream.Collectors.toList()));
         response.put("salesData", salesData);
         response.put("aiInsights", aiInsights);
 
         return ResponseEntity.ok(response);
+
     }
 
     /**
@@ -236,8 +321,7 @@ public class CompanyController {
     @GetMapping("/agents")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<?> getCompanyAgents(Authentication auth) {
-        String email = auth.getName();
-        Company company = companyService.getCompanyByEmail(email);
+        Company company = getAuthenticatedCompany(auth);
 
         List<com.insurai.model.Booking> bookings = bookingRepository.findByPolicyCompanyId(company.getId());
 
@@ -266,5 +350,70 @@ public class CompanyController {
         }).collect(java.util.stream.Collectors.toList());
 
         return ResponseEntity.ok(agentPerformance);
+    }
+
+    /**
+     * Add a new Agent to the Company
+     */
+    @PostMapping("/agents")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<?> addAgent(@RequestBody Map<String, String> payload, Authentication auth) {
+        try {
+            Company company = getAuthenticatedCompany(auth);
+
+            String agentName = payload.get("name");
+            String agentEmail = payload.get("email");
+            String agentPassword = payload.get("password");
+
+            if (agentName == null || agentEmail == null || agentPassword == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Missing required fields"));
+            }
+
+            if (userRepository.findByEmail(agentEmail).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email already in use"));
+            }
+
+            com.insurai.model.User agent = new com.insurai.model.User();
+            agent.setName(agentName);
+            agent.setEmail(agentEmail);
+            agent.setPassword(passwordEncoder.encode(agentPassword));
+            agent.setRole("AGENT");
+            agent.setCompany(company);
+            agent.setIsActive(true);
+            agent.setVerified(true);
+            agent.setAvailable(true); // Default to online
+            agent.setRating(4.5); // Default rating
+
+            userRepository.save(agent);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "message", "Agent added successfully",
+                    "agent", agent));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get Company Claims
+     */
+    @GetMapping("/claims")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<?> getCompanyClaims(Authentication auth) {
+        Company company = getAuthenticatedCompany(auth);
+        Long companyId = company.getId();
+
+        List<Policy> companyPolicies = companyService.getCompanyPolicies(companyId);
+        List<String> policyNames = companyPolicies.stream()
+                .map(Policy::getName)
+                .collect(java.util.stream.Collectors.toList());
+
+        if (policyNames.isEmpty()) {
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
+
+        List<com.insurai.model.Claim> claims = claimRepository.findByPolicyNameIn(policyNames);
+        return ResponseEntity.ok(claims);
     }
 }

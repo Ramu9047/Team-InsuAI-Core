@@ -546,7 +546,7 @@ public class AdminGovernanceService {
                 ExceptionCase saved = exceptionCaseRepository.save(exceptionCase);
 
                 // Notify admin
-                List<User> admins = userRepository.findByRole("ADMIN");
+                List<User> admins = userRepository.findByRole("SUPER_ADMIN");
                 for (User admin : admins) {
                         notificationService.createNotification(
                                         admin,

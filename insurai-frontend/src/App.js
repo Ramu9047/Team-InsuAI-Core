@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Layout from "./components/Layout";
 // import Agents from "./pages/Agents";
 import ChooseAgent from "./pages/ChooseAgent";
-import AdminDashboardEnterprise from "./pages/AdminDashboardEnterprise";
+// AdminDashboardEnterprise removed
 
 import ScheduleAppointment from "./pages/ScheduleAppointment";
 import AgentRequests from "./pages/AgentRequests";
@@ -60,7 +60,7 @@ export default function App() {
                                 <Route path="/reset-password" element={<ResetPassword />} />
 
                                 {/* Protected Routes (Any Authenticated User) */}
-                                <Route element={<RequireAuth allowedRoles={['USER', 'AGENT', 'ADMIN', 'SUPER_ADMIN', 'COMPANY']} />}>
+                                <Route element={<RequireAuth allowedRoles={['USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY', 'COMPANY_ADMIN']} />}>
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/notifications" element={<Notifications />} />
                                     <Route path="/plans" element={<Plans />} />
@@ -68,7 +68,7 @@ export default function App() {
                                 </Route>
 
                                 {/* User Routes */}
-                                <Route element={<RequireAuth allowedRoles={['USER', 'AGENT', 'ADMIN']} />}>
+                                <Route element={<RequireAuth allowedRoles={['USER', 'AGENT']} />}>
                                     <Route path="/choose-agent" element={<ChooseAgent />} />
                                     <Route path="/schedule" element={<ScheduleAppointment />} />
                                     <Route path="/my-bookings" element={<MyBookings />} />
@@ -79,7 +79,7 @@ export default function App() {
                                 </Route>
 
                                 {/* Agent Routes */}
-                                <Route element={<RequireAuth allowedRoles={['AGENT', 'ADMIN']} />}>
+                                <Route element={<RequireAuth allowedRoles={['AGENT']} />}>
                                     <Route path="/agent/requests" element={<AgentRequests />} />
                                     <Route path="/agent/consultations" element={<AgentConsultations />} />
                                     <Route path="/agent/performance" element={<AgentPerformance />} />
@@ -91,22 +91,21 @@ export default function App() {
                                     <Route path="/my-appointments-enhanced" element={<MyAppointmentsEnhanced />} />
                                 </Route>
 
-                                {/* Admin Routes */}
-                                <Route element={<RequireAuth allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
-                                    <Route path="/admin" element={<AdminDashboardEnterprise />} />
-                                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                                    <Route path="/admin/agents" element={<AgentGovernance />} />
-                                    <Route path="/admin/exceptions" element={<ExceptionHandling />} />
-                                    <Route path="/admin/users" element={<AdminUsers />} />
-                                    <Route path="/admin/policies" element={<AdminPolicies />} />
-                                    <Route path="/admin/plans" element={<AdminPlans />} />
-                                    <Route path="/admin/feedback" element={<AdminFeedbackDashboard />} />
+                                {/* Shared Admin Routes */}
+                                <Route element={<RequireAuth allowedRoles={['SUPER_ADMIN', 'COMPANY', 'COMPANY_ADMIN']} />}>
+                                    <Route path="/analytics" element={<AdminAnalytics />} />
+                                    <Route path="/agents-list" element={<AgentGovernance />} />
+                                    <Route path="/exceptions" element={<ExceptionHandling />} />
+                                    <Route path="/users" element={<AdminUsers />} />
+                                    <Route path="/issued-policies" element={<AdminPolicies />} />
+                                    <Route path="/plans-admin" element={<AdminPlans />} />
+                                    <Route path="/feedback-list" element={<AdminFeedbackDashboard />} />
 
                                     <Route path="/my-consultations" element={<PolicyWorkflowPage />} />
                                 </Route>
 
                                 {/* Company Routes */}
-                                <Route element={<RequireAuth allowedRoles={['COMPANY']} />}>
+                                <Route element={<RequireAuth allowedRoles={['COMPANY', 'COMPANY_ADMIN']} />}>
                                     <Route path="/company" element={<CompanyDashboard />} />
                                 </Route>
 

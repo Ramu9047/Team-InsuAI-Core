@@ -146,7 +146,13 @@ public class BookingService {
         return bookingRepo.findByAgentId(id);
     }
 
-    public List<Booking> getAllBookings() {
+    public List<Booking> getAllBookings(User requester) {
+        if (requester != null
+                && ("COMPANY_ADMIN".equals(requester.getRole()) || "COMPANY".equals(requester.getRole()))) {
+            if (requester.getCompany() != null) {
+                return bookingRepo.findByAgentCompanyId(requester.getCompany().getId());
+            }
+        }
         return bookingRepo.findAll();
     }
 

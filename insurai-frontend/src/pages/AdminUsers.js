@@ -3,8 +3,10 @@ import api from "../services/api";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
 import { useNotification } from "../context/NotificationContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function AdminUsers() {
+    const { user: authUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const { notify } = useNotification();
@@ -20,23 +22,35 @@ export default function AdminUsers() {
     const [userToDelete, setUserToDelete] = useState(null);
 
     const loadUsers = useCallback(() => {
-        api.get('/users')
+        const endpoint = authUser?.role === 'COMPANY_ADMIN'
+            ? '/company-admin/users-list'
+            : '/admin/users'; // Assuming admin controller handles /api/admin/users or falling back to /users
+
+        api.get(endpoint)
             .then(res => setUsers(res.data))
             .catch(err => {
-                console.error(err);
-                notify("Failed to load users", "error");
+                // If endpoint fails, try fallback
+                if (endpoint !== '/users') {
+                    api.get('/users').then(r => setUsers(r.data)).catch(e => {
+                        console.error(e);
+                        notify("Failed to load users", "error");
+                    });
+                } else {
+                    console.error(err);
+                    notify("Failed to load users", "error");
+                }
             })
             .finally(() => setLoading(false));
-    }, [notify]);
+    }, [notify, authUser]);
 
     useEffect(() => {
-        loadUsers();
-    }, [loadUsers]);
+        if (authUser) loadUsers();
+    }, [loadUsers, authUser]);
 
     // Updated deletion logic check
     const confirmDelete = (user) => {
-        if (user.role === 'ADMIN') {
-            notify("Cannot delete Admin users", "error");
+        if (user.role === 'SUPER_ADMIN') {
+            notify("Cannot delete Super Admin users", "error");
             return;
         }
         setUserToDelete(user);
@@ -134,59 +148,90 @@ export default function AdminUsers() {
                                 <th style={{ padding: 15, textAlign: 'left' }}>ID</th>
                                 <th style={{ padding: 15, textAlign: 'left' }}>Name</th>
                                 <th style={{ padding: 15, textAlign: 'left' }}>Email</th>
-                                <th style={{ padding: 15, textAlign: 'left' }}>Role</th>
-                                <th style={{ padding: 15, textAlign: 'left' }}>Status</th>
-                                <th style={{ padding: 15, textAlign: 'right' }}>Actions</th>
+                                {authUser?.role === 'COMPANY_ADMIN' ? (
+                                    <>
+                                        <th style={{ padding: 15, textAlign: 'left' }}>Policy</th>
+                                        <th style={{ padding: 15, textAlign: 'left' }}>Status</th>
+                                        <th style={{ padding: 15, textAlign: 'left' }}>Date</th>
+                                    </>
+                                ) : (
+                                    <>
+                                        <th style={{ padding: 15, textAlign: 'left' }}>Role</th>
+                                        <th style={{ padding: 15, textAlign: 'left' }}>Status</th>
+                                        <th style={{ padding: 15, textAlign: 'right' }}>Actions</th>
+                                    </>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(user => (
-                                <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: 15 }}>{user.id}</td>
-                                    <td style={{ padding: 15 }}>{user.name}</td>
+                                <tr key={user.userId || user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: 15 }}>{user.userId || user.id}</td>
+                                    <td style={{ padding: 15 }}>{user.userName || user.name}</td>
                                     <td style={{ padding: 15 }}>{user.email}</td>
-                                    <td style={{ padding: 15 }}>
-                                        <span style={{
-                                            padding: '4px 8px',
-                                            borderRadius: 4,
-                                            background: user.role === 'ADMIN' ? '#ef4444' : user.role === 'AGENT' ? '#f59e0b' : '#3b82f6',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 'bold'
-                                        }}>
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: 15 }}>{user.isActive !== false ? 'Active' : 'Inactive'}</td>
-                                    <td style={{ padding: 15, textAlign: 'right', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                                        <button
-                                            onClick={() => openEditModal(user)}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: 4,
-                                                border: 'none',
-                                                background: '#3b82f6',
-                                                color: 'white',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
-                                        {user.role !== 'ADMIN' && (
-                                            <button
-                                                onClick={() => confirmDelete(user)}
-                                                style={{
-                                                    padding: '6px 12px',
+
+                                    {authUser?.role === 'COMPANY_ADMIN' ? (
+                                        <>
+                                            <td style={{ padding: 15 }}>{user.policyName || '-'}</td>
+                                            <td style={{ padding: 15 }}>
+                                                <span style={{
+                                                    padding: '4px 8px',
                                                     borderRadius: 4,
-                                                    border: 'none',
-                                                    background: '#ef4444',
-                                                    color: 'white',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                Delete
-                                            </button>
-                                        )}
-                                    </td>
+                                                    background: user.mapStatus === 'ACTIVE' ? '#10b981' : '#ef4444',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {user.mapStatus || 'Inactive'}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: 15 }}>{user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : '-'}</td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td style={{ padding: 15 }}>
+                                                <span style={{
+                                                    padding: '4px 8px',
+                                                    borderRadius: 4,
+                                                    background: user.role === 'SUPER_ADMIN' ? '#ef4444' : user.role === 'COMPANY_ADMIN' ? '#db2777' : user.role === 'AGENT' ? '#f59e0b' : '#3b82f6',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {user.role}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: 15 }}>{user.isActive !== false ? 'Active' : 'Inactive'}</td>
+                                            <td style={{ padding: 15, textAlign: 'right', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                                                <button
+                                                    onClick={() => openEditModal(user)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: 4,
+                                                        border: 'none',
+                                                        background: '#3b82f6',
+                                                        color: 'white',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Edit
+                                                </button>
+                                                {user.role !== 'SUPER_ADMIN' && (
+                                                    <button
+                                                        onClick={() => confirmDelete(user)}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            borderRadius: 4,
+                                                            border: 'none',
+                                                            background: '#ef4444',
+                                                            color: 'white',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
@@ -249,7 +294,8 @@ export default function AdminUsers() {
                     >
                         <option value="USER">User</option>
                         <option value="AGENT">Agent</option>
-                        {isEditMode && <option value="ADMIN">Admin</option>}
+                        {isEditMode && <option value="SUPER_ADMIN">Super Admin</option>}
+                        {isEditMode && <option value="COMPANY_ADMIN">Company Admin</option>}
                     </select>
                 </div>
 

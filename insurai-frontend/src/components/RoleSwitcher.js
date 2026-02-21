@@ -21,11 +21,18 @@ export default function RoleSwitcher({ currentRole, onRoleSwitch }) {
             color: '#8b5cf6'
         },
         {
-            id: 'ADMIN',
-            name: 'Admin',
+            id: 'SUPER_ADMIN',
+            name: 'Super Admin',
             icon: '👑',
             description: 'View as system administrator',
             color: '#ef4444'
+        },
+        {
+            id: 'COMPANY_ADMIN',
+            name: 'Company Admin',
+            icon: '🏢',
+            description: 'View as company administrator',
+            color: '#db2777'
         }
     ];
 
@@ -245,10 +252,11 @@ export function RoleSwitcherCompact({ currentRole, onRoleSwitch }) {
     const roles = {
         USER: { icon: '👤', color: '#3b82f6' },
         AGENT: { icon: '👨‍💼', color: '#8b5cf6' },
-        ADMIN: { icon: '👑', color: '#ef4444' }
+        COMPANY_ADMIN: { icon: '🏢', color: '#db2777' },
+        SUPER_ADMIN: { icon: '👑', color: '#ef4444' }
     };
 
-    const roleOrder = ['USER', 'AGENT', 'ADMIN'];
+    const roleOrder = ['USER', 'AGENT', 'COMPANY_ADMIN', 'SUPER_ADMIN'];
     const currentIndex = roleOrder.indexOf(currentRole);
 
     const switchToNext = () => {

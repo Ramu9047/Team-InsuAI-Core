@@ -9,6 +9,7 @@ import {
   // LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   // PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
+import KPICard from '../components/KPICard';
 
 // New Enterprise Components
 import NotificationCenter from '../components/NotificationCenter';
@@ -321,38 +322,13 @@ export default function UserDashboard() {
         <div style={{ height: 2, background: 'linear-gradient(90deg, #4f46e5, transparent)', marginTop: 10 }}></div>
       </motion.div>
 
-      {/* Primary Metrics - Clickable Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20, marginBottom: 40 }}>
-        {[
-          { icon: '🧑‍💼', title: 'Active Agents', value: stats.activeAgents, subtitle: 'View Agents →', color: '#667eea', action: () => navigate('/choose-agent') },
-          { icon: '📅', title: 'Appointments', value: stats.appointments, subtitle: 'View Timeline →', color: '#f59e0b', action: () => navigate('/my-bookings') },
-          { icon: '📄', title: 'Active Policies', value: stats.activePolicies, subtitle: 'View Policies →', color: '#10b981', action: () => navigate('/my-policies') },
-          { icon: '❌', title: 'Rejected Requests', value: stats.rejectedRequests, subtitle: 'Why rejected? →', color: '#ef4444', action: () => navigate('/my-bookings') },
-          { icon: '💬', title: 'Help & Feedback', value: 'Support', subtitle: 'Contact Us →', color: '#8b5cf6', action: () => navigate('/feedback') }
-        ].map((card, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            whileHover={{ y: -5, boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}
-            className="card"
-            onClick={card.action}
-            style={{
-              cursor: 'pointer',
-              borderLeft: `4px solid ${card.color}`,
-              background: 'var(--bg-card)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ position: 'absolute', top: -20, right: -20, fontSize: '5rem', opacity: 0.05 }}>{card.icon}</div>
-            <div style={{ fontSize: '2rem', marginBottom: 10 }}>{card.icon}</div>
-            <div style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.5px' }}>{card.title}</div>
-            <div style={{ fontSize: '3rem', fontWeight: 800, margin: '10px 0', color: 'var(--text-main)' }}>{card.value}</div>
-            <div style={{ fontSize: '0.85rem', color: card.color, fontWeight: 600 }}>{card.subtitle}</div>
-          </motion.div>
-        ))}
+      {/* ── Primary KPI Metrics ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 18, marginBottom: 40 }}>
+        <KPICard icon="🧑‍💼" label="Active Agents" value={stats.activeAgents} color="#667eea" link="/choose-agent" linkText="View Agents →" idx={0} />
+        <KPICard icon="📅" label="Appointments" value={stats.appointments} color="#f59e0b" link="/my-bookings" linkText="View Timeline →" idx={1} />
+        <KPICard icon="📄" label="Active Policies" value={stats.activePolicies} color="#10b981" link="/my-policies" linkText="View Policies →" idx={2} />
+        <KPICard icon="❌" label="Rejected Requests" value={stats.rejectedRequests} color="#ef4444" link="/my-bookings" linkText="Why rejected? →" idx={3} />
+        <KPICard icon="💬" label="Help & Feedback" value="Support" color="#8b5cf6" link="/feedback" linkText="Contact Us →" idx={4} />
       </div>
 
       {/* Appointment Journey Tracker */}

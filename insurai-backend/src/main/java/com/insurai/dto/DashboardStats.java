@@ -15,6 +15,13 @@ public class DashboardStats {
     public Integer appointmentsToday;
     public Integer pendingRequests;
     public Integer healthScore;
+    public Integer funnelUsers;
+    public Integer funnelAppointments;
+    public Integer funnelConsulted;
+    public Integer funnelApproved;
+    public Integer funnelIssued;
+    public Integer fraudAlerts;
+    public Integer totalPlans;
     public java.util.List<String> coverageGaps = new java.util.ArrayList<>();
     public java.util.List<String> savingsTips = new java.util.ArrayList<>();
 

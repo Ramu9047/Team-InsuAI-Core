@@ -123,9 +123,8 @@ export default function Navbar() {
                     <>
                         <NavLink to={
                             user.role === 'SUPER_ADMIN' ? "/super-admin" :
-                                user.role === 'COMPANY' ? "/company" :
-                                    user.role === 'ADMIN' ? "/admin" :
-                                        "/dashboard"
+                                (user.role === 'COMPANY' || user.role === 'COMPANY_ADMIN') ? "/company" :
+                                    "/dashboard"
                         } className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                             Dashboard
                         </NavLink>

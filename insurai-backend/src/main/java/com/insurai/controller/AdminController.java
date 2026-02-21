@@ -10,7 +10,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "http://localhost:3000")
-@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
 public class AdminController {
 
     private final UserRepository userRepo;
@@ -18,26 +18,48 @@ public class AdminController {
     private final com.insurai.service.ClaimService claimService;
     private final com.insurai.repository.PolicyRepository policyRepo;
     private final com.insurai.repository.AuditLogRepository auditRepo;
+    private final com.insurai.repository.UserCompanyMapRepository userCompanyMapRepo;
 
     public AdminController(UserRepository userRepo,
             com.insurai.service.BookingService bookingService,
             com.insurai.service.ClaimService claimService,
+
             com.insurai.repository.PolicyRepository policyRepo,
-            com.insurai.repository.AuditLogRepository auditRepo) {
+            com.insurai.repository.AuditLogRepository auditRepo,
+            com.insurai.repository.UserCompanyMapRepository userCompanyMapRepo) {
         this.userRepo = userRepo;
         this.bookingService = bookingService;
         this.claimService = claimService;
         this.policyRepo = policyRepo;
         this.auditRepo = auditRepo;
+        this.userCompanyMapRepo = userCompanyMapRepo;
+    }
+
+    private com.insurai.model.User getCurrentUser() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            return userRepo.findByEmail(auth.getName()).orElse(null);
+        }
+        return null;
     }
 
     @GetMapping("/stats")
     public Map<String, Long> stats() {
+        com.insurai.model.User user = getCurrentUser();
+        Long companyId = (user != null && user.getCompany() != null) ? user.getCompany().getId() : null;
+        boolean isCompany = "COMPANY_ADMIN".equals(user != null ? user.getRole() : "");
+
         Map<String, Long> m = new HashMap<>();
-        m.put("users", userRepo.count());
-        m.put("agents", (long) userRepo.findByRole("AGENT").size());
-        m.put("bookings", (long) bookingService.getAnalytics().getStatusDistribution().values().stream()
-                .mapToLong(Long::longValue).sum());
+        if (isCompany && companyId != null) {
+            m.put("users", userCompanyMapRepo.countActiveUsersByCompany(companyId));
+            m.put("agents", userRepo.countByRoleAndCompanyId("AGENT", companyId));
+            m.put("bookings", bookingService.getAllBookings(user).stream().count()); // filtered by user in service
+        } else {
+            m.put("users", userRepo.count());
+            m.put("agents", (long) userRepo.findByRole("AGENT").size());
+            m.put("bookings", (long) bookingService.getAllBookings(null).size());
+        }
         return m;
     }
 
@@ -69,6 +91,16 @@ public class AdminController {
 
     @GetMapping("/users")
     public java.util.List<com.insurai.model.User> getAllUsers() {
+        com.insurai.model.User currentUser = getCurrentUser();
+        Long companyId = (currentUser != null && currentUser.getCompany() != null) ? currentUser.getCompany().getId()
+                : null;
+        boolean isCompany = "COMPANY_ADMIN".equals(currentUser != null ? currentUser.getRole() : "");
+
+        if (isCompany && companyId != null) {
+            return userCompanyMapRepo.findByCompanyId(companyId).stream()
+                    .map(com.insurai.model.UserCompanyMap::getUser)
+                    .collect(java.util.stream.Collectors.toList());
+        }
         return userRepo.findAll();
     }
 
@@ -109,7 +141,15 @@ public class AdminController {
 
     @GetMapping("/audit-logs")
     public java.util.List<com.insurai.model.AuditLog> getAuditLogs() {
-        return auditRepo.findAll();
+        com.insurai.model.User user = getCurrentUser();
+        Long companyId = (user != null && user.getCompany() != null) ? user.getCompany().getId() : null;
+        boolean isCompany = "COMPANY_ADMIN".equals(user != null ? user.getRole() : "");
+
+        if (isCompany && companyId != null) {
+            return auditRepo.findByCompanyId(companyId);
+        } else {
+            return auditRepo.findAll();
+        }
     }
 
     @GetMapping("/dashboard-stats")
@@ -138,7 +178,9 @@ public class AdminController {
         dashboard.setClaimRiskDistribution(riskDist);
 
         // 2. Agent Leaderboard
-        java.util.List<com.insurai.model.Booking> bookings = bookingService.getAllBookings(); // Now available
+        com.insurai.model.User currentUser = getCurrentUser();
+        java.util.List<com.insurai.model.Booking> bookings = bookingService.getAllBookings(currentUser); // Context
+                                                                                                         // aware
         Map<com.insurai.model.User, java.util.List<com.insurai.model.Booking>> agentBookings = bookings.stream()
                 .filter(b -> b.getAgent() != null)
                 .collect(java.util.stream.Collectors.groupingBy(com.insurai.model.Booking::getAgent));

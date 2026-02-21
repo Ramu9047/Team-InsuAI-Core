@@ -40,8 +40,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Missing required fields");
         }
 
-        // Security: Block Admin/SuperAdmin creation
-        if ("ADMIN".equalsIgnoreCase(user.getRole()) || "SUPER_ADMIN".equalsIgnoreCase(user.getRole())) {
+        // Security: Block SuperAdmin creation
+        if ("SUPER_ADMIN".equalsIgnoreCase(user.getRole())) {
             return ResponseEntity.status(403).body("Registration is restricted for this role.");
         }
 

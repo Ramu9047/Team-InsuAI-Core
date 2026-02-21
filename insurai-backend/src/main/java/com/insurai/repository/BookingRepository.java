@@ -73,4 +73,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
         List<Booking> findByPolicyCompanyId(Long companyId);
 
+        // Company scoped
+        long countByAgentCompanyId(Long companyId);
+
+        long countByAgentCompanyIdAndStatus(Long companyId, String status);
+
+        List<Booking> findByAgentCompanyId(Long companyId);
 }
