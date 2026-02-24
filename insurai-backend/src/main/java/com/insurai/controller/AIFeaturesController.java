@@ -132,7 +132,7 @@ public class AIFeaturesController {
          * GET /api/ai/fraud/heatmap
          */
         @GetMapping("/fraud/heatmap")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
         public ResponseEntity<FraudRiskService.FraudHeatmap> getFraudHeatmap() {
                 FraudRiskService.FraudHeatmap heatmap = fraudRiskService.getFraudHeatmap();
                 return ResponseEntity.ok(heatmap);
@@ -143,7 +143,7 @@ public class AIFeaturesController {
          * GET /api/ai/fraud/high-risk
          */
         @GetMapping("/fraud/high-risk")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
         public ResponseEntity<List<FraudRiskService.UserRiskScore>> getHighRiskUsers() {
                 List<FraudRiskService.UserRiskScore> highRiskUsers = fraudRiskService.getHighRiskUsers();
                 return ResponseEntity.ok(highRiskUsers);
@@ -154,7 +154,7 @@ public class AIFeaturesController {
          * GET /api/ai/fraud/user/{userId}
          */
         @GetMapping("/fraud/user/{userId}")
-        @PreAuthorize("hasAnyRole('AGENT', 'ADMIN')")
+        @PreAuthorize("hasAnyRole('AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
         public ResponseEntity<FraudRiskService.UserRiskScore> getUserRiskScore(
                         @PathVariable Long userId) {
 

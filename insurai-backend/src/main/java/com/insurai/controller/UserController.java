@@ -17,7 +17,7 @@ public class UserController {
     }
 
     @GetMapping
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public java.util.List<User> getAllUsers() {
         return userRepo.findAll();
     }
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/admin")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<?> adminUpdateUser(@PathVariable Long id, @RequestBody User updates) {
         return userRepo.findById(java.util.Objects.requireNonNull(id)).map(user -> {
             if (updates.getName() != null)

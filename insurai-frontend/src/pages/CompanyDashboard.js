@@ -364,7 +364,7 @@ export default function CompanyDashboard() {
         },
 
         {
-            label: 'User Feedback', value: (stats?.totalFeedback ?? 36).toLocaleString(),
+            label: 'User Feedback', value: (stats?.totalFeedback ?? 0).toLocaleString(),
             icon: '💬', color: '#06b6d4', action: () => navigate('/feedback-list')
         },
     ];
@@ -577,7 +577,7 @@ export default function CompanyDashboard() {
                 >
                     <SectionHeader icon="👨‍💼" title="Agent Performance Monitor">
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <ActionBtn variant="ghost" onClick={() => { }}>Agent Reports</ActionBtn>
+                            <ActionBtn variant="ghost" onClick={() => navigate('/agents-list')}>Agent Reports</ActionBtn>
                             <ActionBtn variant="primary" onClick={() => setAgentModal({ isOpen: true })}>+ Invite Agent</ActionBtn>
                         </div>
                     </SectionHeader>
@@ -704,7 +704,7 @@ export default function CompanyDashboard() {
                 <SectionHeader icon="💬" title="Company Feedback & Experience Panel">
                     <div style={{ display: 'flex', gap: 8 }}>
                         <ActionBtn variant="primary" onClick={() => navigate('/feedback-list')}>View All Feedback</ActionBtn>
-                        <ActionBtn variant="danger" onClick={() => { }}>Escalate to Super Admin</ActionBtn>
+                        <ActionBtn variant="danger" onClick={() => navigate('/exceptions')}>Escalate to Super Admin</ActionBtn>
                     </div>
                 </SectionHeader>
 
@@ -765,15 +765,15 @@ export default function CompanyDashboard() {
                                                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                                                     {fb.type === 'Complaint' && (
                                                         <>
-                                                            <ActionBtn variant="danger" onClick={() => { }}>Investigate</ActionBtn>
-                                                            <ActionBtn variant="warning" onClick={() => { }}>Flag Agent</ActionBtn>
+                                                            <ActionBtn variant="danger" onClick={() => navigate('/feedback-list')}>Investigate</ActionBtn>
+                                                            <ActionBtn variant="warning" onClick={() => navigate('/agents-list')}>Flag Agent</ActionBtn>
                                                         </>
                                                     )}
                                                     {fb.type === 'Suggestion' && (
-                                                        <ActionBtn variant="primary" onClick={() => { }}>Review</ActionBtn>
+                                                        <ActionBtn variant="primary" onClick={() => navigate('/feedback-list')}>Review</ActionBtn>
                                                     )}
                                                     {fb.type === 'Praise' && (
-                                                        <ActionBtn variant="success" onClick={() => { }}>Highlight</ActionBtn>
+                                                        <ActionBtn variant="success" onClick={() => navigate('/agents-list')}>Highlight</ActionBtn>
                                                     )}
                                                 </div>
                                             </td>
@@ -818,7 +818,12 @@ export default function CompanyDashboard() {
                                     { label: '📤 Escalate to Super Admin', variant: 'primary' },
                                     { label: '✏️ Improve Policy Description', variant: 'ghost' },
                                 ].map((ctrl, i) => (
-                                    <button key={i} onClick={() => { }} style={{
+                                    <button key={i} onClick={() => {
+                                        if (ctrl.label.includes('Escalate')) navigate('/exceptions');
+                                        else if (ctrl.label.includes('Flag')) navigate('/agents-list');
+                                        else if (ctrl.label.includes('Clarification')) navigate('/feedback-list');
+                                        else navigate('/analytics');
+                                    }} style={{
                                         padding: '10px 14px', borderRadius: 8, width: '100%', textAlign: 'left',
                                         fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer',
                                         border: '1px solid rgba(255,255,255,0.1)',
@@ -901,7 +906,7 @@ export default function CompanyDashboard() {
                         {displayInsights.map((ins, i) => (
                             <InsightCard key={i} type={ins.type} title={ins.title} text={ins.text} />
                         ))}
-                        <ActionBtn variant="primary" style={{ marginTop: 4, textAlign: 'center' }} onClick={() => { }}>
+                        <ActionBtn variant="primary" style={{ marginTop: 4, textAlign: 'center' }} onClick={() => navigate('/analytics')}>
                             Improve Policy Strategy →
                         </ActionBtn>
                     </div>

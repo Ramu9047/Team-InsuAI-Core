@@ -48,14 +48,14 @@ public class PolicyController {
     }
 
     @PutMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'SUPER_ADMIN', 'ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'COMPANY_ADMIN', 'SUPER_ADMIN')")
     public Policy update(@PathVariable long id, @RequestBody Policy policy) {
         return policyService.update(id, java.util.Objects.requireNonNull(policy),
                 getCurrentUser());
     }
 
     @DeleteMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'SUPER_ADMIN', 'ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('COMPANY', 'COMPANY_ADMIN', 'SUPER_ADMIN')")
     public void delete(@PathVariable long id) {
         policyService.delete(id, getCurrentUser());
     }
@@ -113,7 +113,7 @@ public class PolicyController {
     }
 
     @GetMapping("/issued")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public List<UserPolicy> getAllUserPolicies() {
         return policyService.getAllUserPolicies();
     }

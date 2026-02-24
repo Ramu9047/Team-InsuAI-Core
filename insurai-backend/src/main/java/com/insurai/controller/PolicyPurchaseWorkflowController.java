@@ -49,7 +49,7 @@ public class PolicyPurchaseWorkflowController {
      * GET /api/policy-workflow/user/{userId}
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<List<PolicyPurchaseWorkflowDTO>> getUserWorkflows(
             @PathVariable Long userId) {
 
@@ -92,7 +92,7 @@ public class PolicyPurchaseWorkflowController {
      * POST /api/policy-workflow/admin/{adminId}/approve/{bookingId}
      */
     @PostMapping("/admin/{adminId}/approve/{bookingId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<PolicyPurchaseWorkflowDTO> adminApproval(
             @PathVariable Long adminId,
             @PathVariable Long bookingId,
@@ -110,7 +110,7 @@ public class PolicyPurchaseWorkflowController {
      * GET /api/policy-workflow/{workflowId}
      */
     @GetMapping("/{workflowId}")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<PolicyPurchaseWorkflowDTO> getWorkflowDetails(
             @PathVariable Long workflowId) {
 

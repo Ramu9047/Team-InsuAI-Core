@@ -12,6 +12,7 @@ import com.insurai.repository.BookingRepository;
 import com.insurai.repository.UserCompanyMapRepository;
 
 import com.insurai.repository.CompanyRepository;
+import com.insurai.repository.FeedbackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +55,9 @@ public class CompanyController {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private FeedbackRepository feedbackRepository;
 
     /**
      * Resolves the authenticated company from JWT.
@@ -296,6 +300,12 @@ public class CompanyController {
                 .filter(c -> !"REJECTED".equals(c.getStatus()) && !"APPROVED".equals(c.getStatus()))
                 .count();
 
+        // Feedback scoped to users of this company
+        long totalFeedback = feedbackRepository.findAll().stream()
+                .filter(f -> f.getUser() != null && f.getUser().getCompany() != null
+                        && companyId.equals(f.getUser().getCompany().getId()))
+                .count();
+
         Map<String, Object> response = new java.util.HashMap<>();
         response.put("metrics", Map.of(
                 "name", company.getName(),
@@ -306,6 +316,7 @@ public class CompanyController {
                 "totalUsers", totalCompanyUsers,
                 "totalAgents", totalAgents,
                 "fraudAlerts", fraudAlerts,
+                "totalFeedback", totalFeedback,
                 "conversionRate", String.format("%.1f", conversionRate)));
         response.put("recentPolicies", allPolicies.stream().limit(5).collect(java.util.stream.Collectors.toList()));
         response.put("salesData", salesData);

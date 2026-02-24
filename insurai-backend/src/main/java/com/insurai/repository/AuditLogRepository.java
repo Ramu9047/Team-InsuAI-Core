@@ -27,7 +27,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     @Query("SELECT a FROM AuditLog a WHERE a.entityType = ?1 AND a.entityId = ?2 ORDER BY a.timestamp DESC")
     List<AuditLog> findEntityHistory(String entityType, Long entityId);
 
-    @Query("SELECT a FROM AuditLog a WHERE a.performedByRole = 'ADMIN' ORDER BY a.timestamp DESC")
+    @Query("SELECT a FROM AuditLog a WHERE a.performedByRole IN ('SUPER_ADMIN', 'COMPANY_ADMIN') ORDER BY a.timestamp DESC")
     List<AuditLog> findAdminActions();
 
     @Query("SELECT a FROM AuditLog a WHERE a.severity = 'CRITICAL' ORDER BY a.timestamp DESC")

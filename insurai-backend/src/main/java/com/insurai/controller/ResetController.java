@@ -63,7 +63,7 @@ public class ResetController {
      * Admin / Super-Admin only.
      */
     @PostMapping("/reset-database")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Transactional
     public ResponseEntity<Map<String, Object>> resetDatabase() {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -112,7 +112,7 @@ public class ResetController {
      * Health / status check – doesn't modify data.
      */
     @GetMapping("/reset-database/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> info = new LinkedHashMap<>();
         info.put("users", userRepo.count());

@@ -2,8 +2,11 @@ package com.insurai.controller;
 
 import com.insurai.model.Feedback;
 import com.insurai.model.User;
+
+import com.insurai.repository.FeedbackRepository;
 import com.insurai.repository.UserRepository;
 import com.insurai.service.FeedbackService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +24,9 @@ public class FeedbackController {
 
     private final FeedbackService feedbackService;
     private final UserRepository userRepo;
+
+    @Autowired
+    private FeedbackRepository feedbackRepository;
 
     public FeedbackController(FeedbackService feedbackService, UserRepository userRepo) {
         this.feedbackService = feedbackService;
@@ -54,16 +60,27 @@ public class FeedbackController {
         return feedbackService.getUserFeedback(user.getId());
     }
 
-    // Admin: Get All Feedback
+    // Admin: Get All Feedback (Super Admin sees ALL, Company Admin sees scoped)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public List<Feedback> getAllFeedback() {
-        return feedbackService.getAllFeedback();
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
+    public ResponseEntity<?> getAllFeedback(Authentication auth) {
+        String email = auth.getName();
+        User currentUser = userRepo.findByEmail(email).orElse(null);
+        if (currentUser != null && "COMPANY_ADMIN".equals(currentUser.getRole()) && currentUser.getCompany() != null) {
+            // Company Admin: return only feedback from users of their company
+            Long companyId = currentUser.getCompany().getId();
+            List<Feedback> scoped = feedbackRepository.findAll().stream()
+                    .filter(f -> f.getUser() != null && f.getUser().getCompany() != null
+                            && companyId.equals(f.getUser().getCompany().getId()))
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(scoped);
+        }
+        return ResponseEntity.ok(feedbackService.getAllFeedback());
     }
 
     // Admin: Update Status
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public Feedback updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String status = body.get("status");
         String adminResponse = body.get("adminResponse");
@@ -72,7 +89,7 @@ public class FeedbackController {
 
     // Admin: Assign Feedback
     @PatchMapping("/{id}/assign/{assigneeId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
     public Feedback assignFeedback(@PathVariable Long id, @PathVariable Long assigneeId) {
         return feedbackService.assignFeedback(id, assigneeId);
     }

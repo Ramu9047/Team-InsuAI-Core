@@ -111,11 +111,26 @@ public class DataSeeder implements CommandLineRunner {
                                 5000.0, 20000000.0, futureGuard));
                 System.out.println("Policies seeded (18)");
 
-                // == 3a. Admin + Super-Admin ==========================================
-                User admin = userRepo.save(makeUser("Admin User 2", "admin@insurai.com", "admin123", "SUPER_ADMIN", 29,
-                                "Chennai", null, null, null));
-                User superAdmin = userRepo.save(makeUser("Super Admin", "superadmin@insurai.com", "super123",
+                // == 3a. Super-Admin ==========================================
+                User superAdmin1 = userRepo.save(makeUser("Super Admin", "superadmin@insurai.com", "super123",
                                 "SUPER_ADMIN", 35, "Mumbai", null, null, null));
+
+                // == 3b. Company Admins (one per company) =====================
+                User caSecureLife = userRepo.save(makeUser("Rajan Mehta", "admin.securelife@insurai.com", "password123",
+                                "COMPANY_ADMIN", 40, "Mumbai", null, null, null));
+                caSecureLife.setCompany(securLife);
+                caSecureLife = userRepo.save(caSecureLife);
+
+                User caHealthPlus = userRepo.save(makeUser("Sundar Iyer", "admin.healthplus@insurai.com", "password123",
+                                "COMPANY_ADMIN", 38, "Bengaluru", null, null, null));
+                caHealthPlus.setCompany(healthPlus);
+                caHealthPlus = userRepo.save(caHealthPlus);
+
+                User caFutureGuard = userRepo
+                                .save(makeUser("Pooja Verma", "admin.futureguard@insurai.com", "password123",
+                                                "COMPANY_ADMIN", 36, "Delhi", null, null, null));
+                caFutureGuard.setCompany(futureGuard);
+                caFutureGuard = userRepo.save(caFutureGuard);
 
                 // == 3b. Agents =======================================================
                 User ag1 = userRepo.save(makeAgent("Rahul Sharma", "agent.rahul@insurai.com", securLife,
@@ -245,6 +260,10 @@ public class DataSeeder implements CommandLineRunner {
                 userPolicyRepo.save(makeUserPolicy(u1, hpP5, "PENDING_APPROVAL", hpP5.getPremium(), now.minusDays(1)));
                 userPolicyRepo.save(makeUserPolicy(u3, fgP4, "INACTIVE", fgP4.getPremium(), now.minusDays(30)));
 
+                // Cross-company user: u1 also buys from HealthPlus (many-to-many)
+                userPolicyRepo.save(makeUserPolicy(u1, hpP2, "ACTIVE", hpP2.getPremium(), now.minusDays(3)));
+                saveUCM(u1, healthPlus, hpP2);
+
                 saveUCM(u1, securLife, slP1);
                 saveUCM(u2, healthPlus, hpP1);
                 saveUCM(u3, securLife, slP2);
@@ -256,7 +275,7 @@ public class DataSeeder implements CommandLineRunner {
                 saveUCM(u12, healthPlus, hpP3);
                 saveUCM(u13, futureGuard, fgP6);
                 saveUCM(u15, futureGuard, fgP2);
-                System.out.println("UserPolicies + UCM seeded");
+                System.out.println("UserPolicies + UCM seeded (u1 belongs to 2 companies)");
 
                 // == 6. Claims ========================================================
                 Claim cl1 = claimRepo.save(
@@ -284,24 +303,25 @@ public class DataSeeder implements CommandLineRunner {
                 System.out.println("Claims seeded (11)");
 
                 // == 7. Feedback ======================================================
-                Feedback fb1 = feedbackRepo.save(makeFeedback(u1, admin, "BUG", "Login loop on mobile",
+                Feedback fb1 = feedbackRepo.save(makeFeedback(u1, superAdmin1, "BUG", "Login loop on mobile",
                                 "App keeps logging out.", "RESOLVED", "Fixed in v2.3.", now.minusDays(10)));
                 Feedback fb2 = feedbackRepo.save(makeFeedback(u2, null, "QUERY", "Policy cancellation process",
                                 "How do I cancel my policy?", "OPEN", null, now.minusDays(2)));
-                feedbackRepo.save(makeFeedback(u3, admin, "SUGGESTION", "Dark mode for app", "Please add dark mode.",
+                feedbackRepo.save(makeFeedback(u3, superAdmin1, "SUGGESTION", "Dark mode for app",
+                                "Please add dark mode.",
                                 "RESOLVED", "Coming in next release.", now.minusDays(15)));
                 feedbackRepo.save(makeFeedback(u4, null, "COMPLAINT", "Agent response delayed",
                                 "My agent took 3 days to reply.", "OPEN", null, now.minusDays(1)));
-                Feedback fb5 = feedbackRepo.save(makeFeedback(u5, admin, "COMPLAINT", "Claim rejected unfairly",
+                Feedback fb5 = feedbackRepo.save(makeFeedback(u5, superAdmin1, "COMPLAINT", "Claim rejected unfairly",
                                 "My health claim was rejected.", "IN_PROGRESS", "Under review with claims team.",
                                 now.minusDays(5)));
                 feedbackRepo.save(makeFeedback(u6, null, "QUERY", "Premium payment failed",
                                 "My UPI payment failed twice.", "OPEN", null, now.minusDays(3)));
-                feedbackRepo.save(makeFeedback(u7, admin, "SUGGESTION", "More payment options",
+                feedbackRepo.save(makeFeedback(u7, superAdmin1, "SUGGESTION", "More payment options",
                                 "Add credit card EMI option.", "RESOLVED", "EMI option added.", now.minusDays(20)));
                 feedbackRepo.save(makeFeedback(u8, null, "BUG", "PDF download broken", "Policy PDF fails to download.",
                                 "OPEN", null, now.minusDays(1)));
-                feedbackRepo.save(makeFeedback(u9, admin, "COMPLAINT", "Wrong premium charged",
+                feedbackRepo.save(makeFeedback(u9, superAdmin1, "COMPLAINT", "Wrong premium charged",
                                 "Charged higher premium.", "RESOLVED", "Refund processed.", now.minusDays(7)));
                 feedbackRepo.save(makeFeedback(u10, null, "QUERY", "Nominee update", "How to update my nominee?",
                                 "OPEN", null, now.minusHours(8)));
@@ -319,19 +339,24 @@ public class DataSeeder implements CommandLineRunner {
                                 "Booking rejected: high risk score", "WARNING"));
                 logs.add(makeLog("CREATE", "CLAIM", cl6.getId(), u7.getId(), "USER", u7.getName(),
                                 "Claim filed for car accident", "INFO"));
-                logs.add(makeLog("APPROVE", "CLAIM", cl6.getId(), admin.getId(), "SUPER_ADMIN", admin.getName(),
+                logs.add(makeLog("APPROVE", "CLAIM", cl6.getId(), superAdmin1.getId(), "SUPER_ADMIN",
+                                superAdmin1.getName(),
                                 "Claim approved after inspection", "INFO"));
-                logs.add(makeLog("REJECT", "CLAIM", cl9.getId(), admin.getId(), "SUPER_ADMIN", admin.getName(),
+                logs.add(makeLog("REJECT", "CLAIM", cl9.getId(), superAdmin1.getId(), "SUPER_ADMIN",
+                                superAdmin1.getName(),
                                 "Claim rejected: fraudulent docs", "WARNING"));
-                logs.add(makeLog("UPDATE", "POLICY", slP1.getId(), admin.getId(), "SUPER_ADMIN", admin.getName(),
+                logs.add(makeLog("UPDATE", "POLICY", slP1.getId(), superAdmin1.getId(), "SUPER_ADMIN",
+                                superAdmin1.getName(),
                                 "Policy premium updated", "INFO"));
-                logs.add(makeLog("CREATE", "USER", u15.getId(), admin.getId(), "SUPER_ADMIN", admin.getName(),
+                logs.add(makeLog("CREATE", "USER", u15.getId(), superAdmin1.getId(), "SUPER_ADMIN",
+                                superAdmin1.getName(),
                                 "New user registered", "INFO"));
-                logs.add(makeLog("LOGIN", "COMPANY", securLife.getId(), securLife.getId(), "COMPANY",
-                                securLife.getName(), "Company admin login", "INFO"));
+                logs.add(makeLog("LOGIN", "COMPANY", securLife.getId(), caSecureLife.getId(), "COMPANY_ADMIN",
+                                caSecureLife.getName(), "Company admin login", "INFO"));
                 logs.add(makeLog("CREATE", "FEEDBACK", fb5.getId(), u5.getId(), "USER", u5.getName(),
                                 "Complaint raised about claim", "WARNING"));
-                logs.add(makeLog("RESOLVE", "FEEDBACK", fb1.getId(), admin.getId(), "SUPER_ADMIN", admin.getName(),
+                logs.add(makeLog("RESOLVE", "FEEDBACK", fb1.getId(), superAdmin1.getId(), "SUPER_ADMIN",
+                                superAdmin1.getName(),
                                 "Bug feedback resolved", "INFO"));
                 auditLogRepo.saveAll(logs);
                 System.out.println("Audit logs seeded (12)");

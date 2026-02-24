@@ -10,7 +10,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "http://localhost:3000")
-@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
+@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
 public class AdminController {
 
     private final UserRepository userRepo;

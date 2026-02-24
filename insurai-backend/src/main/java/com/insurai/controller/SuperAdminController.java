@@ -335,6 +335,9 @@ public class SuperAdminController {
     @Autowired
     private com.insurai.repository.UserCompanyMapRepository userCompanyMapRepository;
 
+    @Autowired
+    private com.insurai.repository.FeedbackRepository feedbackRepository;
+
     @GetMapping("/dashboard-stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
         List<Company> allCompanies = companyService.getAllCompanies();
@@ -345,9 +348,10 @@ public class SuperAdminController {
         long activeCompanies = allCompanies.stream().filter(c -> Boolean.TRUE.equals(c.getIsActive())).count();
         long suspendedCompanies = allCompanies.stream().filter(c -> "SUSPENDED".equals(c.getStatus())).count();
 
-        // 2. User & Agent Metrics (Global)
-        long totalUsers = userRepository.count();
-        long totalAgents = userRepository.findAll().stream().filter(u -> "AGENT".equals(u.getRole())).count();
+        // 2. User & Agent Metrics (Global — only real end-user roles)
+        long totalUsers = userRepository.findByRole("USER").size();
+        long totalAgents = userRepository.findByRole("AGENT").size();
+        long totalFeedback = feedbackRepository.count();
 
         // 3. Claims & Fraud (Global)
         List<com.insurai.model.Claim> allClaims = claimRepository.findAll();
@@ -369,16 +373,18 @@ public class SuperAdminController {
 
         Map<String, Object> response = new java.util.HashMap<>();
 
-        // Executive Metrics
-        response.put("metrics", Map.of(
-                "totalCompanies", totalCompanies,
-                "totalUsers", totalUsers,
-                "totalAgents", totalAgents,
-                "policiesIssued", policiesIssued,
-                "fraudAlerts", fraudAlerts,
-                "pendingApprovals", pendingCompanies,
-                "activeCompanies", activeCompanies,
-                "suspendedCompanies", suspendedCompanies));
+        // Executive Metrics — Java Map.of supports max 10 entries; use HashMap for 9+
+        java.util.Map<String, Object> metrics = new java.util.HashMap<>();
+        metrics.put("totalCompanies", totalCompanies);
+        metrics.put("totalUsers", totalUsers);
+        metrics.put("totalAgents", totalAgents);
+        metrics.put("policiesIssued", policiesIssued);
+        metrics.put("fraudAlerts", fraudAlerts);
+        metrics.put("totalFeedback", totalFeedback);
+        metrics.put("pendingApprovals", pendingCompanies);
+        metrics.put("activeCompanies", activeCompanies);
+        metrics.put("suspendedCompanies", suspendedCompanies);
+        response.put("metrics", metrics);
 
         // Enriched Company List for Governance Panel
         List<Map<String, Object>> enrichedCompanies = new java.util.ArrayList<>();

@@ -25,7 +25,7 @@ public class SmartReminderController {
      * Get all pending reminders for current user
      */
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<List<SmartReminder>> getPendingReminders(@RequestParam Long userId) {
         List<SmartReminder> reminders = smartReminderService.getPendingReminders(userId);
         return ResponseEntity.ok(reminders);
@@ -35,7 +35,7 @@ public class SmartReminderController {
      * Get all reminders for current user
      */
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<List<SmartReminder>> getAllReminders(@RequestParam Long userId) {
         List<SmartReminder> reminders = smartReminderService.getAllReminders(userId);
         return ResponseEntity.ok(reminders);
@@ -45,7 +45,7 @@ public class SmartReminderController {
      * Mark reminder as sent/read
      */
     @PutMapping("/{reminderId}/mark-sent")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<String> markAsSent(@PathVariable Long reminderId) {
         smartReminderService.markAsSent(reminderId);
         return ResponseEntity.ok("Reminder marked as sent");
@@ -55,7 +55,7 @@ public class SmartReminderController {
      * Delete reminder
      */
     @DeleteMapping("/{reminderId}")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<String> deleteReminder(@PathVariable Long reminderId) {
         smartReminderService.deleteReminder(reminderId);
         return ResponseEntity.ok("Reminder deleted");

@@ -23,7 +23,7 @@ public class AIRiskAssessmentController {
      * Get risk assessment for a user and policy
      */
     @GetMapping("/risk-assessment")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<RiskAssessmentDTO> getRiskAssessment(
             @RequestParam Long userId,
             @RequestParam Long policyId) {
@@ -35,7 +35,7 @@ public class AIRiskAssessmentController {
      * Get general risk profile for a user
      */
     @GetMapping("/user-risk-profile/{userId}")
-    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'AGENT', 'SUPER_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<com.insurai.dto.UserRiskProfileDTO> getUserRiskProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(aiRiskAssessmentService.getUserRiskProfile(userId));
     }

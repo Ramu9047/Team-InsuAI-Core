@@ -273,7 +273,7 @@ export default function SuperAdminDashboard() {
         { label: 'Total Agents', value: metrics.totalAgents ?? '—', icon: '🧑‍💼', color: '#10b981', onClick: () => navigate('/agents-list') },
         { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#f59e0b', onClick: () => navigate('/issued-policies') },
         { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '—', icon: '⚠️', color: '#ef4444', onClick: () => navigate('/exceptions') },
-        { label: 'Total Feedback', value: (metrics.totalFeedback ?? 128).toLocaleString(), icon: '💬', color: '#06b6d4', onClick: () => navigate('/feedback-list') },
+        { label: 'Total Feedback', value: (metrics.totalFeedback ?? 0).toLocaleString(), icon: '💬', color: '#06b6d4', onClick: () => navigate('/feedback-list') },
     ];
 
     const feedbackRows = data?.feedbackSummary || [
@@ -475,8 +475,8 @@ export default function SuperAdminDashboard() {
                         </div>
 
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <ActionBtn variant="danger">View High-Risk</ActionBtn>
-                            <ActionBtn variant="ghost">Adjust Thresholds</ActionBtn>
+                            <ActionBtn variant="danger" onClick={() => navigate('/exceptions')}>View High-Risk</ActionBtn>
+                            <ActionBtn variant="ghost" onClick={() => navigate('/analytics')}>Adjust Thresholds</ActionBtn>
                         </div>
                     </div>
                 </motion.div>
@@ -564,16 +564,16 @@ export default function SuperAdminDashboard() {
                                                     <ActionBtn variant="danger" onClick={() => setActionModal({ isOpen: true, company: c, action: 'reject' })}>Reject</ActionBtn>
                                                 </>}
                                                 {(c.status === 'APPROVED') && <>
-                                                    <ActionBtn variant="ghost" onClick={() => { }}>View</ActionBtn>
+                                                    <ActionBtn variant="ghost" onClick={() => navigate(`/users?company=${c.id}`)}>View</ActionBtn>
                                                     <ActionBtn variant="danger" onClick={() => setActionModal({ isOpen: true, company: c, action: 'suspend' })}>Suspend</ActionBtn>
-                                                    <ActionBtn variant="ghost" onClick={() => { }}>Audit Logs</ActionBtn>
+                                                    <ActionBtn variant="ghost" onClick={() => scrollTo('audit-compliance-log')}>Audit Logs</ActionBtn>
                                                 </>}
                                                 {c.status === 'SUSPENDED' && <>
-                                                    <ActionBtn variant="ghost" onClick={() => { }}>Review</ActionBtn>
+                                                    <ActionBtn variant="ghost" onClick={() => scrollTo('audit-compliance-log')}>Review</ActionBtn>
                                                     <ActionBtn variant="warning" onClick={() => setActionModal({ isOpen: true, company: c, action: 'reactivate' })}>Reinstate</ActionBtn>
                                                 </>}
                                                 {c.status === 'REJECTED' && (
-                                                    <ActionBtn variant="ghost" onClick={() => { }}>View</ActionBtn>
+                                                    <ActionBtn variant="ghost" onClick={() => scrollTo('audit-compliance-log')}>View</ActionBtn>
                                                 )}
                                             </div>
                                         </td>
@@ -635,7 +635,7 @@ export default function SuperAdminDashboard() {
                                         </td>
                                         <td style={{ padding: '12px 10px', color: row.trendColor, fontWeight: 700 }}>{row.trend}</td>
                                         <td style={{ padding: '12px 10px' }}>
-                                            <ActionBtn variant="ghost" onClick={() => { }}>{row.action}</ActionBtn>
+                                            <ActionBtn variant="ghost" onClick={() => navigate('/feedback-list')}>{row.action}</ActionBtn>
                                         </td>
                                     </tr>
                                 ))}
@@ -667,7 +667,7 @@ export default function SuperAdminDashboard() {
                                         }}>– {cf.company}</span>
                                         <ActionBtn
                                             variant={cf.severity === 'high' ? 'danger' : 'warning'}
-                                            onClick={() => { }}
+                                            onClick={() => navigate('/exceptions')}
                                         >Investigate</ActionBtn>
                                     </div>
                                 </div>
@@ -790,6 +790,7 @@ export default function SuperAdminDashboard() {
                 🧾 AUDIT & COMPLIANCE LOG
             ═══════════════════════════════════════ */}
             <motion.div
+                id="audit-compliance-log"
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
