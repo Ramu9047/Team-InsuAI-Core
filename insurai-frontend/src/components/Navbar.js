@@ -5,13 +5,14 @@ import api from "../services/api";
 
 
 const InsurAIIcon = () => (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 5.5a5 5 0 1 1 7.5 7.072z" stroke="url(#logo-grad)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="rgba(139, 92, 246, 0.08)" />
-        <path d="M3 12.5h2.5l2-3 2.5 7 2.5-9 2 5h4.5" stroke="url(#logo-grad)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+        <path d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 5.5a5 5 0 1 1 7.5 7.072z" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M2 13h5l1.5-4 2.5 9 2.5-12 2 7h4.5" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         <defs>
             <linearGradient id="logo-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#818cf8" />
-                <stop offset="1" stopColor="#c084fc" />
+                <stop stopColor="#a855f7" />
+                <stop offset="0.6" stopColor="#818cf8" />
+                <stop offset="1" stopColor="#22d3ee" />
             </linearGradient>
         </defs>
     </svg>
@@ -121,9 +122,9 @@ export default function Navbar() {
                 </div>
             )}
 
-            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
                 <InsurAIIcon />
-                <span style={{ fontSize: '1.45rem', fontFamily: '"Inter", sans-serif', fontWeight: 700, background: 'linear-gradient(90deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', color: 'transparent', letterSpacing: '-0.3px' }}>InsurAI</span>
+                <span style={{ fontSize: '2.1rem', fontFamily: '"Outfit", "Inter", sans-serif', fontWeight: 800, background: 'linear-gradient(90deg, #a855f7 0%, #818cf8 60%, #22d3ee 100%)', WebkitBackgroundClip: 'text', color: 'transparent', letterSpacing: '-0.5px' }}>InsurAI</span>
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
