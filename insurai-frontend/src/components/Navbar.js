@@ -122,9 +122,9 @@ export default function Navbar() {
                 </div>
             )}
 
-            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-                <InsurAIIcon />
-                <span style={{ fontSize: '2.1rem', fontFamily: '"Outfit", "Inter", sans-serif', fontWeight: 800, background: 'linear-gradient(90deg, #a855f7 0%, #818cf8 60%, #22d3ee 100%)', WebkitBackgroundClip: 'text', color: 'transparent', letterSpacing: '-0.5px' }}>InsurAI</span>
+            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <img src="/logo.svg" alt="InsurAI Logo" style={{ height: '40px', width: 'auto' }} />
+                <span style={{ fontSize: '1.8rem', fontWeight: 800, background: 'var(--gradient-main)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>InsurAI</span>
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
