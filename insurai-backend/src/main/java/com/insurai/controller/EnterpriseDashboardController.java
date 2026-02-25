@@ -20,6 +20,9 @@ public class EnterpriseDashboardController {
     private final UserPolicyRepository userPolicyRepo;
     private final UserCompanyMapRepository userCompanyMapRepo;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private CompanyRepository companyRepository;
+
     public EnterpriseDashboardController(UserRepository userRepo, BookingRepository bookingRepo,
             PolicyRepository policyRepo, UserPolicyRepository userPolicyRepo,
             UserCompanyMapRepository userCompanyMapRepo) {
@@ -128,16 +131,21 @@ public class EnterpriseDashboardController {
     }
 
     @GetMapping("/company-admin/users-list")
-    @PreAuthorize("hasRole('COMPANY_ADMIN')")
+    @PreAuthorize("hasAnyRole('COMPANY_ADMIN', 'COMPANY')")
     public java.util.List<com.insurai.dto.CompanyUserDTO> getCompanyUsers(Authentication auth) {
         String email = auth.getName();
-        User admin = userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Long companyId = null;
 
-        if (admin.getCompany() == null) {
-            throw new RuntimeException("Admin is not assigned to any company");
+        var companyOpt = companyRepository.findByEmail(email);
+        if (companyOpt.isPresent()) {
+            companyId = companyOpt.get().getId();
+        } else {
+            User admin = userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+            if (admin.getCompany() == null) {
+                throw new RuntimeException("Admin is not assigned to any company");
+            }
+            companyId = admin.getCompany().getId();
         }
-
-        Long companyId = admin.getCompany().getId();
 
         java.util.List<com.insurai.model.UserCompanyMap> mappings = userCompanyMapRepo.findByCompanyId(companyId);
 

@@ -1,0 +1,19 @@
+﻿
+C:\Projects\insurai_corp\insurai-frontend\src\components\DesignSystem.js
+  353:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+C:\Projects\insurai_corp\insurai-frontend\src\components\ProgressComponents.js
+   21:23  warning  'isPending' is assigned a value but never used                  no-unused-vars
+  290:1   warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+C:\Projects\insurai_corp\insurai-frontend\src\components\ThemeSystem.js
+  208:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+C:\Projects\insurai_corp\insurai-frontend\src\pages\AgentDashboard.js
+  56:19  warning  'perf' is assigned a value but never used  no-unused-vars
+
+C:\Projects\insurai_corp\insurai-frontend\src\utils\calendarUtils.js
+  160:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+Γ£û 6 problems (0 errors, 6 warnings)
+

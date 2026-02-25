@@ -107,8 +107,7 @@ export default function MyClaims() {
                 )}
                 {view === "FORM" && (
                     <button
-                        className="primary-btn"
-                        style={{ background: "var(--card-bg)", color: "var(--text-main)", border: "1px solid var(--card-border)" }}
+                        className="secondary-btn"
                         onClick={() => setView("LIST")}
                     >
                         Cancel

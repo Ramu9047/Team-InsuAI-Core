@@ -1,0 +1,10 @@
+﻿DELETE FROM audit_logs WHERE user_id = 1;
+DELETE FROM user_policies WHERE user_id = 1;
+DELETE FROM user_company_map WHERE user_id = 1;
+DELETE FROM agent_reviews WHERE user_id = 1 OR agent_id = 1;
+UPDATE feedback SET assigned_to = NULL WHERE assigned_to = 1;
+UPDATE feedback SET user_id = NULL WHERE user_id = 1;
+UPDATE bookings SET agent_id = NULL WHERE agent_id = 1;
+DELETE FROM claims WHERE user_id = 1;
+DELETE FROM bookings WHERE user_id = 1;
+DELETE FROM users WHERE id = 1;

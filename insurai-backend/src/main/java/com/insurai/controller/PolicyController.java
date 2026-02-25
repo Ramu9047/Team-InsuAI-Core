@@ -113,9 +113,9 @@ public class PolicyController {
     }
 
     @GetMapping("/issued")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
-    public List<UserPolicy> getAllUserPolicies() {
-        return policyService.getAllUserPolicies();
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'COMPANY')")
+    public List<UserPolicy> getAllUserPolicies(org.springframework.security.core.Authentication auth) {
+        return policyService.getAllUserPolicies(auth);
     }
 
     // NEW: Get Filtered Policies

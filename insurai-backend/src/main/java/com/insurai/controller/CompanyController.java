@@ -13,6 +13,7 @@ import com.insurai.repository.UserCompanyMapRepository;
 
 import com.insurai.repository.CompanyRepository;
 import com.insurai.repository.FeedbackRepository;
+import com.insurai.repository.AgentReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,9 @@ public class CompanyController {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private AgentReviewRepository agentReviewRepository;
 
     /**
      * Resolves the authenticated company from JWT.
@@ -301,9 +305,9 @@ public class CompanyController {
                 .count();
 
         // Feedback scoped to users of this company
-        long totalFeedback = feedbackRepository.findAll().stream()
-                .filter(f -> f.getUser() != null && f.getUser().getCompany() != null
-                        && companyId.equals(f.getUser().getCompany().getId()))
+        long totalFeedback = agentReviewRepository.findAll().stream()
+                .filter(r -> r.getAgent() != null && r.getAgent().getCompany() != null
+                        && companyId.equals(r.getAgent().getCompany().getId()))
                 .count();
 
         Map<String, Object> response = new java.util.HashMap<>();
@@ -426,5 +430,19 @@ public class CompanyController {
 
         List<com.insurai.model.Claim> claims = claimRepository.findByPolicyNameIn(policyNames);
         return ResponseEntity.ok(claims);
+    }
+
+    /**
+     * Get Agent Reviews for the Company
+     */
+    @GetMapping("/agent-reviews")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<List<com.insurai.model.AgentReview>> getCompanyAgentReviews(Authentication auth) {
+        Company company = getAuthenticatedCompany(auth);
+        List<com.insurai.model.AgentReview> reviews = agentReviewRepository.findAll().stream()
+                .filter(r -> r.getAgent() != null && r.getAgent().getCompany() != null
+                        && company.getId().equals(r.getAgent().getCompany().getId()))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(reviews);
     }
 }

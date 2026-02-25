@@ -563,30 +563,24 @@ function ExceptionCaseModal({ exCase, onClose, onUpdate, adminId }) {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                        className="secondary-btn"
+                        onClick={onClose}
+                        disabled={resolving}
+                        style={{ flex: 1, padding: '12px' }}
+                    >
+                        Close
+                    </button>
                     {exCase.status !== 'RESOLVED' && (
                         <button
                             className="primary-btn"
                             onClick={handleResolve}
                             disabled={resolving}
-                            style={{ flex: 1 }}
+                            style={{ flex: 1, padding: '12px' }}
                         >
                             {resolving ? 'Resolving...' : 'Resolve Case'}
                         </button>
                     )}
-                    <button
-                        onClick={onClose}
-                        disabled={resolving}
-                        style={{
-                            flex: 1,
-                            padding: '10px 20px',
-                            borderRadius: 8,
-                            border: '1px solid var(--card-border)',
-                            background: 'transparent',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Close
-                    </button>
                 </div>
             </motion.div>
         </div>

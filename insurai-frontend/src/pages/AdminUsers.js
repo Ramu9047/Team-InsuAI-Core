@@ -22,7 +22,7 @@ export default function AdminUsers() {
     const [userToDelete, setUserToDelete] = useState(null);
 
     const loadUsers = useCallback(() => {
-        const endpoint = authUser?.role === 'COMPANY_ADMIN'
+        const endpoint = (authUser?.role === 'COMPANY_ADMIN' || authUser?.role === 'COMPANY')
             ? '/company-admin/users-list'
             : '/admin/users'; // Assuming admin controller handles /api/admin/users or falling back to /users
 
@@ -148,7 +148,7 @@ export default function AdminUsers() {
                                 <th style={{ padding: 15, textAlign: 'left' }}>ID</th>
                                 <th style={{ padding: 15, textAlign: 'left' }}>Name</th>
                                 <th style={{ padding: 15, textAlign: 'left' }}>Email</th>
-                                {authUser?.role === 'COMPANY_ADMIN' ? (
+                                {(authUser?.role === 'COMPANY_ADMIN' || authUser?.role === 'COMPANY') ? (
                                     <>
                                         <th style={{ padding: 15, textAlign: 'left' }}>Policy</th>
                                         <th style={{ padding: 15, textAlign: 'left' }}>Status</th>
@@ -170,7 +170,7 @@ export default function AdminUsers() {
                                     <td style={{ padding: 15 }}>{user.userName || user.name}</td>
                                     <td style={{ padding: 15 }}>{user.email}</td>
 
-                                    {authUser?.role === 'COMPANY_ADMIN' ? (
+                                    {(authUser?.role === 'COMPANY_ADMIN' || authUser?.role === 'COMPANY') ? (
                                         <>
                                             <td style={{ padding: 15 }}>{user.policyName || '-'}</td>
                                             <td style={{ padding: 15 }}>

@@ -451,25 +451,49 @@ function ConsultationDetailModal({ consultation, onClose, onDecisionMade }) {
                     <h3 style={{ fontSize: '1.1rem', marginBottom: 15 }}>Your Decision</h3>
 
                     {/* Action Tabs */}
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-                        <ActionTab
-                            active={action === 'APPROVE'}
+                    <div style={{ display: 'flex', gap: 15, marginBottom: 20 }}>
+                        <button
                             onClick={() => setAction('APPROVE')}
-                            label="✅ Approve"
-                            color="#22c55e"
-                        />
-                        <ActionTab
-                            active={action === 'REJECT'}
+                            className="secondary-btn"
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                background: action === 'APPROVE' ? 'rgba(34, 197, 94, 0.15)' : 'transparent',
+                                border: `2px solid ${action === 'APPROVE' ? '#22c55e' : 'var(--card-border)'}`,
+                                color: action === 'APPROVE' ? '#22c55e' : 'var(--text-main)',
+                                fontWeight: action === 'APPROVE' ? 700 : 500
+                            }}
+                        >
+                            ✅ Approve
+                        </button>
+                        <button
                             onClick={() => setAction('REJECT')}
-                            label="❌ Reject"
-                            color="#ef4444"
-                        />
-                        <ActionTab
-                            active={action === 'RECOMMEND_ALTERNATIVE'}
+                            className="secondary-btn"
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                background: action === 'REJECT' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                                border: `2px solid ${action === 'REJECT' ? '#ef4444' : 'var(--card-border)'}`,
+                                color: action === 'REJECT' ? '#ef4444' : 'var(--text-main)',
+                                fontWeight: action === 'REJECT' ? 700 : 500
+                            }}
+                        >
+                            ❌ Reject
+                        </button>
+                        <button
                             onClick={() => setAction('RECOMMEND_ALTERNATIVE')}
-                            label="🔄 Recommend Alternative"
-                            color="#eab308"
-                        />
+                            className="secondary-btn"
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                background: action === 'RECOMMEND_ALTERNATIVE' ? 'rgba(234, 179, 8, 0.15)' : 'transparent',
+                                border: `2px solid ${action === 'RECOMMEND_ALTERNATIVE' ? '#eab308' : 'var(--card-border)'}`,
+                                color: action === 'RECOMMEND_ALTERNATIVE' ? '#eab308' : 'var(--text-main)',
+                                fontWeight: action === 'RECOMMEND_ALTERNATIVE' ? 700 : 500
+                            }}
+                        >
+                            🔄 Recommend Alternative
+                        </button>
                     </div>
 
                     {/* Agent Notes */}
@@ -532,28 +556,22 @@ function ConsultationDetailModal({ consultation, onClose, onDecisionMade }) {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                    <button
+                        className="secondary-btn"
+                        onClick={onClose}
+                        disabled={submitting}
+                        style={{ flex: 1, padding: '12px' }}
+                    >
+                        Cancel
+                    </button>
                     <button
                         className="primary-btn"
                         onClick={handleSubmit}
                         disabled={submitting}
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, padding: '12px' }}
                     >
                         {submitting ? 'Processing...' : 'Submit Decision'}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        disabled={submitting}
-                        style={{
-                            flex: 1,
-                            padding: '10px 20px',
-                            borderRadius: 8,
-                            border: '1px solid var(--card-border)',
-                            background: 'transparent',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
                     </button>
                 </div>
             </motion.div>
@@ -561,27 +579,7 @@ function ConsultationDetailModal({ consultation, onClose, onDecisionMade }) {
     );
 }
 
-function ActionTab({ active, onClick, label, color }) {
-    return (
-        <button
-            onClick={onClick}
-            style={{
-                flex: 1,
-                padding: '10px 15px',
-                borderRadius: 8,
-                border: active ? `2px solid ${color}` : '1px solid var(--card-border)',
-                background: active ? `${color}10` : 'transparent',
-                color: active ? color : 'var(--text-main)',
-                fontWeight: active ? 700 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.9rem'
-            }}
-        >
-            {label}
-        </button>
-    );
-}
+// ActionTab removed
 
 function InfoRow({ label, value, span }) {
     return (

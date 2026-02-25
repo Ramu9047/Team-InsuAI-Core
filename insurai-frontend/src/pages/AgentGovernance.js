@@ -543,28 +543,22 @@ function AgentDetailModal({ agent, onClose, onUpdate }) {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                    <button
+                        className="secondary-btn"
+                        onClick={onClose}
+                        disabled={saving}
+                        style={{ flex: 1, padding: '12px' }}
+                    >
+                        Cancel
+                    </button>
                     <button
                         className="primary-btn"
                         onClick={handleSaveAssignments}
                         disabled={saving}
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, padding: '12px' }}
                     >
                         {saving ? 'Saving...' : 'Save Assignments'}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        disabled={saving}
-                        style={{
-                            flex: 1,
-                            padding: '10px 20px',
-                            borderRadius: 8,
-                            border: '1px solid var(--card-border)',
-                            background: 'transparent',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
                     </button>
                 </div>
             </motion.div>

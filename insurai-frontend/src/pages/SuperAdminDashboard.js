@@ -536,8 +536,8 @@ export default function SuperAdminDashboard() {
                                         exit={{ opacity: 0 }}
                                         transition={{ delay: idx * 0.04 }}
                                         style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
+
                                     >
                                         <td style={{ padding: '16px 20px', fontWeight: 700 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -625,9 +625,9 @@ export default function SuperAdminDashboard() {
                             <tbody>
                                 {feedbackRows.map((row, i) => (
                                     <tr key={i}
-                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.2s', background: 'transparent' }}
+
+
                                     >
                                         <td style={{ padding: '12px 10px', fontWeight: 700 }}>{row.type}</td>
                                         <td style={{ padding: '12px 10px' }}>
@@ -754,9 +754,9 @@ export default function SuperAdminDashboard() {
                                 {mockLeaderboard.map((a, i) => (
                                     <tr
                                         key={i}
-                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s', background: 'transparent' }}
+
+
                                     >
                                         <td style={{ padding: '14px 16px' }}>
                                             <div style={{
@@ -807,10 +807,10 @@ export default function SuperAdminDashboard() {
                                 padding: '14px 28px',
                                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                                 display: 'flex', gap: 20, alignItems: 'flex-start',
-                                transition: 'background 0.15s'
+                                transition: 'all 0.2s', background: 'transparent'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
+
                         >
                             <span style={{
                                 fontSize: '0.8rem', color: 'var(--text-muted)',
@@ -841,6 +841,7 @@ export default function SuperAdminDashboard() {
                 isOpen={actionModal.isOpen}
                 onClose={() => { setActionModal({ isOpen: false, company: null, action: null }); setReason(''); }}
                 title={`Confirm: ${actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1) || ''}`}
+                hideCloseButton={true}
             >
                 <div style={{ color: 'var(--text-main)', display: 'grid', gap: 16 }}>
                     <p style={{ margin: 0, color: 'var(--text-muted)' }}>
@@ -859,9 +860,9 @@ export default function SuperAdminDashboard() {
                         }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                        <ActionBtn variant="ghost" onClick={() => { setActionModal({ isOpen: false, company: null, action: null }); setReason(''); }}>
+                        <button type="button" className="secondary-btn" onClick={() => { setActionModal({ isOpen: false, company: null, action: null }); setReason(''); }}>
                             Cancel
-                        </ActionBtn>
+                        </button>
                         <button onClick={handleAction} className="primary-btn" style={{ padding: '8px 20px' }}>
                             Confirm
                         </button>

@@ -4,6 +4,7 @@ import com.insurai.model.Notification;
 import com.insurai.model.User;
 import com.insurai.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -13,9 +14,17 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepo;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     public void createNotification(User recipient, String message, String type) {
         Notification n = new Notification(recipient, message, type);
-        notificationRepo.save(n);
+        Notification saved = notificationRepo.save(n);
+
+        // Push Real-Time Notification via WebSocket
+        if (recipient != null && recipient.getId() != null) {
+            messagingTemplate.convertAndSend("/topic/user/" + recipient.getId(), saved);
+        }
     }
 
     public List<Notification> getUnreadNotifications(Long userId) {

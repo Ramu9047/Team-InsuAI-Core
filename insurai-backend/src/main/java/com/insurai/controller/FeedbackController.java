@@ -24,13 +24,16 @@ public class FeedbackController {
 
     private final FeedbackService feedbackService;
     private final UserRepository userRepo;
+    private final com.insurai.repository.CompanyRepository companyRepository;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
 
-    public FeedbackController(FeedbackService feedbackService, UserRepository userRepo) {
+    public FeedbackController(FeedbackService feedbackService, UserRepository userRepo,
+            com.insurai.repository.CompanyRepository companyRepository) {
         this.feedbackService = feedbackService;
         this.userRepo = userRepo;
+        this.companyRepository = companyRepository;
     }
 
     // Submit Feedback
@@ -62,16 +65,29 @@ public class FeedbackController {
 
     // Admin: Get All Feedback (Super Admin sees ALL, Company Admin sees scoped)
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'COMPANY')")
     public ResponseEntity<?> getAllFeedback(Authentication auth) {
         String email = auth.getName();
-        User currentUser = userRepo.findByEmail(email).orElse(null);
-        if (currentUser != null && "COMPANY_ADMIN".equals(currentUser.getRole()) && currentUser.getCompany() != null) {
+        Long companyId = null;
+
+        var companyOpt = companyRepository.findByEmail(email);
+        if (companyOpt.isPresent()) {
+            companyId = companyOpt.get().getId();
+        } else {
+            User currentUser = userRepo.findByEmail(email).orElse(null);
+            if (currentUser != null
+                    && ("COMPANY_ADMIN".equals(currentUser.getRole()) || "COMPANY".equals(currentUser.getRole()))
+                    && currentUser.getCompany() != null) {
+                companyId = currentUser.getCompany().getId();
+            }
+        }
+
+        if (companyId != null) {
             // Company Admin: return only feedback from users of their company
-            Long companyId = currentUser.getCompany().getId();
+            final Long resolvedCompanyId = companyId;
             List<Feedback> scoped = feedbackRepository.findAll().stream()
                     .filter(f -> f.getUser() != null && f.getUser().getCompany() != null
-                            && companyId.equals(f.getUser().getCompany().getId()))
+                            && resolvedCompanyId.equals(f.getUser().getCompany().getId()))
                     .collect(java.util.stream.Collectors.toList());
             return ResponseEntity.ok(scoped);
         }

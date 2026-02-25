@@ -22,6 +22,9 @@ public class AdminGovernanceService {
         private UserRepository userRepository;
 
         @Autowired
+        private CompanyRepository companyRepository;
+
+        @Autowired
         private PolicyRepository policyRepository;
 
         @Autowired
@@ -316,8 +319,16 @@ public class AdminGovernanceService {
         /**
          * Get all agents with governance details
          */
-        public List<AgentGovernanceDTO> getAllAgentsGovernance() {
+        public List<AgentGovernanceDTO> getAllAgentsGovernance(String email) {
+                Long companyId = getCompanyIdFromEmail(email);
                 List<User> agents = userRepository.findByRole("AGENT");
+
+                if (companyId != null) {
+                        agents = agents.stream()
+                                        .filter(a -> a.getCompany() != null && a.getCompany().getId().equals(companyId))
+                                        .collect(Collectors.toList());
+                }
+
                 return agents.stream()
                                 .map(this::mapToAgentGovernanceDTO)
                                 .collect(Collectors.toList());
@@ -453,11 +464,34 @@ public class AdminGovernanceService {
 
         // ===== EXCEPTION HANDLING =====
 
+        private Long getCompanyIdFromEmail(String email) {
+                var company = companyRepository.findByEmail(email);
+                if (company.isPresent()) {
+                        return company.get().getId();
+                }
+                User user = userRepository.findByEmail(email).orElse(null);
+                if (user != null && ("COMPANY_ADMIN".equals(user.getRole()) || "COMPANY".equals(user.getRole()))
+                                && user.getCompany() != null) {
+                        return user.getCompany().getId();
+                }
+                return null;
+        }
+
         /**
          * Get all exception cases
          */
-        public List<ExceptionCaseDTO> getAllExceptionCases() {
-                return exceptionCaseRepository.findAll().stream()
+        public List<ExceptionCaseDTO> getAllExceptionCases(String email) {
+                Long companyId = getCompanyIdFromEmail(email);
+                List<ExceptionCase> cases = exceptionCaseRepository.findAll();
+
+                if (companyId != null) {
+                        cases = cases.stream()
+                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
+                                                        c.getUser().getCompany().getId().equals(companyId))
+                                        .collect(Collectors.toList());
+                }
+
+                return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
                                 .collect(Collectors.toList());
         }
@@ -465,8 +499,18 @@ public class AdminGovernanceService {
         /**
          * Get exception cases by status
          */
-        public List<ExceptionCaseDTO> getExceptionCasesByStatus(String status) {
-                return exceptionCaseRepository.findByStatus(status).stream()
+        public List<ExceptionCaseDTO> getExceptionCasesByStatus(String status, String email) {
+                Long companyId = getCompanyIdFromEmail(email);
+                List<ExceptionCase> cases = exceptionCaseRepository.findByStatus(status);
+
+                if (companyId != null) {
+                        cases = cases.stream()
+                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
+                                                        c.getUser().getCompany().getId().equals(companyId))
+                                        .collect(Collectors.toList());
+                }
+
+                return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
                                 .collect(Collectors.toList());
         }
@@ -474,8 +518,18 @@ public class AdminGovernanceService {
         /**
          * Get exception cases by type
          */
-        public List<ExceptionCaseDTO> getExceptionCasesByType(String caseType) {
-                return exceptionCaseRepository.findByCaseType(caseType).stream()
+        public List<ExceptionCaseDTO> getExceptionCasesByType(String caseType, String email) {
+                Long companyId = getCompanyIdFromEmail(email);
+                List<ExceptionCase> cases = exceptionCaseRepository.findByCaseType(caseType);
+
+                if (companyId != null) {
+                        cases = cases.stream()
+                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
+                                                        c.getUser().getCompany().getId().equals(companyId))
+                                        .collect(Collectors.toList());
+                }
+
+                return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
                                 .collect(Collectors.toList());
         }

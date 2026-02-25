@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React from 'react';
 
-export default function Modal({ isOpen, onClose, title, children, actions }) {
+export default function Modal({ isOpen, onClose, title, children, actions, hideCloseButton }) {
     if (!isOpen) return null;
 
     return (
@@ -40,11 +40,15 @@ export default function Modal({ isOpen, onClose, title, children, actions }) {
                         {children}
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px" }}>
-                        {actions ? actions : (
+                    {actions ? (
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px" }}>
+                            {actions}
+                        </div>
+                    ) : !hideCloseButton && (
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px" }}>
                             <button className="primary-btn" onClick={onClose}>Close</button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </AnimatePresence>

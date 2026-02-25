@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'COMPANY')")
 public class AdminGovernanceController {
 
     @Autowired
@@ -43,8 +43,11 @@ public class AdminGovernanceController {
      * Get all agents with governance details
      */
     @GetMapping("/agents/governance")
-    public ResponseEntity<List<AgentGovernanceDTO>> getAllAgentsGovernance() {
-        List<AgentGovernanceDTO> agents = adminGovernanceService.getAllAgentsGovernance();
+    public ResponseEntity<List<AgentGovernanceDTO>> getAllAgentsGovernance(Authentication auth) {
+        String email = auth.getName();
+        // Assuming email is used to fetch user. For simplicity, pass email to service
+        // to resolve User.
+        List<AgentGovernanceDTO> agents = adminGovernanceService.getAllAgentsGovernance(email);
         return ResponseEntity.ok(agents);
     }
 
@@ -112,8 +115,9 @@ public class AdminGovernanceController {
      * Get all exception cases
      */
     @GetMapping("/exceptions")
-    public ResponseEntity<List<ExceptionCaseDTO>> getAllExceptionCases() {
-        List<ExceptionCaseDTO> cases = adminGovernanceService.getAllExceptionCases();
+    public ResponseEntity<List<ExceptionCaseDTO>> getAllExceptionCases(Authentication auth) {
+        String email = auth.getName();
+        List<ExceptionCaseDTO> cases = adminGovernanceService.getAllExceptionCases(email);
         return ResponseEntity.ok(cases);
     }
 
@@ -122,8 +126,10 @@ public class AdminGovernanceController {
      * Get exception cases by status (PENDING, UNDER_REVIEW, RESOLVED, CLOSED)
      */
     @GetMapping("/exceptions/status/{status}")
-    public ResponseEntity<List<ExceptionCaseDTO>> getExceptionCasesByStatus(@PathVariable String status) {
-        List<ExceptionCaseDTO> cases = adminGovernanceService.getExceptionCasesByStatus(status);
+    public ResponseEntity<List<ExceptionCaseDTO>> getExceptionCasesByStatus(@PathVariable String status,
+            Authentication auth) {
+        String email = auth.getName();
+        List<ExceptionCaseDTO> cases = adminGovernanceService.getExceptionCasesByStatus(status, email);
         return ResponseEntity.ok(cases);
     }
 
@@ -133,8 +139,10 @@ public class AdminGovernanceController {
      * AGENT_MISCONDUCT)
      */
     @GetMapping("/exceptions/type/{caseType}")
-    public ResponseEntity<List<ExceptionCaseDTO>> getExceptionCasesByType(@PathVariable String caseType) {
-        List<ExceptionCaseDTO> cases = adminGovernanceService.getExceptionCasesByType(caseType);
+    public ResponseEntity<List<ExceptionCaseDTO>> getExceptionCasesByType(@PathVariable String caseType,
+            Authentication auth) {
+        String email = auth.getName();
+        List<ExceptionCaseDTO> cases = adminGovernanceService.getExceptionCasesByType(caseType, email);
         return ResponseEntity.ok(cases);
     }
 

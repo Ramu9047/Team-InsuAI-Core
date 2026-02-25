@@ -20,6 +20,9 @@ public class PolicyService {
     private final UserRepository userRepo;
     private final com.insurai.repository.UserCompanyMapRepository userCompanyMapRepo;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.insurai.repository.CompanyRepository companyRepository;
+
     public PolicyService(PolicyRepository policyRepo,
             UserPolicyRepository userPolicyRepo,
             UserRepository userRepo,
@@ -223,7 +226,25 @@ public class PolicyService {
         return userPolicyRepo.findByUserId(userId);
     }
 
-    public List<UserPolicy> getAllUserPolicies() {
+    public List<UserPolicy> getAllUserPolicies(org.springframework.security.core.Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return List.of();
+        }
+        String email = auth.getName();
+
+        // Resolve company directly
+        var companyOpt = companyRepository.findByEmail(email);
+        if (companyOpt.isPresent()) {
+            return userPolicyRepo.findByPolicyCompanyId(companyOpt.get().getId());
+        }
+
+        User user = userRepo.findByEmail(email).orElse(null);
+        if (user != null && ("COMPANY_ADMIN".equals(user.getRole()) || "COMPANY".equals(user.getRole()))
+                && user.getCompany() != null) {
+            return userPolicyRepo.findByPolicyCompanyId(user.getCompany().getId());
+        }
+
+        // Must be SUPER_ADMIN or other
         return userPolicyRepo.findAll();
     }
 

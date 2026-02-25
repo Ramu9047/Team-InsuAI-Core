@@ -54,6 +54,7 @@ public class DataSeeder implements CommandLineRunner {
 
         @Override
         @Transactional
+        @SuppressWarnings({ "null", "unused" })
         public void run(String... args) throws Exception {
                 if (userRepo.count() > 0) {
                         System.out.println("DataSeeder: data already present - skipping.");

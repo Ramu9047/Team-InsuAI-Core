@@ -65,6 +65,28 @@ a {
 /* Enforce smooth edges on all buttons globally */
 button {
   border-radius: 50px !important;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.3s, border-color 0.3s, color 0.3s !important;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Enforce Global Premium Table Hover on Dashboard tables */
+table tr {
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+table tr:hover td {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+table tr:hover {
+  transform: translateY(-1px);
 }
 
 /* Components */
@@ -77,16 +99,18 @@ button {
   -webkit-text-fill-color: transparent;
   display: inline-block;
   font-weight: 800;
+  text-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 /* 2. Glassmorphism Card (Dark) */
 .card {
-  background: var(--bg-card);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: var(--glass-border);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
   padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
@@ -94,9 +118,9 @@ button {
 
 .card:hover {
   transform: translateY(-5px);
-  border: var(--glass-highlight);
-  box-shadow: var(--shadow-neon);
-  background: var(--bg-card-hover);
+  border: 1px solid rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
 }
 
 /* 3. Neon Buttons */
@@ -252,19 +276,21 @@ button {
 .form-input {
   width: 100%;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   color: #fff;
   font-family: inherit;
   transition: all 0.3s;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: #6366f1;
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
 }
 
 .form-group {
@@ -358,4 +384,67 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   color: #f8fafc !important;
   font-weight: bold;
   margin-bottom: 5px;
+}
+
+/* =========================================================
+   📱 MOBILE RESPONSIVENESS & ADAPTIVE LAYOUTS
+========================================================= */
+@media screen and (max-width: 1024px) {
+
+  /* Tablet Adjustments */
+  .container {
+    padding: 30px 15px !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+
+  /* Mobile Adjustments */
+  .container {
+    padding: 20px 10px !important;
+  }
+
+  /* Force multi-column grids into single column */
+  div[style*="grid-template-columns"],
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Shrink cards for mobile spacing */
+  .card {
+    padding: 20px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Wrap main page headers if they flex */
+  h1,
+  h2,
+  h3 {
+    font-size: 1.5rem !important;
+  }
+
+  /* Tables should be scrollable */
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Make action buttons stack or scale down */
+  .primary-btn,
+  .secondary-btn,
+  .glass-btn {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 14px 20px !important;
+  }
+
+  /* Hide non-critical columns in some instances or let them scroll */
+  td,
+  th {
+    padding: 10px !important;
+  }
 }

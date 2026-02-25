@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
@@ -18,9 +18,11 @@ import KPICard from '../components/KPICard';
 const SectionHeader = ({ icon, title, children }) => (
     <div style={{
         padding: '18px 26px',
-        background: 'rgba(255,255,255,0.025)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        background: 'rgba(255, 255, 255, 0.04)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
     }}>
         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
             {icon} {title}
@@ -42,7 +44,8 @@ const StatusBadge = ({ status }) => {
     return (
         <span style={{
             padding: '4px 10px', borderRadius: 20, fontSize: '0.76rem', fontWeight: 700,
-            background: c.bg, color: c.color, border: `1px solid ${c.color}30`
+            background: c.bg, color: c.color, border: `1px solid ${c.color}40`,
+            boxShadow: `0 2px 8px ${c.color}20`, textShadow: '0 1px 2px rgba(0,0,0,0.3)'
         }}>{c.label}</span>
     );
 };
@@ -57,10 +60,14 @@ const ActionBtn = ({ children, variant = 'ghost', onClick, style: s = {} }) => {
         blue: { border: '1px solid rgba(59,130,246,0.5)', color: '#93c5fd', background: 'rgba(59,130,246,0.1)' },
     };
     return (
-        <button onClick={onClick} style={{
-            padding: '5px 11px', borderRadius: 8, fontSize: '0.77rem',
-            fontWeight: 600, cursor: 'pointer', ...styles[variant], ...s, transition: 'all 0.2s'
-        }}>{children}</button>
+        <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClick} style={{
+                padding: '6px 14px', borderRadius: 8, fontSize: '0.77rem',
+                fontWeight: 600, cursor: 'pointer', ...styles[variant], ...s, transition: 'all 0.2s',
+                backdropFilter: 'blur(4px)'
+            }}>{children}</motion.button>
     );
 };
 
@@ -77,9 +84,11 @@ const ProgressBar = ({ value, max, color }) => (
 const ModalInput = ({ ...props }) => (
     <input {...props} style={{
         padding: '10px 14px', borderRadius: 8, width: '100%', boxSizing: 'border-box',
-        border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)',
-        color: 'white', fontSize: '0.9rem', outline: 'none', ...props.style
-    }} />
+        border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255, 255, 255, 0.05)',
+        color: 'white', fontSize: '0.9rem', outline: 'none', backdropFilter: 'blur(8px)',
+        transition: 'all 0.3s', ...props.style
+    }} onFocus={(e) => { e.currentTarget.style.border = '1px solid #6366f1'; e.currentTarget.style.boxShadow = '0 0 10px rgba(99,102,241,0.3)'; }}
+        onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow = 'none'; }} />
 );
 
 const InsightCard = ({ type, title, text }) => {
@@ -91,9 +100,10 @@ const InsightCard = ({ type, title, text }) => {
     const c = cfg[type] || cfg.suggestion;
     return (
         <div style={{
-            padding: '12px 16px', borderRadius: 10,
-            background: c.bg, border: `1px solid ${c.border}`,
-            display: 'flex', gap: 12, alignItems: 'flex-start'
+            padding: '14px 18px', borderRadius: 12,
+            background: c.bg, border: `1px solid ${c.border}`, backdropFilter: 'blur(10px)',
+            display: 'flex', gap: 14, alignItems: 'flex-start',
+            boxShadow: `0 4px 15px ${c.border.replace(/0.2\)$/, '0.1)')}`
         }}>
             <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{c.icon}</span>
             <div>
@@ -280,7 +290,6 @@ export default function CompanyDashboard() {
         setPolicyModal({ isOpen: true, mode: 'add', policy: null });
     };
 
-    const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
     // ── Loading Skeleton ───────────────────────
     if (loading && !stats) return (
@@ -364,8 +373,8 @@ export default function CompanyDashboard() {
         },
 
         {
-            label: 'User Feedback', value: (stats?.totalFeedback ?? 0).toLocaleString(),
-            icon: '💬', color: '#06b6d4', action: () => navigate('/feedback-list')
+            label: 'Agent Reviews', value: (stats?.totalFeedback ?? 0).toLocaleString(),
+            icon: '⭐', color: '#06b6d4', action: () => navigate('/company-agent-reviews')
         },
     ];
 
@@ -439,8 +448,8 @@ export default function CompanyDashboard() {
             >
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                        <span style={{ fontSize: '2rem' }}>🏢</span>
-                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.1rem', fontWeight: 800 }}>
+                        <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0px 4px 8px rgba(99,102,241,0.4))' }}>🏢</span>
+                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.3rem', fontWeight: 800, textShadow: '0 2px 10px rgba(99,102,241,0.3)' }}>
                             {companyName}
                         </h1>
                     </div>
@@ -490,10 +499,15 @@ export default function CompanyDashboard() {
             ═══════════════════════════════════════ */}
             <motion.div
                 id="policy-panel"
-                className="card"
+                className="card custom-glass"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ marginBottom: 36, padding: 0, overflow: 'hidden' }}
+                style={{
+                    marginBottom: 36, padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}
             >
                 <SectionHeader icon="📄" title="Policy Management Panel">
                     <button onClick={openAddModal} style={{
@@ -532,9 +546,7 @@ export default function CompanyDashboard() {
                                 return (
                                     <tr
                                         key={p.id}
-                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s', background: 'transparent' }}
                                     >
                                         <td style={{ padding: '15px 20px', fontWeight: 700 }}>{p.name}</td>
                                         <td style={{ padding: '15px 20px', color: 'var(--text-muted)', fontSize: '0.88rem' }}>{p.type}</td>
@@ -551,7 +563,7 @@ export default function CompanyDashboard() {
                                                 >
                                                     {p.status === 'ACTIVE' ? 'Disable' : 'Activate'}
                                                 </ActionBtn>
-                                                <ActionBtn variant="blue" onClick={() => { }}>Performance</ActionBtn>
+                                                <ActionBtn variant="blue" onClick={() => navigate('/analytics')}>Performance</ActionBtn>
                                             </div>
                                         </td>
                                     </tr>
@@ -570,10 +582,15 @@ export default function CompanyDashboard() {
                 {/* 👨‍💼 Agent Performance Monitor */}
                 <motion.div
                     id="agent-monitor"
-                    className="card"
+                    className="card custom-glass"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    style={{ padding: 0, overflow: 'hidden' }}
+                    style={{
+                        padding: 0, overflow: 'hidden',
+                        background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                    }}
                 >
                     <SectionHeader icon="👨‍💼" title="Agent Performance Monitor">
                         <div style={{ display: 'flex', gap: 8 }}>
@@ -605,9 +622,7 @@ export default function CompanyDashboard() {
                                 ) : agents.map((agent, i) => (
                                     <tr
                                         key={i}
-                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s', background: 'transparent' }}
                                     >
                                         <td style={{ padding: '14px 18px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -654,10 +669,15 @@ export default function CompanyDashboard() {
                 {/* 🔄 Company Conversion Funnel */}
                 <motion.div
                     id="conversion-funnel"
-                    className="card"
+                    className="card custom-glass"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    style={{ padding: 0, overflow: 'hidden' }}
+                    style={{
+                        padding: 0, overflow: 'hidden',
+                        background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                    }}
                 >
                     <SectionHeader icon="🔄" title="Company Conversion Funnel" />
                     <div style={{ padding: '20px 24px' }}>
@@ -696,10 +716,15 @@ export default function CompanyDashboard() {
             ═══════════════════════════════════════ */}
             <motion.div
                 id="feedback-panel"
-                className="card"
+                className="card custom-glass"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ marginBottom: 36, padding: 0, overflow: 'hidden' }}
+                style={{
+                    marginBottom: 36, padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}
             >
                 <SectionHeader icon="💬" title="Company Feedback & Experience Panel">
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -731,9 +756,7 @@ export default function CompanyDashboard() {
                                     {companyFeedback.map((fb, i) => (
                                         <tr
                                             key={i}
-                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.2s', background: 'transparent' }}
                                         >
                                             <td style={{ padding: '13px 18px', fontWeight: 700 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -765,7 +788,7 @@ export default function CompanyDashboard() {
                                                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                                                     {fb.type === 'Complaint' && (
                                                         <>
-                                                            <ActionBtn variant="danger" onClick={() => navigate('/feedback-list')}>Investigate</ActionBtn>
+                                                            <ActionBtn variant="danger" onClick={() => navigate('/exceptions')}>Investigate</ActionBtn>
                                                             <ActionBtn variant="warning" onClick={() => navigate('/agents-list')}>Flag Agent</ActionBtn>
                                                         </>
                                                     )}
@@ -830,8 +853,8 @@ export default function CompanyDashboard() {
                                         background: 'rgba(255,255,255,0.03)', color: 'var(--text-main)',
                                         transition: 'all 0.2s'
                                     }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+
+
                                     >
                                         {ctrl.label}
                                     </button>
@@ -848,7 +871,12 @@ export default function CompanyDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 24, marginBottom: 36 }}>
 
                 {/* 📈 Sales & Revenue Trend */}
-                <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: 0, overflow: 'hidden' }}>
+                <motion.div className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
                     <SectionHeader icon="📈" title="Sales & Revenue Trend" />
                     <div style={{ padding: '20px 24px' }}>
                         <div style={{ height: 220 }}>
@@ -866,7 +894,12 @@ export default function CompanyDashboard() {
                 </motion.div>
 
                 {/* 🚨 Company Fraud & Risk */}
-                <motion.div id="fraud-dashboard" className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: 0, overflow: 'hidden' }}>
+                <motion.div id="fraud-dashboard" className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
                     <SectionHeader icon="🚨" title="Fraud & Risk" />
                     <div style={{ padding: '20px 20px' }}>
                         <div style={{ height: 140 }}>
@@ -893,14 +926,19 @@ export default function CompanyDashboard() {
                                 </div>
                             ))}
                         </div>
-                        <ActionBtn variant="danger" style={{ width: '100%', textAlign: 'center' }} onClick={() => scrollTo('recent-claims')}>
+                        <ActionBtn variant="danger" style={{ width: '100%', textAlign: 'center' }} onClick={() => navigate('/exceptions')}>
                             View High-Risk Claims
                         </ActionBtn>
                     </div>
                 </motion.div>
 
                 {/* 🤖 AI Insights */}
-                <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: 0, overflow: 'hidden' }}>
+                <motion.div className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
                     <SectionHeader icon="🤖" title="AI Insights" />
                     <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {displayInsights.map((ins, i) => (
@@ -921,10 +959,15 @@ export default function CompanyDashboard() {
                 {/* ⚠️ Recent Claims */}
                 <motion.div
                     id="recent-claims"
-                    className="card"
+                    className="card custom-glass"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ padding: 0, overflow: 'hidden' }}
+                    style={{
+                        padding: 0, overflow: 'hidden',
+                        background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                    }}
                 >
                     <SectionHeader icon="⚠️" title="Recent Claims & Requests" />
                     <div style={{ overflowX: 'auto', maxHeight: 280, overflowY: 'auto' }}>
@@ -956,9 +999,7 @@ export default function CompanyDashboard() {
                                     return (
                                         <tr
                                             key={i}
-                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.15s' }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s', background: 'transparent' }}
                                         >
                                             <td style={{ padding: '13px 18px', fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{c.id}</td>
                                             <td style={{ padding: '13px 18px', fontWeight: 600 }}>{c.policyHolder}</td>
@@ -982,7 +1023,12 @@ export default function CompanyDashboard() {
                 </motion.div>
 
                 {/* 🧾 Audit & Compliance Log */}
-                <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: 0, overflow: 'hidden' }}>
+                <motion.div className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
                     <SectionHeader icon="🧾" title="Audit & Compliance Log" />
                     <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                         {mockAuditLogs.map((log, i) => (
@@ -991,10 +1037,10 @@ export default function CompanyDashboard() {
                                 style={{
                                     padding: '13px 20px',
                                     borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                    transition: 'background 0.15s'
+                                    transition: 'all 0.2s', background: 'transparent'
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
+
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                     <span style={{ color: '#6366f1', fontWeight: 700 }}>•</span>
@@ -1021,6 +1067,7 @@ export default function CompanyDashboard() {
                 isOpen={policyModal.isOpen}
                 onClose={() => setPolicyModal({ isOpen: false, mode: 'add', policy: null })}
                 title={`${policyModal.mode === 'add' ? '➕ Add New' : '✏️ Edit'} Policy`}
+                hideCloseButton={true}
             >
                 <form onSubmit={handlePolicySubmit} style={{ display: 'grid', gap: 12, color: 'var(--text-main)' }}>
                     <ModalInput placeholder="Policy Name" value={policyForm.name} onChange={e => setPolicyForm({ ...policyForm, name: e.target.value })} required />
@@ -1053,21 +1100,31 @@ export default function CompanyDashboard() {
                             color: 'white', fontSize: '0.9rem', resize: 'vertical'
                         }}
                     />
-                    <button type="submit" className="primary-btn" style={{ padding: '12px', fontWeight: 700 }}>
-                        {policyModal.mode === 'add' ? 'Create Policy' : 'Update Policy'}
-                    </button>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                        <button type="button" className="secondary-btn" onClick={() => setPolicyModal({ isOpen: false, mode: 'add', policy: null })} style={{ padding: '12px', flex: 1 }}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="primary-btn" style={{ padding: '12px', flex: 1 }}>
+                            Confirm
+                        </button>
+                    </div>
                 </form>
             </Modal>
 
             {/* Add Agent Modal */}
-            <Modal isOpen={agentModal.isOpen} onClose={() => setAgentModal({ isOpen: false })} title="➕ Invite New Agent">
+            <Modal isOpen={agentModal.isOpen} onClose={() => setAgentModal({ isOpen: false })} title="➕ Invite New Agent" hideCloseButton={true}>
                 <form onSubmit={handleAddAgent} style={{ display: 'grid', gap: 12, color: 'var(--text-main)' }}>
                     <ModalInput placeholder="Agent Name" value={agentForm.name} onChange={e => setAgentForm({ ...agentForm, name: e.target.value })} required />
                     <ModalInput type="email" placeholder="Agent Email" value={agentForm.email} onChange={e => setAgentForm({ ...agentForm, email: e.target.value })} required />
                     <ModalInput type="password" placeholder="Temporary Password" value={agentForm.password} onChange={e => setAgentForm({ ...agentForm, password: e.target.value })} required />
-                    <button type="submit" className="primary-btn" style={{ padding: '12px', fontWeight: 700, marginTop: 4 }}>
-                        Create Agent Account
-                    </button>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                        <button type="button" className="secondary-btn" onClick={() => setAgentModal({ isOpen: false })} style={{ padding: '12px', flex: 1 }}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="primary-btn" style={{ padding: '12px', flex: 1 }}>
+                            Confirm
+                        </button>
+                    </div>
                 </form>
             </Modal>
 
@@ -1076,6 +1133,7 @@ export default function CompanyDashboard() {
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ isOpen: false, action: null, policyId: null })}
                 title="Confirm Action"
+                hideCloseButton={true}
             >
                 <div style={{ color: 'var(--text-main)', display: 'grid', gap: 16 }}>
                     <p style={{ margin: 0, color: 'var(--text-muted)' }}>
@@ -1086,7 +1144,7 @@ export default function CompanyDashboard() {
                         this policy?
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                        <ActionBtn variant="ghost" onClick={() => setConfirmModal({ isOpen: false, action: null, policyId: null })}>Cancel</ActionBtn>
+                        <button type="button" className="secondary-btn" onClick={() => setConfirmModal({ isOpen: false, action: null, policyId: null })}>Cancel</button>
                         <button
                             onClick={confirmModal.action === 'delete' ? handleDeletePolicy : handleToggleStatus}
                             className="primary-btn"
