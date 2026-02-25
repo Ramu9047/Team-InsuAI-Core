@@ -58,9 +58,6 @@ public class CompanyController {
     private CompanyRepository companyRepository;
 
     @Autowired
-    private FeedbackRepository feedbackRepository;
-
-    @Autowired
     private AgentReviewRepository agentReviewRepository;
 
     /**
