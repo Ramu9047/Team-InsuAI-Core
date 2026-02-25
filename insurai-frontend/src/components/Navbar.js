@@ -2,8 +2,20 @@ import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
-import logoParticles from "../assets/logo-particles.svg";
 
+
+const InsurAIIcon = () => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" fill="url(#shield-grad)" stroke="url(#shield-grad)" strokeLinejoin="round" />
+        <path d="M13 8l-4 5h4l-1 4 4-5h-4l1-4z" fill="#ffffff" stroke="#ffffff" strokeWidth="1" strokeLinejoin="round" />
+        <defs>
+            <linearGradient id="shield-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#6366f1" />
+                <stop offset="1" stopColor="#a855f7" />
+            </linearGradient>
+        </defs>
+    </svg>
+);
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -109,9 +121,9 @@ export default function Navbar() {
                 </div>
             )}
 
-            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <img src={logoParticles} alt="InsurAI Logo" style={{ height: '40px' }} />
-                InsurAI
+            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <InsurAIIcon />
+                <span style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(to right, #a5b4fc, #d8b4fe)', WebkitBackgroundClip: 'text', color: 'transparent', letterSpacing: '0.5px' }}>InsurAI</span>
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
