@@ -12,7 +12,6 @@ import com.insurai.repository.BookingRepository;
 import com.insurai.repository.UserCompanyMapRepository;
 
 import com.insurai.repository.CompanyRepository;
-import com.insurai.repository.FeedbackRepository;
 import com.insurai.repository.AgentReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
