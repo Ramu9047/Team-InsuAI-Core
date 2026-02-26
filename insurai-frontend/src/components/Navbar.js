@@ -4,20 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
 
 
-const InsurAIIcon = () => (
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-        <path d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 5.5a5 5 0 1 1 7.5 7.072z" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <path d="M2 13h5l1.5-4 2.5 9 2.5-12 2 7h4.5" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <defs>
-            <linearGradient id="logo-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#a855f7" />
-                <stop offset="0.6" stopColor="#818cf8" />
-                <stop offset="1" stopColor="#22d3ee" />
-            </linearGradient>
-        </defs>
-    </svg>
-);
-
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
