@@ -118,25 +118,9 @@ public class AdminController {
         userRepo.deleteById(id);
     }
 
-    // --- New Admin Features ---
-
     @PostMapping("/policies")
     public com.insurai.model.Policy createPolicy(@RequestBody com.insurai.model.Policy policy) {
         return policyRepo.save(java.util.Objects.requireNonNull(policy));
-    }
-
-    @PutMapping("/agents/{id}/status")
-    public com.insurai.model.User updateAgentStatus(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
-        com.insurai.model.User agent = userRepo.findById(java.util.Objects.requireNonNull(id))
-                .orElseThrow(() -> new RuntimeException("Agent not found"));
-        // Assuming 'verified' or 'available' controls status, or we add a status field.
-        // Prompt says "Activate / deactivate agents". 'verified' seems appropriate or
-        // 'available'.
-        // User model has 'verified' and 'available'.
-        if (body.containsKey("verified")) {
-            agent.setVerified(body.get("verified"));
-        }
-        return userRepo.save(java.util.Objects.requireNonNull(agent));
     }
 
     @GetMapping("/audit-logs")
