@@ -17,7 +17,7 @@ import KPICard from '../components/KPICard';
 
 export default function AgentDashboardAdvanced() {
     const { user } = useAuth();
-    const { notify } = useNotification();
+    const { notify, refreshSignal } = useNotification();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
@@ -184,7 +184,7 @@ export default function AgentDashboardAdvanced() {
     useEffect(() => {
         if (!user || user.role !== 'AGENT') return;
         loadAgentData();
-    }, [user, loadAgentData]);
+    }, [user, loadAgentData, refreshSignal]);
 
 
     // Check policy type

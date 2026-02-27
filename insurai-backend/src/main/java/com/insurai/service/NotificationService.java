@@ -27,6 +27,12 @@ public class NotificationService {
         }
     }
 
+    public void broadcastUpdate(String topic, Object payload) {
+        if (payload != null) {
+            messagingTemplate.convertAndSend("/topic/" + topic, payload);
+        }
+    }
+
     public List<Notification> getUnreadNotifications(Long userId) {
         return notificationRepo.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }

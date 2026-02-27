@@ -56,7 +56,7 @@ const getRiskLevel = (score) => {
 
 export default function UserDashboard() {
   const { user } = useAuth();
-  const { notify } = useNotification();
+  const { notify, refreshSignal } = useNotification();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -288,7 +288,7 @@ export default function UserDashboard() {
   useEffect(() => {
     if (!user) return;
     loadDashboardData();
-  }, [user, loadDashboardData]);
+  }, [user, loadDashboardData, refreshSignal]);
 
   const riskInfo = getRiskLevel(stats.riskScore);
   const appointmentStage = getAppointmentStage();
@@ -311,8 +311,11 @@ export default function UserDashboard() {
         style={{ marginBottom: 40 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem' }}>
+          <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem', display: 'flex', alignItems: 'center', gap: 15 }}>
             {getGreeting()}, {user.name.split(' ')[0]}! 👋
+            <span style={{ fontSize: '0.7rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: 20, fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+              🛰️ Live Updates
+            </span>
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <NotificationCenter userRole="USER" />

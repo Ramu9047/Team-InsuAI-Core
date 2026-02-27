@@ -9,7 +9,7 @@ import Modal from "../components/Modal";
 export default function MyBookings() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { notify } = useNotification();
+  const { notify, refreshSignal } = useNotification();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' | 'history'
@@ -27,7 +27,7 @@ export default function MyBookings() {
 
   useEffect(() => {
     fetchBookings();
-  }, [fetchBookings]);
+  }, [fetchBookings, refreshSignal]);
 
   const confirmAction = (title, content, action) => {
     setModal({

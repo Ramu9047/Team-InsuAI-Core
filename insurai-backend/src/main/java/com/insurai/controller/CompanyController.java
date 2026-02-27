@@ -59,6 +59,9 @@ public class CompanyController {
     @Autowired
     private AgentReviewRepository agentReviewRepository;
 
+    @Autowired
+    private com.insurai.service.NotificationService notificationService;
+
     /**
      * Resolves the authenticated company from JWT.
      * Company admins log in with a Company email (stored in company table).
@@ -396,6 +399,9 @@ public class CompanyController {
             agent.setRating(4.5); // Default rating
 
             userRepository.save(agent);
+
+            // Notify company dashboard for real-time update
+            notificationService.broadcastUpdate("company/" + company.getId(), "AGENT_ADDED");
 
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "message", "Agent added successfully",

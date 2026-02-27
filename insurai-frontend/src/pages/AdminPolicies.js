@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import { motion } from "framer-motion";
+import { useNotification } from "../context/NotificationContext";
 
 export default function AdminPolicies() {
+    const { refreshSignal } = useNotification();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -18,7 +20,7 @@ export default function AdminPolicies() {
                 setError("Failed to fetch policies. Please ensure backend is running and you are logged in as Admin.");
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [refreshSignal]);
 
     if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'white' }}>Loading Policies...</div>;
     if (error) return <div style={{ padding: 40, textAlign: 'center', color: '#ef4444' }}>{error}</div>;

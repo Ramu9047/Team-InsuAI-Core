@@ -7,7 +7,7 @@ import Modal from "../components/Modal";
 
 export default function MyPolicies() {
     const { user } = useAuth();
-    const { notify } = useNotification();
+    const { notify, refreshSignal, triggerRefresh } = useNotification();
     const navigate = useNavigate();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function MyPolicies() {
         } else {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, refreshSignal]);
 
     const handleConfirm = (title, content, action) => {
         setModal({
@@ -114,7 +114,7 @@ export default function MyPolicies() {
                                             try {
                                                 await api.post(`policies/${up.id}/purchase`);
                                                 notify("Payment Successful! Policy is now ACTIVE ✅", "success");
-                                                setTimeout(() => window.location.reload(), 1500);
+                                                triggerRefresh();
                                             } catch (e) {
                                                 console.error(e);
                                                 notify("Payment Failed", "error");
@@ -152,7 +152,7 @@ export default function MyPolicies() {
                                                             setTimeout(() => {
                                                                 notify("Renewal Successful! Policy extended by 1 year. 📅", "success");
                                                                 up.endDate = new Date(end.setFullYear(end.getFullYear() + 1)).toISOString().split('T')[0];
-                                                                window.location.reload();
+                                                                triggerRefresh();
                                                             }, 2000);
                                                         }
                                                     );
@@ -217,7 +217,7 @@ export default function MyPolicies() {
                                                         await api.post(`/policies/upload/${up.id}`, formData, {
                                                             headers: { 'Content-Type': 'multipart/form-data' }
                                                         });
-                                                        window.location.reload();
+                                                        triggerRefresh();
                                                     } catch (err) {
                                                         console.error(err);
                                                     }

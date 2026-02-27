@@ -441,6 +441,12 @@ public class AdminGovernanceService {
                                 agent,
                                 "Your assignments have been updated by admin",
                                 "INFO");
+
+                // Notify company dashboard
+                if (agent.getCompany() != null) {
+                        notificationService.broadcastUpdate("company/" + agent.getCompany().getId(),
+                                        "ASSIGNMENT_UPDATED");
+                }
         }
 
         /**

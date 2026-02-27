@@ -21,17 +21,20 @@ public class AuthController {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
+    private final com.insurai.service.NotificationService notificationService;
 
     public AuthController(UserRepository userRepository,
             com.insurai.repository.CompanyRepository companyRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
-            EmailService emailService) {
+            EmailService emailService,
+            com.insurai.service.NotificationService notificationService) {
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/register")
@@ -51,6 +54,10 @@ public class AuthController {
         user.setAvailable(false);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User saved = userRepository.save(user);
+
+        // Notify Admins for real-time dashboard update
+        notificationService.broadcastUpdate("admin-updates", "NEW_USER_REGISTERED");
+
         return ResponseEntity.ok(saved);
     }
 

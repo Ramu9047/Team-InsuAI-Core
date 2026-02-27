@@ -12,12 +12,19 @@ export function useNotification() {
 
 export function NotificationProvider({ children }) {
     const [toasts, setToasts] = useState([]);
+    const [refreshSignal, setRefreshSignal] = useState(0);
 
     const { user } = useAuth() || {};
 
     const notify = useCallback((message, type = "success", duration = 4000, icon) => {
         const id = Date.now() + Math.random();
         setToasts((prev) => [...prev, { id, message, type, duration, icon }]);
+        // Also trigger a refresh on the current page whenever a notification is sent or received
+        setRefreshSignal(s => s + 1);
+    }, []);
+
+    const triggerRefresh = useCallback(() => {
+        setRefreshSignal(s => s + 1);
     }, []);
 
     useEffect(() => {
@@ -35,7 +42,15 @@ export function NotificationProvider({ children }) {
                 client.subscribe(topic, (message) => {
                     const data = JSON.parse(message.body);
                     notify(data.message || 'New update available', data.type?.toLowerCase() || 'info');
+                    // Increment signal to trigger re-fetches in active components
+                    setRefreshSignal(s => s + 1);
                 });
+
+                if (user.role === 'SUPER_ADMIN') {
+                    client.subscribe('/topic/admin-updates', () => {
+                        setRefreshSignal(prev => prev + 1);
+                    });
+                }
             },
             onStompError: (frame) => {
                 console.error("Broker reported error:", frame.headers['message']);
@@ -55,7 +70,7 @@ export function NotificationProvider({ children }) {
     }, []);
 
     return (
-        <NotificationContext.Provider value={{ notify }}>
+        <NotificationContext.Provider value={{ notify, refreshSignal, triggerRefresh }}>
             {children}
             <ToastContainer toasts={toasts} removeToast={removeToast} />
         </NotificationContext.Provider>

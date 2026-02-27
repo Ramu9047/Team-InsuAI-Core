@@ -9,7 +9,7 @@ export default function AdminUsers() {
     const { user: authUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { notify } = useNotification();
+    const { notify, refreshSignal } = useNotification();
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +45,7 @@ export default function AdminUsers() {
 
     useEffect(() => {
         if (authUser) loadUsers();
-    }, [loadUsers, authUser]);
+    }, [loadUsers, authUser, refreshSignal]);
 
     // Updated deletion logic check
     const confirmDelete = (user) => {

@@ -118,7 +118,7 @@ const InsightCard = ({ type, title, text }) => {
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
 export default function CompanyDashboard() {
-    const { notify } = useNotification();
+    const { notify, refreshSignal } = useNotification();
     const navigate = useNavigate();
 
     const [stats, setStats] = useState(null);
@@ -222,7 +222,7 @@ export default function CompanyDashboard() {
         fetchData();
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
-    }, [fetchData]);
+    }, [fetchData, refreshSignal]);
 
     // ── Policy Handlers ───────────────────────
     const handlePolicySubmit = async (e) => {
@@ -449,8 +449,11 @@ export default function CompanyDashboard() {
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
                         <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0px 4px 8px rgba(99,102,241,0.4))' }}>🏢</span>
-                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.3rem', fontWeight: 800, textShadow: '0 2px 10px rgba(99,102,241,0.3)' }}>
+                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.3rem', fontWeight: 800, textShadow: '0 2px 10px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: 15 }}>
                             {companyName}
+                            <span style={{ fontSize: '0.7rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.1)', color: '#a5b4fc', borderRadius: 20, fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                                🚀 Real-time Insights
+                            </span>
                         </h1>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
