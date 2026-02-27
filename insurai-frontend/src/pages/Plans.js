@@ -31,7 +31,7 @@ export default function Plans() {
 
         // Navigate to schedule, passing the policy generic info (could be implemented via query params or context)
         // Pass selectedPlan in state for "Buy" intent
-        navigate("/schedule", { state: { policy: selectedPlan } });
+        navigate("/schedule-appointment", { state: { policy: selectedPlan } });
     };
 
 

@@ -13,6 +13,10 @@ public class Claim {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "policy_id")
+    private Policy policy;
+
     private String policyName;
     private String claimType; // HEALTH, ACCIDENT, DEATH, PROPERTY_DAMAGE, etc.
     private String description;
@@ -65,6 +69,14 @@ public class Claim {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Policy getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(Policy policy) {
+        this.policy = policy;
     }
 
     public String getPolicyName() {
@@ -148,6 +160,17 @@ public class Claim {
     }
 
     private String proofUrl;
+
+    @Transient
+    private Long policyId;
+
+    public Long getPolicyId() {
+        return policyId;
+    }
+
+    public void setPolicyId(Long policyId) {
+        this.policyId = policyId;
+    }
 
     public String getProofUrl() {
         return proofUrl;

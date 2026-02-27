@@ -56,7 +56,7 @@ export default function MyBookings() {
   const reschedule = async (id) => {
     const booking = list.find(b => b.id === id);
     if (booking) {
-      navigate("/schedule", { state: { policy: booking.policy, agent: booking.agent, rescheduleId: booking.id } });
+      navigate("/schedule-appointment", { state: { policy: booking.policy, agent: booking.agent, rescheduleId: booking.id } });
     }
   };
 
@@ -215,7 +215,7 @@ export default function MyBookings() {
         <h1 className="text-gradient" style={{ margin: 0 }}>My Appointments</h1>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => navigate("/feedback")} className="secondary-btn">💬 Give App Feedback</button>
-          <button onClick={() => navigate("/schedule")} className="primary-btn">+ New Booking</button>
+          <button onClick={() => navigate("/schedule-appointment")} className="primary-btn">+ New Booking</button>
         </div>
       </div>
 
@@ -262,8 +262,8 @@ export default function MyBookings() {
               </div>
 
               {b.policy && (
-                <div style={{ fontSize: "0.85rem", marginBottom: 15, padding: "5px 10px", background: "rgba(99, 102, 241, 0.1)", color: "var(--primary)", borderRadius: 4, display: "inline-block" }}>
-                  🛡️ Linked to: {b.policy.name}
+                <div style={{ fontSize: "0.85rem", marginBottom: 15, padding: "5px 10px", background: b.bookingType === 'ENQUIRY' ? "rgba(59, 130, 246, 0.1)" : "rgba(99, 102, 241, 0.1)", color: b.bookingType === 'ENQUIRY' ? "#3b82f6" : "var(--primary)", borderRadius: 4, display: "inline-block" }}>
+                  {b.bookingType === 'ENQUIRY' ? "🔍 Enquiry for: " : "🛡️ Purchase Request: "} {b.policy.name}
                 </div>
               )}
 

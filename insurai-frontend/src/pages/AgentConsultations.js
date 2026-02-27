@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
@@ -7,7 +8,10 @@ export default function AgentConsultations() {
     const [consultations, setConsultations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedConsultation, setSelectedConsultation] = useState(null);
-    const [filter, setFilter] = useState('all'); // all, pending, completed
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialFilter = queryParams.get('filter') || 'all';
+    const [filter, setFilter] = useState(initialFilter); // all, pending, completed, approved_today, rejected_today
     const { notify } = useNotification();
 
     const fetchConsultations = useCallback(() => {
@@ -29,8 +33,24 @@ export default function AgentConsultations() {
     }, [fetchConsultations]);
 
     const filteredConsultations = consultations.filter(c => {
+        const today = new Date().toISOString().split('T')[0];
+
         if (filter === 'pending') return c.status === 'PENDING';
         if (filter === 'completed') return c.status !== 'PENDING';
+
+        if (filter === 'approved_today') {
+            const respDate = c.appointmentTime ? new Date(c.appointmentTime).toISOString().split('T')[0] : null;
+            // Or better, if the backend provides respondedAt/completedAt in ConsultationDTO. 
+            // Looking at ConsultationDTO build, it doesn't have it yet. 
+            // I should probably check the status and matching date if available.
+            return (c.status === 'APPROVED' || c.status === 'COMPLETED') && respDate === today;
+        }
+
+        if (filter === 'rejected_today') {
+            const respDate = c.appointmentTime ? new Date(c.appointmentTime).toISOString().split('T')[0] : null;
+            return c.status === 'REJECTED' && respDate === today;
+        }
+
         return true;
     });
 
@@ -390,23 +410,7 @@ function ConsultationDetailModal({ consultation, onClose, onDecisionMade }) {
                 className="card"
                 style={{ width: 700, maxWidth: "100%", maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
             >
-                <button
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute',
-                        top: 20,
-                        right: 20,
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        zIndex: 10
-                    }}
-                >
-                    ×
-                </button>
-                <h2 style={{ marginTop: 0, paddingRight: 40 }}>Consultation Review</h2>
+                <h2 style={{ marginTop: 0 }}>Consultation Review</h2>
 
                 {/* User Profile */}
                 <div className="card" style={{ background: 'rgba(0,0,0,0.03)', marginBottom: 20 }}>

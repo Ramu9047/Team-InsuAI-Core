@@ -46,6 +46,7 @@ export default function Register() {
         <input
           className="form-input"
           placeholder="Jane Doe"
+          value={form.name}
           onChange={e => setForm({ ...form, name: e.target.value })}
         />
         {errors.name && <p className="error-msg">{errors.name}</p>}
@@ -56,6 +57,7 @@ export default function Register() {
         <input
           className="form-input"
           placeholder="jane@example.com"
+          value={form.email}
           onChange={e => setForm({ ...form, email: e.target.value })}
         />
         {errors.email && <p className="error-msg">{errors.email}</p>}
@@ -68,38 +70,14 @@ export default function Register() {
             className="form-input"
             type={showPassword ? "text" : "password"}
             placeholder="8+ chars, 1 Upper, 1 Num, 1 Special"
+            value={form.password}
             onChange={e => setForm({ ...form, password: e.target.value })}
             style={{ paddingRight: 50, marginBottom: 0 }}
           />
           <button
             type="button"
+            className="input-icon-btn"
             onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: "absolute",
-              right: 15,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: 6,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              color: "var(--text-muted)",
-              transition: "all 0.2s ease",
-              width: 32,
-              height: 32
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
-              e.currentTarget.style.color = "var(--primary)";
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = "var(--text-muted)";
-            }}
           >
             <AnimatePresence mode="wait" initial={false}>
               {showPassword ? (

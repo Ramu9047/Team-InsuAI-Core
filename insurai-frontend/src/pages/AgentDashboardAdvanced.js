@@ -30,7 +30,12 @@ export default function AgentDashboardAdvanced() {
         pendingReviews: 5,
         approvedToday: 3,
         rejectedToday: 1,
-        avgDecisionTime: 14
+        claims: 0,
+        conversionRate: 0,
+        weeklyVolume: 0,
+        avgDecisionTime: 14,
+        assignedRegions: [],
+        assignedPolicyTypes: []
     });
 
     // Consultation Queue
@@ -64,6 +69,8 @@ export default function AgentDashboardAdvanced() {
                 agentService.getAgentConsultations(),
                 agentService.getAgentPerformance()
             ]);
+
+            console.log("DEBUG: Agent Performance Data:", perf);
 
             // 1. Prepare Calendar Data (All Consultations)
             const calendarData = consultations.map(c => {
@@ -119,9 +126,14 @@ export default function AgentDashboardAdvanced() {
                     rating: perf.customerSatisfaction || 4.5,
                     approvalRate: Math.round(perf.approvalRate || 0),
                     pendingReviews: perf.pendingConsultations || queue.length,
-                    approvedToday: perf.consultationsThisWeek || 0, // Using weekly as proxy or 0 if unavail
-                    rejectedToday: perf.rejectionRate ? Math.round(perf.rejectionRate) : 0, // Using rate as proxy if count unavailable
-                    avgDecisionTime: perf.averageResponseTimeHours ? Math.round(perf.averageResponseTimeHours * 60) : 15 // Mins
+                    approvedToday: perf.approvedToday || 0,
+                    rejectedToday: perf.rejectedToday || 0,
+                    claims: perf.claimsCount || 0,
+                    conversionRate: Math.round(perf.conversionRate || 0),
+                    weeklyVolume: perf.consultationsThisWeek || 0,
+                    avgDecisionTime: perf.averageResponseTimeHours ? Math.round(perf.averageResponseTimeHours * 60) : 15, // Mins
+                    assignedRegions: perf.assignedRegions || [],
+                    assignedPolicyTypes: perf.assignedPolicyTypes || []
                 });
 
                 setPerformanceData({
@@ -152,7 +164,12 @@ export default function AgentDashboardAdvanced() {
                     pendingReviews: queue.length,
                     approvedToday,
                     rejectedToday,
-                    avgDecisionTime: 14
+                    claims: 0,
+                    conversionRate: 0,
+                    weeklyVolume: 0,
+                    avgDecisionTime: 14,
+                    assignedRegions: user.assignedRegions || [],
+                    assignedPolicyTypes: user.assignedPolicyTypes || []
                 });
             }
 
@@ -324,22 +341,55 @@ export default function AgentDashboardAdvanced() {
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem' }}>
+                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem', display: 'flex', alignItems: 'center', gap: 15 }}>
                             👨‍💼 Agent {user.name.split(' ')[0]}
+                            <span style={{ fontSize: '0.7rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: 20, fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                                🔄 Real-time Sync Active
+                            </span>
                         </h1>
-                        <div style={{ marginTop: 10, display: 'flex', gap: 20, alignItems: 'center' }}>
+                        <div style={{ marginTop: 10, display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span style={{ fontSize: '1.2rem' }}>⭐</span>
                                 <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
                                     Rating: {stats.rating}
                                 </span>
                             </div>
-                            <div style={{ width: 2, height: 20, background: 'var(--text-muted)' }}></div>
+                            <div style={{ width: 2, height: 20, background: 'var(--text-muted)', opacity: 0.3 }}></div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span style={{ fontSize: '1.2rem' }}>📊</span>
                                 <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
                                     Approval Rate: {stats.approvalRate}%
                                 </span>
+                            </div>
+                            <div style={{ width: 2, height: 20, background: 'var(--text-muted)', opacity: 0.3 }}></div>
+
+                            {/* Region & Type Assignments */}
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>📡 Coverage:</span>
+                                {(stats.assignedRegions || []).length > 0 ? (
+                                    (stats.assignedRegions || []).map(r => (
+                                        <span key={r} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', padding: '2px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>
+                                            📍 {r}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600 }}>⚠️ No Region Assigned</span>
+                                )}
+                            </div>
+
+                            <div style={{ width: 2, height: 20, background: 'var(--text-muted)', opacity: 0.3 }}></div>
+
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>🛡️ Specialization:</span>
+                                {(stats.assignedPolicyTypes || []).length > 0 ? (
+                                    (stats.assignedPolicyTypes || []).map(t => (
+                                        <span key={t} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#059669', padding: '2px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>
+                                            {t}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600 }}>⚠️ No Specialization</span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -378,12 +428,13 @@ export default function AgentDashboardAdvanced() {
                 <div style={{ height: 2, background: 'linear-gradient(90deg, #4f46e5, transparent)', marginTop: 15 }}></div>
             </motion.div>
 
-            {/* ── Agent KPI Strip ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginBottom: 40 }}>
-                <KPICard icon="⏳" label="Pending Reviews" value={stats.pendingReviews} color="#f59e0b" link="/agent/requests" linkText="View Queue →" idx={0} />
-                <KPICard icon="✅" label="Approved Today" value={stats.approvedToday} color="#10b981" link="/agent/consultations" linkText="View Approvals →" idx={1} />
-                <KPICard icon="❌" label="Rejected Today" value={stats.rejectedToday} color="#ef4444" link="/agent/consultations" linkText="View Rejected →" idx={2} />
-                <KPICard icon="📊" label="Avg Decision Time" value={`${stats.avgDecisionTime} mins`} color="#3b82f6" link="/agent/performance" linkText="Performance →" idx={3} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 18, marginBottom: 40 }}>
+                <KPICard icon="⏳" label="Pending Status" value={stats.pendingReviews} color="#f59e0b" link="/agent/requests" linkText="View Queue →" idx={0} />
+                <KPICard icon="✅" label="Approved Today" value={stats.approvedToday} color="#10b981" link="/agent/consultations?filter=approved_today" linkText="View Today →" idx={1} />
+                <KPICard icon="❌" label="Rejected Today" value={stats.rejectedToday} color="#ef4444" link="/agent/consultations?filter=rejected_today" linkText="View Today →" idx={2} />
+                <KPICard icon="🛡️" label="Policy Claims" value={stats.claims} color="#3b82f6" link="/agent/requests?tab=claims" linkText="Process Claims →" idx={3} />
+                <KPICard icon="📅" label="Weekly Volume" value={stats.weeklyVolume} color="#6366f1" link="/agent/consultations" linkText="Weekly Log →" idx={4} />
+                <KPICard icon="📊" label="Avg Response" value={`${stats.avgDecisionTime}m`} color="#3b82f6" link="/agent/performance" linkText="SLA Report →" idx={5} />
             </div>
 
             {/* Main Content Grid */}

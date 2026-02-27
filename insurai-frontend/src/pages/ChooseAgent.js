@@ -37,7 +37,14 @@ export default function ChooseAgent() {
               </div>
               <div>
                 <h3 style={{ margin: 0 }}>{a.name}</h3>
-                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{a.specialization || "General Insurance"}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--primary)", fontWeight: 600 }}>{a.specialization || "General Insurance"}</span>
+                  {(a.assignedRegions || []).map(r => (
+                    <span key={r} style={{ fontSize: '0.7rem', background: '#f3f4f6', color: '#6b7280', padding: '1px 6px', borderRadius: 4 }}>
+                      📍 {r}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -51,7 +58,7 @@ export default function ChooseAgent() {
             <button
               className="primary-btn"
               style={{ width: "100%" }}
-              onClick={() => navigate("/schedule")}
+              onClick={() => navigate("/schedule-appointment", { state: { agent: a } })}
             >
               Book Appointment
             </button>

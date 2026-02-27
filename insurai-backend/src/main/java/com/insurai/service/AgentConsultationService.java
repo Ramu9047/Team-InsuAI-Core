@@ -33,19 +33,22 @@ public class AgentConsultationService {
     private final UserPolicyRepository userPolicyRepo;
     private final NotificationService notificationService;
     private final com.insurai.repository.AgentReviewRepository reviewRepo;
+    private final com.insurai.repository.ClaimRepository claimRepo; // New dependency
 
     private static final int SLA_HOURS = 24; // 24-hour SLA for first response
 
     public AgentConsultationService(BookingRepository bookingRepo, UserRepository userRepo,
             PolicyRepository policyRepo, UserPolicyRepository userPolicyRepo,
             NotificationService notificationService,
-            com.insurai.repository.AgentReviewRepository reviewRepo) {
+            com.insurai.repository.AgentReviewRepository reviewRepo,
+            com.insurai.repository.ClaimRepository claimRepo) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.policyRepo = policyRepo;
         this.userPolicyRepo = userPolicyRepo;
         this.notificationService = notificationService;
         this.reviewRepo = reviewRepo;
+        this.claimRepo = claimRepo;
     }
 
     /**
@@ -344,6 +347,7 @@ public class AgentConsultationService {
     /**
      * Get agent performance metrics
      */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public AgentPerformanceDTO getAgentPerformance(long agentId) {
         User agent = userRepo.findById(java.util.Objects.requireNonNull(agentId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
@@ -353,6 +357,10 @@ public class AgentConsultationService {
         AgentPerformanceDTO performance = new AgentPerformanceDTO();
         performance.setAgentId(agentId);
         performance.setAgentName(agent.getName());
+        performance.setAssignedRegions(agent.getAssignedRegions());
+        performance.setAssignedPolicyTypes(agent.getAssignedPolicyTypes());
+        System.out.println("DEBUG: Performance assignments for " + agent.getName() + ": Regions="
+                + agent.getAssignedRegions() + ", Types=" + agent.getAssignedPolicyTypes());
 
         // Populate Rating
         performance.setCustomerSatisfaction(agent.getRating() != null ? agent.getRating() : 0.0);
@@ -446,6 +454,14 @@ public class AgentConsultationService {
 
         performance.setApprovedToday((int) approvedToday);
         performance.setRejectedToday((int) rejectedToday);
+
+        // Claims Count for Agent's Company
+        if (agent.getCompany() != null) {
+            List<com.insurai.model.Claim> claims = claimRepo.findByPolicyCompanyId(agent.getCompany().getId());
+            performance.setClaimsCount(claims.size());
+        } else {
+            performance.setClaimsCount(0);
+        }
 
         // Recalculate Approval Rate using TODAY'S data (per requirement: (Approved
         // Today / (Approved Today + Rejected Today)) * 100)

@@ -11,7 +11,7 @@ export default function MyClaims() {
     const [claims, setClaims] = useState([]);
     const [userPolicies, setUserPolicies] = useState([]);
     const [view, setView] = useState("LIST"); // LIST, FORM
-    const [formData, setFormData] = useState({ policyName: "", description: "", amount: "" });
+    const [formData, setFormData] = useState({ policyId: "", policyName: "", description: "", amount: "" });
     const [loading, setLoading] = useState(true);
 
     const fetchClaims = useCallback(() => {
@@ -50,23 +50,38 @@ export default function MyClaims() {
             return;
         }
 
-        // Simulating document upload by adding a mock URL in the backend request if supported
-        // For now, we just proceed with data
-        const payload = {
-            ...formData,
-            status: 'PENDING',
-            // In a real app, we would upload the file first then get the URL from S3/Blob storage.
-            // For this DEMO, we use a public dummy PDF so the Agent can successfully "view" a document.
-            proofUrl: formData.attachedFile ? "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" : null,
-            attachedFile: formData.attachedFile ? formData.attachedFile.name : null
+        const claimPayload = {
+            policyId: formData.policyId,
+            policyName: formData.policyName,
+            description: formData.description,
+            amount: parseFloat(formData.amount),
+            status: 'PENDING'
         };
 
-        api.post(`/claims/${user.id}`, payload)
-            .then(() => {
-                notify("Claim filed successfully! Status: PENDING ⏳", "success");
+        api.post(`/claims/${user.id}`, claimPayload)
+            .then(async (response) => {
+                const claimId = response.data.id;
+
+                if (formData.attachedFile) {
+                    const fileFormData = new FormData();
+                    fileFormData.append("file", formData.attachedFile);
+
+                    try {
+                        await api.post(`/claims/${claimId}/upload`, fileFormData, {
+                            headers: { "Content-Type": "multipart/form-data" }
+                        });
+                        notify("Claim and document uploaded successfully!", "success");
+                    } catch (uploadErr) {
+                        console.error("File upload failed:", uploadErr);
+                        notify("Claim filed but document upload failed.", "warning");
+                    }
+                } else {
+                    notify("Claim filed successfully! Status: PENDING ⏳", "success");
+                }
+
                 setView("LIST");
                 fetchClaims();
-                setFormData({ policyName: "", description: "", amount: "" });
+                setFormData({ policyName: "", description: "", amount: "", attachedFile: null });
                 setErrors({});
             })
             .catch(err => {
@@ -171,15 +186,16 @@ export default function MyClaims() {
                                 <label className="form-label">Select Policy</label>
                                 <select
                                     className="form-input"
-                                    value={formData.policyName}
+                                    value={formData.policyId}
                                     onChange={(e) => {
-                                        setFormData({ ...formData, policyName: e.target.value });
+                                        const selectedUp = userPolicies.find(up => up.policy.id === Number(e.target.value));
+                                        setFormData({ ...formData, policyId: e.target.value, policyName: selectedUp?.policy.name || "" });
                                         if (errors.policyName) setErrors({ ...errors, policyName: null });
                                     }}
                                 >
                                     <option value="">-- Select Active Policy --</option>
                                     {userPolicies.map(up => (
-                                        <option key={up.id} value={up.policy.name}>
+                                        <option key={up.id} value={up.policy.id}>
                                             {up.policy.name} (Coverage: ₹{up.policy.coverage})
                                         </option>
                                     ))}

@@ -2,9 +2,11 @@ package com.insurai.service;
 
 import com.insurai.model.Booking;
 import com.insurai.model.User;
+import com.insurai.model.UserPolicy;
 import com.insurai.repository.BookingRepository;
 import com.insurai.repository.PolicyRepository;
 import com.insurai.repository.UserRepository;
+import com.insurai.repository.UserPolicyRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,12 +25,12 @@ public class BookingService {
     private final AuditService auditService;
     private final EmailService emailService;
     private final GoogleCalendarService calendarService;
-    private final com.insurai.repository.UserPolicyRepository userPolicyRepo;
+    private final UserPolicyRepository userPolicyRepo;
 
     public BookingService(BookingRepository bookingRepo, UserRepository userRepo,
             NotificationService notificationService, PolicyRepository policyRepo, AIService aiService,
             AuditService auditService, EmailService emailService, GoogleCalendarService calendarService,
-            com.insurai.repository.UserPolicyRepository userPolicyRepo) {
+            UserPolicyRepository userPolicyRepo) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.notificationService = notificationService;
@@ -47,7 +49,8 @@ public class BookingService {
     }
 
     public Booking createBooking(@org.springframework.lang.NonNull Long userId,
-            @org.springframework.lang.NonNull Long agentId, String start, String end, Long policyId, String reason) {
+            @org.springframework.lang.NonNull Long agentId, String start, String end, Long policyId, String reason,
+            String bookingType) {
 
         if (userId.equals(agentId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot book an appointment with yourself.");
@@ -80,7 +83,6 @@ public class BookingService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        // Only clients can book appointments
         if (!"USER".equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Only clients with valid USER role can book appointments.");
@@ -96,22 +98,33 @@ public class BookingService {
         booking.setEndTime(endTime);
         booking.setStatus("PENDING");
         booking.setReason(reason);
+        booking.setBookingType(bookingType != null ? bookingType : "PURCHASE");
 
         if (policyId != null) {
             com.insurai.model.Policy policy = policyRepo.findById(policyId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy not found"));
 
-            // Check if user already has this policy active/pending
-            java.util.List<com.insurai.model.UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(userId,
-                    policyId);
-            boolean alreadyHas = existing.stream()
-                    .anyMatch(up -> "ACTIVE".equalsIgnoreCase(up.getStatus())
-                            || "PENDING".equalsIgnoreCase(up.getStatus())
-                            || "PAYMENT_PENDING".equalsIgnoreCase(up.getStatus()));
+            // NEW: Check if user already owns this policy if it's a PURCHASE type
+            if ("PURCHASE".equalsIgnoreCase(booking.getBookingType())) {
+                List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(userId, policyId);
+                boolean hasActive = existing.stream().anyMatch(
+                        p -> "ACTIVE".equalsIgnoreCase(p.getStatus()) || "PENDING".equalsIgnoreCase(p.getStatus())
+                                || "PAYMENT_PENDING".equalsIgnoreCase(p.getStatus()));
 
-            if (alreadyHas) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "You already have this policy (Active or Pending). Cannot book another appointment for it.");
+                if (hasActive) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "You already have an active or pending policy of this type. Please book as a 'Policy Enquiry' instead if you have questions.");
+                }
+            }
+
+            // NEW: Enforce Agent-Policy Company matching
+            if (agent.getCompany() == null || policy.getCompany() == null ||
+                    !agent.getCompany().getId().equals(policy.getCompany().getId())) {
+                String companyName = policy.getCompany() != null ? policy.getCompany().getName()
+                        : "the policy provider";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "This agent does not belong to " + companyName + ". Please select an agent from " + companyName
+                                + ".");
             }
 
             booking.setPolicy(policy);
@@ -122,7 +135,8 @@ public class BookingService {
         // Audit & Notify
         auditService.log("BOOKING_CREATED: ID " + saved.getId(), userId);
 
-        String message = "New appointment request from " + user.getName() + " for " + startTime.toString();
+        String typeLabel = "ENQUIRY".equalsIgnoreCase(booking.getBookingType()) ? "Policy Enquiry" : "Purchase Request";
+        String message = "New " + typeLabel + " from " + user.getName() + " for " + startTime.toString();
 
         // Send Persistent Notification to Agent
         notificationService.createNotification(agent, message, "INFO");
@@ -130,7 +144,7 @@ public class BookingService {
         // Send Email to Agent
         emailService.send(
                 agent.getEmail(),
-                "New Appointment Request",
+                "New " + typeLabel,
                 message + "\nReason: " + reason + "\n\nPlease login to review.");
 
         return saved;
@@ -179,6 +193,14 @@ public class BookingService {
         }
 
         booking.setStatus(status);
+        // Track Timestamps for KPIs
+        LocalDateTime now = LocalDateTime.now();
+        if (booking.getRespondedAt() == null && ("APPROVED".equals(status) || "REJECTED".equals(status))) {
+            booking.setRespondedAt(now);
+        }
+        if ("COMPLETED".equals(status) || "REJECTED".equals(status)) {
+            booking.setCompletedAt(now);
+        }
 
         // Audit & Notify
         auditService.log("BOOKING_STATUS_UPDATE: ID " + booking.getId() + " to " + status, booking.getUser().getId());

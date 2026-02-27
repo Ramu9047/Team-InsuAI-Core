@@ -169,7 +169,7 @@ public class AgentController {
             booking.setCompletedAt(java.time.LocalDateTime.now());
 
             // Task 5: Policy Issuance (After Consultation)
-            if (booking.getPolicy() != null) {
+            if (booking.getPolicy() != null && "PURCHASE".equalsIgnoreCase(booking.getBookingType())) {
                 // Check duplicate
                 List<UserPolicy> existing = userPolicyRepo.findByUserIdAndPolicyId(booking.getUser().getId(),
                         booking.getPolicy().getId());
@@ -193,6 +193,12 @@ public class AgentController {
                 notificationService.createNotification(
                         booking.getUser(),
                         "Policy Issued! Please complete payment for " + booking.getPolicy().getName(),
+                        "SUCCESS");
+            } else if (booking.getPolicy() != null && "ENQUIRY".equalsIgnoreCase(booking.getBookingType())) {
+                // Just notify that enquiry is resolved
+                notificationService.createNotification(
+                        booking.getUser(),
+                        "Enquiry for " + booking.getPolicy().getName() + " has been resolved mark as satisfied.",
                         "SUCCESS");
             }
         } else if ("REJECTED".equals(newStatus)) {

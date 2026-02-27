@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../services/api";
 import Card from "../components/Card";
 import { useAuth } from "../context/AuthContext";
@@ -13,7 +14,9 @@ export default function AgentRequests() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [profileModal, setProfileModal] = useState({ isOpen: false, user: null });
   const [note, setNote] = useState("");
-  const [activeTab, setActiveTab] = useState("appointments");
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const [activeTab, setActiveTab] = useState(queryParams.get('tab') || "appointments");
   const [claims, setClaims] = useState([]);
   const [viewedProfiles, setViewedProfiles] = useState(new Set());
   const [proofModal, setProofModal] = useState({ isOpen: false, url: "" });
@@ -239,8 +242,8 @@ export default function AgentRequests() {
                 <p style={{ margin: "5px 0", fontSize: "0.9rem", color: "var(--text-muted)" }}>📅 {new Date(b.startTime).toLocaleString()}</p>
 
                 {b.policy ? (
-                  <div style={{ background: "rgba(16, 185, 129, 0.1)", padding: 10, borderRadius: 8, margin: "10px 0", borderLeft: "4px solid #10b981" }}>
-                    <strong style={{ color: "#10b981" }}>Purchase Request:</strong>
+                  <div style={{ background: b.bookingType === 'ENQUIRY' ? "rgba(59, 130, 246, 0.1)" : "rgba(16, 185, 129, 0.1)", padding: 10, borderRadius: 8, margin: "10px 0", borderLeft: b.bookingType === 'ENQUIRY' ? "4px solid #3b82f6" : "4px solid #10b981" }}>
+                    <strong style={{ color: b.bookingType === 'ENQUIRY' ? "#3b82f6" : "#10b981" }}>{b.bookingType === 'ENQUIRY' ? "Policy Enquiry:" : "Purchase Request:"}</strong>
                     <div style={{ fontSize: "1rem", fontWeight: "bold" }}>{b.policy.name}</div>
                     <div style={{ fontSize: "0.8rem", opacity: 0.8 }}>Premium: ₹{b.policy.premium}</div>
                   </div>
@@ -272,7 +275,7 @@ export default function AgentRequests() {
                         onClick={() => viewedProfiles.has(b.user.id) && updateStatus(b.id, "APPROVED")}
                         disabled={!viewedProfiles.has(b.user.id)}
                       >
-                        {b.policy ? "Approve Issue" : "Approve Meeting"}
+                        {b.policy ? (b.bookingType === 'ENQUIRY' ? "Approve Enquiry" : "Approve Issue") : "Approve Meeting"}
                       </button>
                       <button
                         className="secondary-btn"
@@ -350,7 +353,7 @@ export default function AgentRequests() {
                           style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6", marginBottom: 10 }}
                           onClick={() => updateStatus(b.id, "COMPLETED")}
                         >
-                          ✅ Complete Consultation & Issue Policy
+                          {b.bookingType === 'ENQUIRY' ? "✅ Complete Policy Enquiry" : "✅ Complete Consultation & Issue Policy"}
                         </button>
                       </div>
                     )}
@@ -360,7 +363,11 @@ export default function AgentRequests() {
                 {b.status === "COMPLETED" && (
                   <div style={{ marginTop: 15, padding: 10, background: "rgba(59, 130, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
                     <div style={{ fontWeight: "bold", color: "#3b82f6", marginBottom: 5 }}>Consultation Completed</div>
-                    <div style={{ fontSize: "0.9rem" }}>Policy <strong>{b.policy?.name}</strong> has been issued (Payment Pending).</div>
+                    <div style={{ fontSize: "0.9rem" }}>
+                      {b.bookingType === 'ENQUIRY'
+                        ? `Enquiry for ${b.policy?.name} has been resolved.`
+                        : `Policy ${b.policy?.name} has been issued (Payment Pending).`}
+                    </div>
                   </div>
                 )}
 
@@ -396,7 +403,7 @@ export default function AgentRequests() {
 
       {activeTab === "claims" && (
         <>
-          {claims.filter(c => ['PENDING', 'INITIATED'].includes(c.status)).length === 0 && (
+          {claims.filter(c => ['PENDING', 'INITIATED', 'DOCS_UPLOADED', 'UNDER_REVIEW', 'FLAGGED_FRAUD'].includes(c.status)).length === 0 && (
             <div style={{ textAlign: "center", padding: "20px 0", color: "var(--text-muted)" }}>
               <p>✅ All caught up! No pending claims to review.</p>
             </div>
@@ -412,8 +419,8 @@ export default function AgentRequests() {
                   </div>
                   <span style={{
                     padding: "4px 10px", borderRadius: 6, fontSize: "0.75rem", fontWeight: 700, height: "fit-content",
-                    background: c.status === 'APPROVED' ? "#dcfce7" : c.status === 'REJECTED' ? "#fee2e2" : "#fef9c3",
-                    color: c.status === 'APPROVED' ? "#15803d" : c.status === 'REJECTED' ? "#b91c1c" : "#854d0e"
+                    background: c.status === 'APPROVED' ? "#dcfce7" : c.status === 'REJECTED' ? "#fee2e2" : c.status === 'FLAGGED_FRAUD' ? "#fee2e2" : "#fef9c3",
+                    color: c.status === 'APPROVED' ? "#15803d" : c.status === 'REJECTED' ? "#b91c1c" : c.status === 'FLAGGED_FRAUD' ? "#b91c1c" : "#854d0e"
                   }}>{c.status}</span>
                 </div>
                 <p><strong>Policy:</strong> {c.policyName}</p>
@@ -424,18 +431,14 @@ export default function AgentRequests() {
                     className="secondary-btn"
                     style={{ width: "100%", marginBottom: 15 }}
                     onClick={() => {
-                      let url = c.proofUrl || (c.documentUrls && c.documentUrls.length > 0 ? c.documentUrls[0] : null) || c.attachedFile;
-                      // Temp Fix: Replace broken mock domain with working dummy PDF for historical data
-                      if (url && url.includes("insurai-docs.com")) {
-                        url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
-                      }
+                      const url = c.proofUrl || (c.documentUrls && c.documentUrls.length > 0 ? c.documentUrls[0] : null);
                       setProofModal({ isOpen: true, url: url });
                     }}
                   >
                     📄 Evaluate Proofs
                   </button>
 
-                  {['PENDING', 'INITIATED'].includes(c.status) ? (
+                  {['PENDING', 'INITIATED', 'DOCS_UPLOADED', 'UNDER_REVIEW', 'FLAGGED_FRAUD'].includes(c.status) ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                       <button className="primary-btn" onClick={() => updateClaimStatus(c.id, "APPROVED")} style={{ padding: "8px", background: "#10b981", border: "none" }}>Approve Claim</button>
                       <button className="secondary-btn" onClick={() => updateClaimStatus(c.id, "REJECTED")} style={{ padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}>Reject Claim</button>

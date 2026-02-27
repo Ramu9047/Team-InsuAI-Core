@@ -59,4 +59,14 @@ public class BookingRequest {
         this.reason = reason;
     }
 
+    private String bookingType;
+
+    public String getBookingType() {
+        return bookingType;
+    }
+
+    public void setBookingType(String bookingType) {
+        this.bookingType = bookingType;
+    }
+
 }

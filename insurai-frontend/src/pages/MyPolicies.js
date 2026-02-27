@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
 
 export default function MyPolicies() {
     const { user } = useAuth();
     const { notify } = useNotification();
+    const navigate = useNavigate();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modal, setModal] = useState({ isOpen: false, title: "", content: "", onConfirm: null });
@@ -79,7 +80,6 @@ export default function MyPolicies() {
             ) : (
                 <div className="grid">
                     {policies.sort((a, b) => {
-                        // Prioritize Actionable Items
                         const score = (s) => ['QUOTED', 'PAYMENT_PENDING'].includes(s) ? 0 : 1;
                         return score(a.status) - score(b.status) || a.id - b.id;
                     }).map(up => (
@@ -112,7 +112,7 @@ export default function MyPolicies() {
                                         style={{ width: "100%", background: "rgba(234, 179, 8, 0.2)", border: "1px solid #eab308", color: "#eab308" }}
                                         onClick={async () => {
                                             try {
-                                                await api.post(`policies/${up.id}/purchase`); // Backend purchase logic
+                                                await api.post(`policies/${up.id}/purchase`);
                                                 notify("Payment Successful! Policy is now ACTIVE ✅", "success");
                                                 setTimeout(() => window.location.reload(), 1500);
                                             } catch (e) {
@@ -136,7 +136,6 @@ export default function MyPolicies() {
                                             <strong>{up.endDate}</strong>
                                         </div>
 
-                                        {/* Renewal Alert Logic */}
                                         {(() => {
                                             const end = new Date(up.endDate);
                                             const today = new Date();
@@ -224,6 +223,23 @@ export default function MyPolicies() {
                                                     }
                                                 }}
                                             />
+                                            <button
+                                                onClick={() => navigate("/schedule-appointment", { state: { policy: up.policy } })}
+                                                className="primary-btn"
+                                                style={{
+                                                    flex: 1.5,
+                                                    padding: "8px 12px",
+                                                    fontSize: "0.9rem",
+                                                    background: "linear-gradient(135deg, #10b981, #059669)",
+                                                    border: "none",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "6px"
+                                                }}
+                                            >
+                                                🔍 Book Enquiry
+                                            </button>
                                         </div>
                                     </div>
                                 </>
@@ -231,8 +247,7 @@ export default function MyPolicies() {
                         </div>
                     ))}
                 </div>
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 }

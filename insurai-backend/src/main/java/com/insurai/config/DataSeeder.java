@@ -280,26 +280,26 @@ public class DataSeeder implements CommandLineRunner {
 
                 // == 6. Claims ========================================================
                 Claim cl1 = claimRepo.save(
-                                makeClaim(u1, slP1.getName(), "HEALTH", 35000.0, "APPROVED", 0.04, now.minusDays(5)));
-                Claim cl2 = claimRepo.save(makeClaim(u2, hpP1.getName(), "HEALTH", 18000.0, "UNDER_REVIEW", 0.12,
+                                makeClaim(u1, slP1, "HEALTH", 35000.0, "APPROVED", 0.04, now.minusDays(5)));
+                Claim cl2 = claimRepo.save(makeClaim(u2, hpP1, "HEALTH", 18000.0, "UNDER_REVIEW", 0.12,
                                 now.minusDays(3)));
-                Claim cl3 = claimRepo.save(makeClaim(u3, slP2.getName(), "ACCIDENT", 22000.0, "DOCS_UPLOADED", 0.07,
+                Claim cl3 = claimRepo.save(makeClaim(u3, slP2, "ACCIDENT", 22000.0, "DOCS_UPLOADED", 0.07,
                                 now.minusDays(6)));
                 Claim cl4 = claimRepo.save(
-                                makeClaim(u5, hpP2.getName(), "HEALTH", 45000.0, "APPROVED", 0.05, now.minusDays(15)));
+                                makeClaim(u5, hpP2, "HEALTH", 45000.0, "APPROVED", 0.05, now.minusDays(15)));
                 Claim cl5 = claimRepo.save(
-                                makeClaim(u6, fgP1.getName(), "DEATH", 200000.0, "INITIATED", 0.62, now.minusDays(1)));
-                Claim cl6 = claimRepo.save(makeClaim(u7, slP3.getName(), "PROPERTY_DAMAGE", 12000.0, "APPROVED", 0.09,
+                                makeClaim(u6, fgP1, "DEATH", 200000.0, "INITIATED", 0.62, now.minusDays(1)));
+                Claim cl6 = claimRepo.save(makeClaim(u7, slP3, "PROPERTY_DAMAGE", 12000.0, "APPROVED", 0.09,
                                 now.minusDays(20)));
-                Claim cl7 = claimRepo.save(makeClaim(u9, fgP5.getName(), "CYBER", 55000.0, "UNDER_REVIEW", 0.35,
+                Claim cl7 = claimRepo.save(makeClaim(u9, fgP5, "CYBER", 55000.0, "UNDER_REVIEW", 0.35,
                                 now.minusDays(4)));
-                Claim cl8 = claimRepo.save(makeClaim(u11, hpP5.getName(), "HEALTH", 300000.0, "APPROVED", 0.03,
+                Claim cl8 = claimRepo.save(makeClaim(u11, hpP5, "HEALTH", 300000.0, "APPROVED", 0.03,
                                 now.minusDays(25)));
                 Claim cl9 = claimRepo.save(
-                                makeClaim(u12, hpP3.getName(), "HEALTH", 8500.0, "REJECTED", 0.71, now.minusDays(8)));
-                Claim cl10 = claimRepo.save(makeClaim(u13, fgP6.getName(), "ACCIDENT", 90000.0, "DOCS_UPLOADED", 0.15,
+                                makeClaim(u12, hpP3, "HEALTH", 8500.0, "REJECTED", 0.71, now.minusDays(8)));
+                Claim cl10 = claimRepo.save(makeClaim(u13, fgP6, "ACCIDENT", 90000.0, "DOCS_UPLOADED", 0.15,
                                 now.minusDays(2)));
-                Claim cl11 = claimRepo.save(makeClaim(u15, fgP2.getName(), "PROPERTY_DAMAGE", 28000.0, "APPROVED", 0.06,
+                Claim cl11 = claimRepo.save(makeClaim(u15, fgP2, "PROPERTY_DAMAGE", 28000.0, "APPROVED", 0.06,
                                 now.minusDays(10)));
                 System.out.println("Claims seeded (11)");
 
@@ -465,17 +465,19 @@ public class DataSeeder implements CommandLineRunner {
                 userCompanyMapRepo.save(ucm);
         }
 
-        private Claim makeClaim(User user, String policyName, String type,
+        private Claim makeClaim(User user, Policy policy, String type,
                         double amount, String status, double fraudScore, LocalDateTime date) {
                 Claim c = new Claim();
                 c.setUser(user);
-                c.setPolicyName(policyName);
+                c.setPolicy(policy);
+                c.setPolicyName(policy != null ? policy.getName() : "Unknown Policy");
                 c.setClaimType(type);
                 c.setAmount(amount);
                 c.setStatus(status);
                 c.setFraudScore(fraudScore);
                 c.setDate(date);
-                c.setDescription("Claim for " + type.toLowerCase() + " under " + policyName);
+                c.setDescription("Claim for " + type.toLowerCase() + " under "
+                                + (policy != null ? policy.getName() : "policy"));
                 c.setSuccessProbability(fraudScore < 0.3 ? 85 : fraudScore < 0.5 ? 60 : 30);
                 c.setNextAction(
                                 "INITIATED".equals(status) ? "Upload documents"

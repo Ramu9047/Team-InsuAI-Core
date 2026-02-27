@@ -429,6 +429,12 @@ public class AdminGovernanceService {
 
                 agent.setAssignedRegions(regions);
                 agent.setAssignedPolicyTypes(policyTypes);
+
+                // Sync specialization field for public display
+                if (policyTypes != null && !policyTypes.isEmpty()) {
+                        agent.setSpecialization(String.join(", ", policyTypes));
+                }
+
                 userRepository.save(agent);
 
                 notificationService.createNotification(

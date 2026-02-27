@@ -42,31 +42,8 @@ export default function ResetPassword() {
                     />
                     <button
                         type="button"
+                        className="input-icon-btn"
                         onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                            position: "absolute",
-                            right: 15,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 8,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "50%",
-                            color: "var(--text-muted)",
-                            transition: "all 0.2s ease"
-                        }}
-                        onMouseOver={e => {
-                            e.currentTarget.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
-                            e.currentTarget.style.color = "var(--primary)";
-                        }}
-                        onMouseOut={e => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                            e.currentTarget.style.color = "var(--text-muted)";
-                        }}
                     >
                         {showPassword ? (
                             <motion.svg

@@ -599,7 +599,7 @@ export default function CompanyDashboard() {
                         </div>
                     </SectionHeader>
 
-                    <div style={{ overflowX: 'auto' }}>
+                    <div style={{ overflowX: 'auto', maxHeight: 420, overflowY: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(0,0,0,0.15)' }}>
@@ -607,7 +607,8 @@ export default function CompanyDashboard() {
                                         <th key={i} style={{
                                             padding: '12px 18px', textAlign: 'left',
                                             color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.77rem',
-                                            textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.07)'
+                                            textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.07)',
+                                            position: 'sticky', top: 0, background: '#0f172a', zIndex: 1
                                         }}>{h}</th>
                                     ))}
                                 </tr>

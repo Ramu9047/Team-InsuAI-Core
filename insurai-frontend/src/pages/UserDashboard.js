@@ -66,7 +66,8 @@ export default function UserDashboard() {
     activePolicies: 0,
     rejectedRequests: 0,
     riskScore: 0,
-    healthScore: 0
+    healthScore: 0,
+    claims: 0
   });
 
   const [appointments, setAppointments] = useState([]);
@@ -202,12 +203,13 @@ export default function UserDashboard() {
     try {
       setLoading(true);
 
-      const [policiesRes, bookingsRes, agentsRes, recommendedRes, riskRes] = await Promise.all([
+      const [policiesRes, bookingsRes, agentsRes, recommendedRes, riskRes, claimRes] = await Promise.all([
         api.get(`/policies/user/${user.id}`).catch(() => ({ data: [] })),
         api.get(`/bookings/user/${user.id}`).catch(() => ({ data: [] })),
         api.get('/agents').catch(() => ({ data: [] })),
         policyService.getRecommendedPolicies(user),
-        api.get(`/ai/user-risk-profile/${user.id}`).catch(() => ({ data: null }))
+        api.get(`/ai/user-risk-profile/${user.id}`).catch(() => ({ data: null })),
+        api.get(`/claims/user/${user.id}`).catch(() => ({ data: [] }))
       ]);
 
       const allBookings = bookingsRes.data || [];
@@ -215,6 +217,7 @@ export default function UserDashboard() {
       const agents = agentsRes.data || [];
       const recommendedPolicies = recommendedRes || [];
       const riskProfile = riskRes.data;
+      const allClaims = Array.isArray(claimRes?.data) ? claimRes.data : [];
 
       setRiskData(riskProfile);
 
@@ -235,7 +238,8 @@ export default function UserDashboard() {
         activePolicies: activePolicies.length,
         rejectedRequests: rejectedCount,
         riskScore: riskProfile ? riskProfile.riskScore : calculateRiskScore(activePolicies, allBookings),
-        healthScore: calculateHealthScore(activePolicies)
+        healthScore: calculateHealthScore(activePolicies),
+        claims: allClaims.length
       });
 
       setAppointments(upcomingAppointments.slice(0, 1)); // Next appointment
@@ -323,12 +327,13 @@ export default function UserDashboard() {
       </motion.div>
 
       {/* ── Primary KPI Metrics ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 18, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 18, marginBottom: 40 }}>
         <KPICard icon="🧑‍💼" label="Active Agents" value={stats.activeAgents} color="#667eea" link="/choose-agent" linkText="View Agents →" idx={0} />
         <KPICard icon="📅" label="Appointments" value={stats.appointments} color="#f59e0b" link="/my-bookings" linkText="View Timeline →" idx={1} />
         <KPICard icon="📄" label="Active Policies" value={stats.activePolicies} color="#10b981" link="/my-policies" linkText="View Policies →" idx={2} />
         <KPICard icon="❌" label="Rejected Requests" value={stats.rejectedRequests} color="#ef4444" link="/my-bookings" linkText="Why rejected? →" idx={3} />
-        <KPICard icon="💬" label="Help & Feedback" value="Support" color="#8b5cf6" link="/feedback" linkText="Contact Us →" idx={4} />
+        <KPICard icon="🛡️" label="My Claims" value={stats.claims} color="#3b82f6" link="/claims" linkText="Track Claims →" idx={4} />
+        <KPICard icon="💬" label="Help & Feedback" value="Support" color="#8b5cf6" link="/feedback" linkText="Contact Us →" idx={5} />
       </div>
 
       {/* Appointment Journey Tracker */}
@@ -356,14 +361,17 @@ export default function UserDashboard() {
               }}>
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(appointmentStage / 4) * 100}%` }}
+                  animate={{ width: `${(appointmentStage / (appointments[0]?.bookingType === 'ENQUIRY' ? 3 : 4)) * 100}%` }}
                   transition={{ duration: 1, ease: 'easeOut' }}
                   style={{ height: '100%', background: 'linear-gradient(90deg, #4f46e5, #8b5cf6)', borderRadius: 2 }}
                 />
               </div>
 
               {/* Stages */}
-              {['Booked', 'Agent Assigned', 'Consulted', 'Approved', 'Policy Issued'].map((stage, idx) => (
+              {(appointments[0]?.bookingType === 'ENQUIRY'
+                ? ['Booked', 'Agent Assigned', 'Consulted', 'Resolved']
+                : ['Booked', 'Agent Assigned', 'Consulted', 'Approved', 'Policy Issued']
+              ).map((stage, idx, totalStages) => (
                 <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
                   <motion.div
                     initial={{ scale: 0 }}

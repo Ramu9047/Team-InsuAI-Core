@@ -202,4 +202,14 @@ public class Booking {
     public void setAiAnalysis(String aiAnalysis) {
         this.aiAnalysis = aiAnalysis;
     }
+
+    private String bookingType = "PURCHASE"; // PURCHASE or ENQUIRY
+
+    public String getBookingType() {
+        return bookingType;
+    }
+
+    public void setBookingType(String bookingType) {
+        this.bookingType = bookingType;
+    }
 }

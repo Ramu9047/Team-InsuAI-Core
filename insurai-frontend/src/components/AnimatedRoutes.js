@@ -84,7 +84,7 @@ export default function AnimatedRoutes() {
                 {/* User Routes */}
                 <Route element={<RequireAuth allowedRoles={['USER', 'AGENT']} />}>
                     <Route path="/choose-agent" element={<PageWrapper><ChooseAgent /></PageWrapper>} />
-                    <Route path="/schedule" element={<PageWrapper><ScheduleAppointment /></PageWrapper>} />
+                    <Route path="/schedule-appointment" element={<PageWrapper><ScheduleAppointment /></PageWrapper>} />
                     <Route path="/my-bookings" element={<PageWrapper><MyBookings /></PageWrapper>} />
                     <Route path="/my-policies" element={<PageWrapper><MyPolicies /></PageWrapper>} />
                     <Route path="/claims" element={<PageWrapper><MyClaims /></PageWrapper>} />

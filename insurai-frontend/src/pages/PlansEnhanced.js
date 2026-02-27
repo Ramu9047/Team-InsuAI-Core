@@ -124,7 +124,7 @@ export default function PlansEnhanced() {
         }
 
         const policy = policyData.policy || policyData;
-        navigate("/schedule", { state: { policy } });
+        navigate("/schedule-appointment", { state: { policy } });
         setSelectedPlan(null);
     };
 

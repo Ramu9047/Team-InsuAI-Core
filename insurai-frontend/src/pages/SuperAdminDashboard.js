@@ -56,8 +56,9 @@ const SectionHeader = ({ icon, title, children }) => (
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center'
     }}>
-        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-            {icon} {title}
+        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span>{icon}</span>
+            <span>{title}</span>
         </h3>
         {children}
     </div>
@@ -376,35 +377,35 @@ export default function SuperAdminDashboard() {
                     className="card"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    style={{ padding: 0, overflow: 'hidden' }}
+                    style={{ padding: 0, overflow: 'hidden', minWidth: 0 }}
                 >
                     <SectionHeader icon="🔄" title="Platform Conversion Funnel" />
                     <div style={{ padding: '20px 24px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 25, width: '100%' }}>
                             {funnelData.map((step, i) => (
                                 <div key={i} style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#6366f1' }}>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#6366f1' }}>
                                         {step.value.toLocaleString()}
                                     </div>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
                                         {step.name}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div style={{ height: 220 }}>
+                        <div style={{ height: 240, width: '100%' }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={funnelData} barCategoryGap="30%">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
-                                    <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                                    <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
+                                <BarChart data={funnelData} barCategoryGap="20%" margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+                                    <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                                    <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                                     <Tooltip
                                         contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
                                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                     />
-                                    <Bar dataKey="value" fill="#6366f1" radius={[6, 6, 0, 0]}>
+                                    <Bar dataKey="value" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={50}>
                                         {funnelData.map((_, i) => (
-                                            <Cell key={i} fill={`hsl(${239 - i * 10}, 70%, ${60 - i * 3}%)`} />
+                                            <Cell key={i} fill={`hsl(${239 - i * 12}, 75%, ${65 - i * 4}%)`} />
                                         ))}
                                     </Bar>
                                 </BarChart>

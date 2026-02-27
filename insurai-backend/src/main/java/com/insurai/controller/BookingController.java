@@ -57,7 +57,8 @@ public class BookingController {
                 request.getStart(),
                 request.getEnd(),
                 request.getPolicyId(),
-                request.getReason());
+                request.getReason(),
+                request.getBookingType());
     }
 
     @GetMapping("/user/{id}")

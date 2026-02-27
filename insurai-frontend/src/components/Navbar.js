@@ -171,27 +171,13 @@ export default function Navbar() {
                                     </div>
 
                                     {/* Agent vs User Links */}
-                                    {user.role === 'AGENT' ? (
-                                        <>
-                                            <NavLink to="/agent/consultations" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Consultations</NavLink>
-                                            <NavLink to="/agent/performance" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Performance</NavLink>
-                                            <NavLink to="/agent/requests" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>Agent Requests</NavLink>
-                                        </>
-                                    ) : user.role === 'USER' ? (
-                                        <>
-                                            <NavLink to="/my-bookings" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Bookings</NavLink>
-                                            <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>AI Recommendations</NavLink>
-                                        </>
+                                    {user.role === 'USER' ? (
+                                        <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>AI Recommendations</NavLink>
                                     ) : null}
 
                                     <NavLink to="/profile" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>Profile</NavLink>
 
-                                    {user.role === 'USER' && (
-                                        <>
-                                            <NavLink to="/my-policies" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Policies</NavLink>
-                                            <NavLink to="/claims" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>My Claims</NavLink>
-                                        </>
-                                    )}
+
                                     <div
                                         onClick={handleLogout}
                                         style={{
@@ -217,6 +203,6 @@ export default function Navbar() {
                     </>
                 )}
             </div>
-        </nav>
+        </nav >
     );
 }

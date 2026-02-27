@@ -53,7 +53,7 @@ export default function Sidebar() {
               📊 Dashboard
             </NavLink>
 
-            <NavLink to="/schedule" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/schedule-appointment" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
               📅 Appointments
             </NavLink>
 

@@ -24,6 +24,9 @@ public class AgentPerformanceDTO {
     private java.time.LocalDateTime lastActiveTime;
     private Integer approvedToday;
     private Integer rejectedToday;
+    private Integer claimsCount; // New field
+    private java.util.List<String> assignedRegions;
+    private java.util.List<String> assignedPolicyTypes;
 
     // Getters and Setters
     public Long getAgentId() {
@@ -184,5 +187,29 @@ public class AgentPerformanceDTO {
 
     public void setRejectedToday(Integer rejectedToday) {
         this.rejectedToday = rejectedToday;
+    }
+
+    public Integer getClaimsCount() {
+        return claimsCount;
+    }
+
+    public void setClaimsCount(Integer claimsCount) {
+        this.claimsCount = claimsCount;
+    }
+
+    public java.util.List<String> getAssignedRegions() {
+        return assignedRegions;
+    }
+
+    public void setAssignedRegions(java.util.List<String> assignedRegions) {
+        this.assignedRegions = assignedRegions;
+    }
+
+    public java.util.List<String> getAssignedPolicyTypes() {
+        return assignedPolicyTypes;
+    }
+
+    public void setAssignedPolicyTypes(java.util.List<String> assignedPolicyTypes) {
+        this.assignedPolicyTypes = assignedPolicyTypes;
     }
 }
