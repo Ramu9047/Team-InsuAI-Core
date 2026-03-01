@@ -21,6 +21,10 @@ public class User {
 
     private Boolean isActive = true; // For Admin activation/deactivation
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("companyId")
+    private Long mappingCompanyId; // Renamed to avoid JPA property collision
+
     // Profile Fields
     private Integer age;
     private String phone;
@@ -230,5 +234,13 @@ public class User {
 
     public void setDeactivatedAt(java.time.LocalDateTime deactivatedAt) {
         this.deactivatedAt = deactivatedAt;
+    }
+
+    public Long getMappingCompanyId() {
+        return mappingCompanyId;
+    }
+
+    public void setMappingCompanyId(Long mappingCompanyId) {
+        this.mappingCompanyId = mappingCompanyId;
     }
 }

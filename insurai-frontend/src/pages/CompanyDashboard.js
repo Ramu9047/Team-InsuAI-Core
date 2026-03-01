@@ -3,7 +3,7 @@ import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     LineChart, Line, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip,
@@ -139,6 +139,7 @@ export default function CompanyDashboard() {
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, policyId: null });
     const [agentModal, setAgentModal] = useState({ isOpen: false });
     const [agentForm, setAgentForm] = useState({ name: '', email: '', password: '' });
+    const [showAgentPassword, setShowAgentPassword] = useState(false);
 
     // ── Fetch (resilient: individual failures don't crash the dashboard) ─────
     const fetchData = useCallback(() => {
@@ -1120,7 +1121,49 @@ export default function CompanyDashboard() {
                 <form onSubmit={handleAddAgent} style={{ display: 'grid', gap: 12, color: 'var(--text-main)' }}>
                     <ModalInput placeholder="Agent Name" value={agentForm.name} onChange={e => setAgentForm({ ...agentForm, name: e.target.value })} required />
                     <ModalInput type="email" placeholder="Agent Email" value={agentForm.email} onChange={e => setAgentForm({ ...agentForm, email: e.target.value })} required />
-                    <ModalInput type="password" placeholder="Temporary Password" value={agentForm.password} onChange={e => setAgentForm({ ...agentForm, password: e.target.value })} required />
+                    <div style={{ position: 'relative' }}>
+                        <ModalInput
+                            type={showAgentPassword ? "text" : "password"}
+                            placeholder="Temporary Password"
+                            value={agentForm.password}
+                            onChange={e => setAgentForm({ ...agentForm, password: e.target.value })}
+                            required
+                            style={{ paddingRight: '44px' }}
+                        />
+                        <button
+                            type="button"
+                            className="input-icon-btn"
+                            onClick={() => setShowAgentPassword(!showAgentPassword)}
+                        >
+                            <AnimatePresence mode="wait" initial={false}>
+                                {showAgentPassword ? (
+                                    <motion.svg
+                                        key="hide"
+                                        initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
+                                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, rotate: 20 }}
+                                        transition={{ duration: 0.2 }}
+                                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                    >
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                                    </motion.svg>
+                                ) : (
+                                    <motion.svg
+                                        key="show"
+                                        initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
+                                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, rotate: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                    >
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </motion.svg>
+                                )}
+                            </AnimatePresence>
+                        </button>
+                    </div>
                     <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
                         <button type="button" className="secondary-btn" onClick={() => setAgentModal({ isOpen: false })} style={{ padding: '12px', flex: 1 }}>
                             Cancel

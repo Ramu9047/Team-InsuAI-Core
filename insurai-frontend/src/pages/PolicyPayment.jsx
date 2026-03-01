@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
@@ -23,6 +24,7 @@ const PolicyPayment = () => {
     const [cardName, setCardName] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
+    const [showCvv, setShowCvv] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
 
     useEffect(() => {
@@ -293,16 +295,52 @@ const PolicyPayment = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="form-group" style={{ position: 'relative' }}>
                                         <label>CVV</label>
-                                        <input
-                                            type="password"
-                                            value={cvv}
-                                            onChange={handleCvvChange}
-                                            placeholder="123"
-                                            className="form-input"
-                                            maxLength="4"
-                                        />
+                                        <div style={{ position: 'relative' }}>
+                                            <input
+                                                type={showCvv ? "text" : "password"}
+                                                value={cvv}
+                                                onChange={handleCvvChange}
+                                                placeholder="123"
+                                                className="form-input"
+                                                maxLength="4"
+                                                style={{ paddingRight: '40px' }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="input-icon-btn"
+                                                onClick={() => setShowCvv(!showCvv)}
+                                            >
+                                                <AnimatePresence mode="wait" initial={false}>
+                                                    {showCvv ? (
+                                                        <motion.svg
+                                                            key="hide"
+                                                            initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
+                                                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                                            exit={{ opacity: 0, scale: 0.8, rotate: 20 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                        >
+                                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                                        </motion.svg>
+                                                    ) : (
+                                                        <motion.svg
+                                                            key="show"
+                                                            initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
+                                                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                                            exit={{ opacity: 0, scale: 0.8, rotate: -20 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                        >
+                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </motion.svg>
+                                                    )}
+                                                </AnimatePresence>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

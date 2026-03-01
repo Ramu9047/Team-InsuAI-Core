@@ -38,7 +38,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user, org.springframework.security.core.Authentication auth) {
         if (user.getEmail() == null || user.getPassword() == null || user.getRole() == null) {
             return ResponseEntity.badRequest().body("Missing required fields");
         }
@@ -51,8 +51,39 @@ public class AuthController {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
+
         user.setAvailable(false);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setIsActive(true);
+
+        // Handle Company assignment
+        // Case 1: Created by Super Admin or explicit company ID provided
+        if (user.getMappingCompanyId() != null) {
+            Long cId = user.getMappingCompanyId();
+            companyRepository.findById(java.util.Objects.requireNonNull(cId)).ifPresent(user::setCompany);
+        }
+        // Case 2: Created by Company Admin (automatic mapping for all roles they
+        // create)
+        else if (auth != null && auth.isAuthenticated()) {
+            // Check if creator is a Super Admin - they might be registering without
+            // explicit companyId
+            // but usually they use the dropdown. If they don't, we don't auto-assign.
+
+            String creatorEmail = auth.getName();
+            // Check if creator is a User (e.g., a COMPANY_ADMIN role in users table)
+            userRepository.findByEmail(creatorEmail).ifPresent(currentUser -> {
+                if (currentUser.getCompany() != null) {
+                    user.setCompany(currentUser.getCompany());
+                }
+            });
+
+            // If not found in users or no company there, check if creator is a Company
+            // entity itself
+            if (user.getCompany() == null) {
+                companyRepository.findByEmail(creatorEmail).ifPresent(user::setCompany);
+            }
+        }
+
         User saved = userRepository.save(user);
 
         // Notify Admins for real-time dashboard update

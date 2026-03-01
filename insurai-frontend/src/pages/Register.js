@@ -111,15 +111,6 @@ export default function Register() {
         {errors.password && <p className="error-msg">{errors.password}</p>}
       </div>
 
-      <div className="form-group">
-        <label className="form-label">Account Role</label>
-        <select className="form-input" style={{ appearance: "auto" }}
-          onChange={e => setForm({ ...form, role: e.target.value })}>
-          <option value="USER">User (Standard)</option>
-          <option value="AGENT">Agent (Insurance Provider)</option>
-        </select>
-      </div>
-
       <button className="primary-btn" onClick={submit} style={{ width: "100%" }}>Create Account</button>
     </Card>
   );

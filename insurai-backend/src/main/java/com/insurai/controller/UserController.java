@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserRepository userRepo;
+    private final com.insurai.repository.CompanyRepository companyRepo;
 
-    public UserController(UserRepository userRepo) {
+    public UserController(UserRepository userRepo, com.insurai.repository.CompanyRepository companyRepo) {
         this.userRepo = userRepo;
+        this.companyRepo = companyRepo;
     }
 
     @GetMapping
@@ -61,6 +63,19 @@ public class UserController {
                 user.setRole(updates.getRole());
             if (updates.getIsActive() != null)
                 user.setIsActive(updates.getIsActive());
+
+            // Assign company for Agents
+            if ("AGENT".equalsIgnoreCase(user.getRole())) {
+                if (updates.getMappingCompanyId() != null) {
+                    Long cId = updates.getMappingCompanyId();
+                    if (cId != null) {
+                        companyRepo.findById(java.util.Objects.requireNonNull(cId)).ifPresent(user::setCompany);
+                    }
+                } else if (updates.getCompany() != null) {
+                    // This covers cases where nested JSON is sent
+                    user.setCompany(updates.getCompany());
+                }
+            }
 
             // Also allow updating standard fields
             if (updates.getPhone() != null)
