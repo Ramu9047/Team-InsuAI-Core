@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import { useConfirm } from './ConfirmDialog';
@@ -19,11 +19,7 @@ const MeetingPanel = () => {
     const [notes, setNotes] = useState('');
     const [savingNotes, setSavingNotes] = useState(false);
 
-    useEffect(() => {
-        fetchMeetingDetails();
-    }, [appointmentId]);
-
-    const fetchMeetingDetails = async () => {
+    const fetchMeetingDetails = useCallback(async () => {
         try {
             setLoading(true);
             const response = await api.get(`/api/meeting/${appointmentId}`);
@@ -34,7 +30,11 @@ const MeetingPanel = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [appointmentId, notify]);
+
+    useEffect(() => {
+        fetchMeetingDetails();
+    }, [fetchMeetingDetails]);
 
     const handleJoinMeeting = () => {
         if (meeting && meeting.meetingLink) {
@@ -176,7 +176,7 @@ const MeetingPanel = () => {
     }
 
     const timeUntil = getTimeUntilMeeting();
-    const isMeetingActive = meeting.status === 'MEETING_APPROVED' || meeting.status === 'CONSULTED';
+
 
     return (
         <div className="meeting-panel-container">
