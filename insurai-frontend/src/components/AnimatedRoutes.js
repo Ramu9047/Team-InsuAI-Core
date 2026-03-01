@@ -13,7 +13,7 @@ import PlansEnhanced from "../pages/PlansEnhanced";
 import MyClaims from "../pages/MyClaims";
 import MyBookings from "../pages/MyBookings";
 import MyPolicies from "../pages/MyPolicies";
-import Profile from "../pages/Profile";
+import UserAgentProfile from "../pages/UserAgentProfile";
 import AgentConsultations from "../pages/AgentConsultations";
 import AgentPerformance from "../pages/AgentPerformance";
 import AdminAnalytics from "../pages/AdminAnalytics";
@@ -89,7 +89,7 @@ export default function AnimatedRoutes() {
                     <Route path="/my-bookings" element={<PageWrapper><MyBookings /></PageWrapper>} />
                     <Route path="/my-policies" element={<PageWrapper><MyPolicies /></PageWrapper>} />
                     <Route path="/claims" element={<PageWrapper><MyClaims /></PageWrapper>} />
-                    <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
+                    <Route path="/profile" element={<PageWrapper><UserAgentProfile /></PageWrapper>} />
                     <Route path="/feedback" element={<PageWrapper><UserFeedbackPage /></PageWrapper>} />
                 </Route>
 
