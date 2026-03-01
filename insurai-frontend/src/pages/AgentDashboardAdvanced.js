@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { agentService } from '../services/agentService';
+import api from '../services/api';
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -64,7 +65,8 @@ export default function AgentDashboardAdvanced() {
     const loadAgentData = useCallback(async () => {
         try {
             setLoading(true);
-            setIsAvailable(user.available || false);
+            // NOTE: Do NOT reset isAvailable here — it is managed by toggleAvailability
+            // and initialized separately via the mount effect below.
 
             const [consultations, perf] = await Promise.all([
                 agentService.getAgentConsultations(),
@@ -182,10 +184,28 @@ export default function AgentDashboardAdvanced() {
         }
     }, [user, notify]);
 
+    // Load dashboard data — re-runs on refreshSignal but does NOT touch isAvailable
     useEffect(() => {
         if (!user || user.role !== 'AGENT') return;
         loadAgentData();
     }, [user, loadAgentData, refreshSignal]);
+
+    // Fetch real availability from API once on mount.
+    // Intentionally does NOT depend on user.available (stale AuthContext value)
+    // to avoid overwriting the local toggle state on refreshSignal reloads.
+    useEffect(() => {
+        if (!user?.id) return;
+        const fetchAvailability = async () => {
+            try {
+                const res = await api.get(`/users/${user.id}`);
+                setIsAvailable(res.data?.available ?? false);
+            } catch {
+                setIsAvailable(user.available ?? false);
+            }
+        };
+        fetchAvailability();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]); // only run when user ID changes, not when availability changes
 
 
     // Check policy type
