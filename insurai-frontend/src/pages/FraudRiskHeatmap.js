@@ -125,20 +125,22 @@ export default function FraudRiskHeatmap() {
                             onClick={() => setSelectedUser(user)}
                             style={{
                                 padding: 15,
-                                background: getRiskBgColor(user.riskLevel),
-                                border: `2px solid ${getRiskColor(user.riskLevel)}`,
-                                borderRadius: 8,
+                                background: `linear-gradient(135deg, ${getRiskBgColor(user.riskLevel)} 0%, rgba(255,255,255,0.05) 100%)`,
+                                border: `1px solid ${getRiskColor(user.riskLevel)}60`,
+                                borderRadius: 12,
                                 cursor: 'pointer',
-                                transition: 'transform 0.2s, box-shadow 0.2s',
-                                position: 'relative'
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                position: 'relative',
+                                display: 'flex', flexDirection: 'column', gap: 6,
+                                boxShadow: `0 4px 12px ${getRiskBgColor(user.riskLevel)}30`
                             }}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'scale(1.05)';
-                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow = `0 8px 24px ${getRiskBgColor(user.riskLevel)}60`;
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                                e.currentTarget.style.boxShadow = 'none';
+                                e.currentTarget.style.transform = 'none';
+                                e.currentTarget.style.boxShadow = `0 4px 12px ${getRiskBgColor(user.riskLevel)}30`;
                             }}
                         >
                             {/* Risk Score Badge */}
@@ -249,17 +251,11 @@ export default function FraudRiskHeatmap() {
 
                         {/* Actions */}
                         <div style={{ marginTop: 30, display: 'flex', gap: 10 }}>
-                            <button style={{
-                                flex: 1,
-                                padding: '12px 20px',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: 8,
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                            }}>
+                            <button className="secondary-btn" style={{ flex: 1, padding: '12px 20px', borderRadius: 8, fontWeight: '600', cursor: 'pointer' }}>
                                 View Full Profile
+                            </button>
+                            <button className="primary-btn" style={{ flex: 1, padding: '12px 20px', background: '#3b82f6', borderColor: '#3b82f6', borderRadius: 8, fontWeight: '600', cursor: 'pointer' }}>
+                                Investigate (Mark Review)
                             </button>
                             {selectedUser.riskLevel === 'RED' && (
                                 <button style={{
@@ -272,7 +268,7 @@ export default function FraudRiskHeatmap() {
                                     fontWeight: '600',
                                     cursor: 'pointer'
                                 }}>
-                                    Flag for Review
+                                    Escalate to Legal
                                 </button>
                             )}
                         </div>

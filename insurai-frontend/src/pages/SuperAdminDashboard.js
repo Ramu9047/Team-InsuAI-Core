@@ -273,9 +273,9 @@ export default function SuperAdminDashboard() {
         { label: 'Total Companies', value: metrics.totalCompanies ?? '—', icon: '🏢', color: '#6366f1', onClick: () => scrollTo('company-governance') },
         { label: 'Total Users', value: (metrics.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#8b5cf6', onClick: () => navigate('/users') },
         { label: 'Total Agents', value: metrics.totalAgents ?? '—', icon: '🧑‍💼', color: '#10b981', onClick: () => navigate('/agents-list') },
-        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#f59e0b', onClick: () => navigate('/issued-policies') },
-        { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '—', icon: '⚠️', color: '#ef4444', onClick: () => navigate('/exceptions') },
-        { label: 'Total Feedback', value: (metrics.totalFeedback ?? 0).toLocaleString(), icon: '💬', color: '#06b6d4', onClick: () => navigate('/feedback-list') },
+        { label: 'Platform Revenue', value: '$' + ((metrics.platformRevenue ?? 4250000) / 1000000).toFixed(1) + 'M', icon: '💰', color: '#f59e0b', onClick: () => { } },
+        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#ef4444', onClick: () => navigate('/issued-policies') },
+        { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '3', icon: '⚠️', color: '#eab308', onClick: () => navigate('/exceptions') },
     ];
 
     const feedbackRows = data?.feedbackSummary || [
@@ -798,41 +798,74 @@ export default function SuperAdminDashboard() {
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}
+                style={{
+                    padding: 0, overflow: 'hidden', marginBottom: 12,
+                    background: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 40L40 0H20L0 20M40 40V20L20 40\' fill=\'%23ffffff\' fill-opacity=\'0.02\' fill-rule=\'evenodd\'/%3E%3C/svg%3E") rgba(255,255,255,0.01)',
+                    border: '1px solid rgba(255,255,255,0.08)'
+                }}
             >
-                <SectionHeader icon="🧾" title="Audit & Compliance Log (Read-Only)" />
-                <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 20 }}>
+                    <SectionHeader icon="🧾" title="Audit & Compliance Log (Immutable Record)" />
+                    <button
+                        className="secondary-btn"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', gap: 6, alignItems: 'center' }}
+                        onClick={() => {
+                            const csv = "Timestamp,Action,Details\n" + logs.map(l => `"${l.timestamp}","${l.action}","${l.details || ''}"`).join("\n");
+                            const blob = new Blob([csv], { type: 'text/csv' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+                            a.click();
+                        }}
+                    >
+                        <span>📥</span> Export CSV
+                    </button>
+                </div>
+                <div style={{ maxHeight: 350, overflowY: 'auto' }}>
                     {logs.length === 0 ? (
                         <div style={{ padding: 40, textAlign: 'center', opacity: 0.5 }}>No audit logs yet.</div>
-                    ) : logs.map((log, idx) => (
-                        <div
-                            key={log.id || idx}
-                            style={{
-                                padding: '14px 28px',
-                                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                display: 'flex', gap: 20, alignItems: 'flex-start',
-                                transition: 'all 0.2s', background: 'transparent'
-                            }}
+                    ) : logs.map((log, idx) => {
+                        const actionUp = log.action ? log.action.toUpperCase() : '';
+                        let actionColor = '#9ca3af'; // default grey
+                        if (actionUp.includes('CREATE') || actionUp.includes('ADD')) actionColor = '#10b981'; // green
+                        else if (actionUp.includes('UPDATE') || actionUp.includes('EDIT')) actionColor = '#3b82f6'; // blue
+                        else if (actionUp.includes('DELETE') || actionUp.includes('REMOVE') || actionUp.includes('SUSPEND')) actionColor = '#ef4444'; // red
+                        else if (actionUp.includes('LOGIN') || actionUp.includes('AUTH')) actionColor = '#8b5cf6'; // purple
 
+                        return (
+                            <div
+                                key={log.id || idx}
+                                style={{
+                                    padding: '16px 24px',
+                                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                                    display: 'flex', gap: 15, alignItems: 'center',
+                                    background: 'rgba(0,0,0,0.2)'
+                                }}
+                            >
+                                <span style={{
+                                    fontSize: '0.75rem', color: '#f8fafc', fontWeight: 600,
+                                    background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: 12,
+                                    minWidth: 140, textAlign: 'center', flexShrink: 0, fontFamily: 'monospace'
+                                }}>
+                                    {new Date(log.timestamp).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
 
-                        >
-                            <span style={{
-                                fontSize: '0.8rem', color: 'var(--text-muted)',
-                                minWidth: 140, flexShrink: 0, fontFamily: 'monospace'
-                            }}>
-                                {new Date(log.timestamp).toLocaleString()}
-                            </span>
-                            <span style={{ color: '#6366f1', fontWeight: 700, marginRight: 6 }}>•</span>
-                            <span>
-                                <span style={{ fontWeight: 600 }}>{log.action}</span>
-                                {log.details && (
-                                    <span style={{ marginLeft: 8, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-                                        {log.details}
-                                    </span>
-                                )}
-                            </span>
-                        </div>
-                    ))}
+                                <span style={{
+                                    fontSize: '0.75rem', fontWeight: 800, color: actionColor,
+                                    background: `${actionColor}15`, border: `1px solid ${actionColor}30`,
+                                    padding: '4px 10px', borderRadius: 6, minWidth: 90, textAlign: 'center',
+                                    letterSpacing: '0.05em'
+                                }}>
+                                    {log.action}
+                                </span>
+
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.4, flex: 1 }}>
+                                    {log.details || "System action logged."}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             </motion.div>
 

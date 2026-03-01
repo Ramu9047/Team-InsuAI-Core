@@ -5,6 +5,41 @@ import { useNotification } from "../context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Modal from "../components/Modal";
 
+// CountdownBadge component
+const CountdownBadge = ({ targetDate }) => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const end = new Date(targetDate);
+  const now = new Date();
+  const diff = end - now;
+
+  if (diff < 0) return null; // past
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / 1000 / 60) % 60);
+
+  let text;
+  if (days > 0) text = `In ${days}d ${hours}h`;
+  else if (hours > 0) text = `In ${hours}h ${mins}m`;
+  else text = `In ${mins}m`;
+
+  return (
+    <span style={{
+      background: 'rgba(234, 179, 8, 0.1)', color: '#eab308',
+      padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,
+      marginLeft: 8, display: 'inline-flex', alignItems: 'center'
+    }}>
+      ⏳ {text}
+    </span>
+  );
+};
+
 export default function AgentAppointmentsEnhanced() {
   const { user } = useAuth();
   const { notify } = useNotification();
@@ -326,9 +361,10 @@ export default function AgentAppointmentsEnhanced() {
                 </div>
 
                 <div style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: 15 }}>
-                  📅 {new Date(apt.startTime).toLocaleDateString()}<br />
-                  ⏰ {new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -
-                  {new Date(apt.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  📅 {new Date(apt.startTime).toLocaleDateString()}
+                  {['PENDING', 'APPROVED', 'CONFIRMED'].includes(apt.status) && <CountdownBadge targetDate={apt.startTime} />}
+                  <br />
+                  ⏰ {new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
 
                 {apt.meetingLink && (

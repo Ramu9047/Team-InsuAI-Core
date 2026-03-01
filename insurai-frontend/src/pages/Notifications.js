@@ -104,10 +104,33 @@ export default function Notifications() {
             {/* List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {filteredNotifications.length === 0 ? (
-                    <div style={{ padding: 60, textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 16 }}>
-                        <div style={{ fontSize: '3rem', marginBottom: 16 }}>📭</div>
-                        <h3 style={{ color: 'var(--text-muted)' }}>No notifications found</h3>
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        style={{
+                            margin: "40px auto", maxWidth: 500, padding: 50,
+                            background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)',
+                            borderRadius: 24, border: '1px solid rgba(255,255,255,0.08)',
+                            textAlign: "center", boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 30px' }}>
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                                style={{ position: 'absolute', inset: 0, border: '2px dashed rgba(99,102,241,0.2)', borderRadius: '50%' }}
+                            />
+                            <div style={{ position: 'absolute', inset: 10, background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.1))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4.5rem', boxShadow: 'inset 0 0 20px rgba(99,102,241,0.1)' }}>
+                                📭
+                            </div>
+                        </div>
+                        <h2 style={{ fontSize: "1.6rem", marginBottom: 15, background: 'linear-gradient(to right, #60a5fa, #818cf8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+                            Inbox Zero!
+                        </h2>
+                        <p style={{ fontSize: "1rem", color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 10 }}>
+                            You're all caught up. There are no new notifications at the moment.
+                        </p>
+                    </motion.div>
                 ) : (
                     filteredNotifications.map((notif, idx) => (
                         <motion.div

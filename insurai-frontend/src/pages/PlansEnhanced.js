@@ -402,6 +402,86 @@ export default function PlansEnhanced() {
     );
 }
 
+// Circular Progress Component
+const CircularProgress = ({ score, size = 46, strokeWidth = 4 }) => {
+    const radius = size / 2 - strokeWidth;
+    const circumference = radius * 2 * Math.PI;
+    const offset = Math.max(0, circumference - (score / 100) * circumference);
+    const color = score >= 70 ? '#22c55e' : score >= 50 ? '#eab308' : '#ef4444';
+
+    return (
+        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+                <circle
+                    cx={size / 2} cy={size / 2} r={radius}
+                    stroke="rgba(255,255,255,0.1)" strokeWidth={strokeWidth} fill="transparent"
+                />
+                <motion.circle
+                    initial={{ strokeDashoffset: circumference }}
+                    animate={{ strokeDashoffset: offset }}
+                    transition={{ duration: 1.5, ease: 'easeOut' }}
+                    cx={size / 2} cy={size / 2} r={radius}
+                    stroke={color} strokeWidth={strokeWidth} fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeLinecap="round"
+                />
+            </svg>
+            <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color, lineHeight: 1 }}>{Math.round(score)}</span>
+                <span style={{ fontSize: '0.4rem', fontWeight: 700, color: 'var(--text-muted)' }}>%</span>
+            </div>
+        </div>
+    );
+};
+
+// Expandable Explainability Section
+const ExplainabilitySection = ({ reason }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    if (!reason) return null;
+
+    return (
+        <div style={{ paddingLeft: 10, marginBottom: 15, paddingRight: 10 }}>
+            <div
+                onClick={() => setExpanded(!expanded)}
+                style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    background: 'rgba(255,255,255,0.03)', padding: '8px 12px',
+                    borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)'
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: '1rem' }}>💡</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#a5b4fc' }}>Why this policy?</span>
+                </div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                    ▼
+                </span>
+            </div>
+
+            <AnimatePresence>
+                {expanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        style={{ overflow: 'hidden' }}
+                    >
+                        <div style={{
+                            padding: '10px 12px', background: 'rgba(99,102,241,0.05)',
+                            border: '1px solid rgba(99,102,241,0.1)',
+                            borderTop: 'none', borderRadius: '0 0 8px 8px',
+                            fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5
+                        }}>
+                            {reason}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 // Policy Recommendation Card Component
 function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibilityColor, getEligibilityText, isTopPick }) {
     const policy = recommendation.policy || recommendation;
@@ -468,15 +548,9 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
                     flexWrap: 'wrap'
                 }}>
                     {/* Match Score Badge */}
-                    <div style={{
-                        background: recommendation.matchScore >= 70 ? '#22c55e20' : recommendation.matchScore >= 50 ? '#eab30820' : '#ef444420',
-                        color: recommendation.matchScore >= 70 ? '#22c55e' : recommendation.matchScore >= 50 ? '#eab308' : '#ef4444',
-                        padding: '4px 10px',
-                        borderRadius: 6,
-                        fontSize: '0.75rem',
-                        fontWeight: 700
-                    }}>
-                        {recommendation.matchScore.toFixed(0)}% Match
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 4 }}>
+                        <CircularProgress score={recommendation.matchScore} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>AI Match</span>
                     </div>
 
                     {/* Eligibility Badge */}
@@ -533,11 +607,15 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
             </div>
 
             {/* Description */}
-            <p style={{ paddingLeft: 10, fontSize: "0.9rem", opacity: 0.7, lineHeight: 1.6, flex: 1, marginBottom: 20 }}>
+            <p style={{ paddingLeft: 10, paddingRight: 10, fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: 1.6, flex: 1, marginBottom: 15 }}>
                 {(policy.description || "No description available.").length > 80
                     ? (policy.description || "").substring(0, 80) + "..."
                     : policy.description}
             </p>
+
+            {hasAIData && recommendation.recommendationReason && (
+                <ExplainabilitySection reason={recommendation.recommendationReason} />
+            )}
 
             {/* Action */}
             <div style={{ paddingLeft: 10, marginTop: "auto" }}>

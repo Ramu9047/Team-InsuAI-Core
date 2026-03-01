@@ -6,6 +6,40 @@ import { motion } from "framer-motion";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
 
+const CountdownBadge = ({ targetDate }) => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const end = new Date(targetDate);
+  const now = new Date();
+  const diff = end - now;
+
+  if (diff < 0) return null; // past
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / 1000 / 60) % 60);
+
+  let text;
+  if (days > 0) text = `In ${days}d ${hours}h`;
+  else if (hours > 0) text = `In ${hours}h ${mins}m`;
+  else text = `In ${mins}m`;
+
+  return (
+    <span style={{
+      background: 'rgba(234, 179, 8, 0.1)', color: '#eab308',
+      padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,
+      marginLeft: 8, display: 'inline-flex', alignItems: 'center'
+    }}>
+      ⏳ {text}
+    </span>
+  );
+};
+
 export default function MyBookings() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -239,12 +273,53 @@ export default function MyBookings() {
               className="card"
               style={{ borderLeft: `4px solid ${getColor(b.status)}`, position: "relative" }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontWeight: 700, textTransform: "uppercase", fontSize: 12, color: getColor(b.status) }}>
-                  {b.status}
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
+                <span style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 13, color: getColor(b.status), letterSpacing: 0.5 }}>
+                  {b.status === 'COMPLETED' ? '✓ ' : ''}{b.status}
                 </span>
-                <span style={{ fontSize: 12, opacity: 0.6 }}>ID: #{b.id}</span>
+                <span style={{ fontSize: 12, opacity: 0.6, fontFamily: 'monospace' }}>ID: #{b.id}</span>
               </div>
+
+              {/* Status Timeline Component */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, padding: '0 10px' }}>
+                {['PENDING', 'APPROVED', 'COMPLETED'].map((step, idx, arr) => {
+                  const isActive = b.status === step ||
+                    (b.status === 'COMPLETED') ||
+                    (idx === 1 && (b.status === 'APPROVED' || b.status === 'CONFIRMED'));
+                  const isPast = (b.status === 'APPROVED' && idx === 0) || (b.status === 'COMPLETED' && idx < 2);
+                  const isRejected = (b.status === 'REJECTED' || b.status === 'CANCELLED');
+
+                  let nodeColor = isActive || isPast ? '#10b981' : 'rgba(255,255,255,0.1)';
+                  if (isRejected && idx > 0) nodeColor = 'rgba(255,255,255,0.1)'; // grey out if rejected
+                  if (isRejected && idx === 0) nodeColor = '#ef4444';
+
+                  return (
+                    <div key={step} style={{ display: 'flex', alignItems: 'center', flex: idx < arr.length - 1 ? 1 : 'none' }}>
+                      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{
+                          width: 14, height: 14, borderRadius: '50%', background: nodeColor,
+                          border: `2px solid ${isActive || isPast || (isRejected && idx === 0) ? 'transparent' : 'rgba(255,255,255,0.2)'}`,
+                          boxShadow: isActive ? `0 0 10px ${nodeColor}` : 'none',
+                          zIndex: 2
+                        }}></div>
+                        <span style={{
+                          position: 'absolute', top: 20, fontSize: '0.65rem', fontWeight: 600,
+                          color: isActive || isPast ? 'var(--text-main)' : 'var(--text-muted)',
+                          whiteSpace: 'nowrap'
+                        }}>{step}</span>
+                      </div>
+                      {idx < arr.length - 1 && (
+                        <div style={{
+                          height: 2, flex: 1, margin: '0 4px',
+                          background: isPast ? '#10b981' : 'rgba(255,255,255,0.1)',
+                          transition: 'background 0.3s'
+                        }}></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ height: 15 }}></div> {/* spacer for timeline labels */}
 
               <div style={{ display: "flex", gap: 15, alignItems: "center", marginBottom: 15 }}>
                 <div style={{ width: 50, height: 50, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
@@ -257,7 +332,9 @@ export default function MyBookings() {
               </div>
 
               <div style={{ background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 8, fontSize: "0.9rem", marginBottom: 15 }}>
-                📅 <strong>{new Date(b.startTime).toLocaleDateString()}</strong> <br />
+                📅 <strong>{new Date(b.startTime).toLocaleDateString()}</strong>
+                {activeTab === 'upcoming' && <CountdownBadge targetDate={b.startTime} />}
+                <br />
                 ⏰ {new Date(b.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(b.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
 
@@ -386,12 +463,13 @@ export default function MyBookings() {
   );
 }
 
+
+
 function getColor(status) {
-  if (status === 'APPROVED' || status === 'CONFIRMED') return '#22c55e';
-  if (status === 'PENDING') return '#f59e0b';
-  if (status === 'COMPLETED') return '#6366f1';
-  if (status === 'EXPIRED') return '#6b7280';
-  return '#ef4444';
+  if (status === 'APPROVED' || status === 'CONFIRMED') return '#22c55e'; // green
+  if (status === 'PENDING') return '#f59e0b'; // amber
+  if (status === 'COMPLETED' || status === 'EXPIRED') return '#9ca3af'; // grey
+  return '#ef4444'; // red for REJECTED / CANCELLED
 }
 
 function createCalendarLink(booking) {

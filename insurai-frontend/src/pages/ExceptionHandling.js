@@ -241,43 +241,63 @@ function ExceptionCaseCard({ exCase, index, onClick }) {
             className="card"
             style={{
                 cursor: 'pointer',
-                borderLeft: `4px solid ${getCaseTypeColor(exCase.caseType)}`,
-                position: 'relative'
+                borderLeft: `4px solid ${getPriorityColor(exCase.priority)}`,
+                position: 'relative',
+                background: exCase.isUrgent ? 'linear-gradient(to right, rgba(239,68,68,0.05), rgba(255,255,255,0.02))' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.2s ease',
+                display: 'flex', flexDirection: 'column'
             }}
             onClick={onClick}
+            whileHover={{ y: -4, boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
         >
             {/* Priority Badge */}
-            {exCase.isUrgent && (
+            {exCase.isUrgent ? (
                 <div style={{
                     position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    background: '#dc2626',
+                    top: 12,
+                    right: 12,
+                    background: '#ef4444',
                     color: 'white',
                     padding: '4px 10px',
                     borderRadius: 12,
-                    fontSize: '0.75rem',
-                    fontWeight: 700
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    boxShadow: '0 0 10px rgba(239,68,68,0.4)',
+                    display: 'flex', alignItems: 'center', gap: 4
                 }}>
-                    🚨 URGENT
+                    <span style={{ animation: 'pulse 2s infinite' }}>🚨</span> URGENT
+                </div>
+            ) : (
+                <div style={{
+                    position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6
+                }}>
+                    <div style={{
+                        padding: '3px 8px', borderRadius: 12, fontSize: '0.65rem', fontWeight: 800,
+                        background: `${getPriorityColor(exCase.priority)}15`,
+                        color: getPriorityColor(exCase.priority), border: `1px solid ${getPriorityColor(exCase.priority)}40`
+                    }}>
+                        {exCase.priority}
+                    </div>
                 </div>
             )}
 
             {/* Case Type */}
             <div style={{ marginBottom: 15, marginTop: exCase.isUrgent ? 30 : 0 }}>
                 <div style={{
-                    display: 'inline-block',
-                    background: `${getCaseTypeColor(exCase.caseType)}20`,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: `${getCaseTypeColor(exCase.caseType)}10`,
                     color: getCaseTypeColor(exCase.caseType),
-                    padding: '6px 12px',
+                    padding: '5px 10px',
                     borderRadius: 8,
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    marginBottom: 10
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    marginBottom: 10,
+                    border: `1px solid ${getCaseTypeColor(exCase.caseType)}30`
                 }}>
-                    {getCaseTypeIcon(exCase.caseType)} {exCase.caseType.replace('_', ' ')}
+                    <span>{getCaseTypeIcon(exCase.caseType)}</span>
+                    <span style={{ letterSpacing: '0.05em' }}>{exCase.caseType.replace('_', ' ')}</span>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{exCase.title}</h3>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)', lineHeight: 1.4 }}>{exCase.title}</h3>
             </div>
 
             {/* Parties Involved */}
@@ -349,9 +369,22 @@ function ExceptionCaseCard({ exCase, index, onClick }) {
                 )}
             </div>
 
-            {/* Timestamp */}
-            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>
-                Created {new Date(exCase.createdAt).toLocaleDateString()}
+            {/* Timeline View style for status actions */}
+            <div style={{ marginTop: 'auto', paddingTop: 15, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Created: <strong style={{ color: 'var(--text-main)' }}>{new Date(exCase.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    {exCase.status === 'PENDING' && (
+                        <button className="primary-btn" style={{ fontSize: '0.75rem', padding: '6px 14px', background: '#3b82f6', borderColor: '#3b82f6' }} onClick={(e) => { e.stopPropagation(); onClick(); }}>Investigate</button>
+                    )}
+                    {exCase.status === 'UNDER_REVIEW' && (
+                        <button className="primary-btn" style={{ fontSize: '0.75rem', padding: '6px 14px', background: '#eab308', borderColor: '#eab308', color: '#020617' }} onClick={(e) => { e.stopPropagation(); onClick(); }}>Escalate</button>
+                    )}
+                    {(exCase.status === 'RESOLVED' || exCase.status === 'CLOSED') && (
+                        <button className="secondary-btn" style={{ fontSize: '0.75rem', padding: '6px 14px' }} onClick={(e) => { e.stopPropagation(); onClick(); }}>View Log</button>
+                    )}
+                </div>
             </div>
         </motion.div>
     );

@@ -226,17 +226,31 @@ export default function NotificationCenter({ userRole }) {
                                 padding: '8px 0'
                             }}>
                                 {notifications.length === 0 ? (
-                                    <div style={{
-                                        padding: 60,
-                                        textAlign: 'center',
-                                        color: 'var(--text-muted)'
-                                    }}>
-                                        <div style={{ fontSize: '3rem', marginBottom: 15 }}>🔕</div>
-                                        <p style={{ margin: 0, fontSize: '0.95rem' }}>No notifications yet</p>
-                                        <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', opacity: 0.7 }}>
-                                            You're all caught up!
-                                        </p>
-                                    </div>
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        style={{
+                                            padding: 40,
+                                            textAlign: 'center',
+                                            color: 'var(--text-muted)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        <div style={{ position: 'relative', width: 90, height: 90, marginBottom: 20 }}>
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                                                style={{ position: 'absolute', inset: 0, border: '1px dashed rgba(99,102,241,0.3)', borderRadius: '50%' }}
+                                            />
+                                            <div style={{ position: 'absolute', inset: 5, background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.1))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', boxShadow: 'inset 0 0 15px rgba(99,102,241,0.15)' }}>
+                                                📭
+                                            </div>
+                                        </div>
+                                        <h4 style={{ margin: '0 0 5px', fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 600 }}>All Caught Up!</h4>
+                                        <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.8 }}>No new notifications.</p>
+                                    </motion.div>
                                 ) : (
                                     notifications.map((notif, idx) => (
                                         <motion.div

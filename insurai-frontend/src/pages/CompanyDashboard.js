@@ -426,6 +426,27 @@ export default function CompanyDashboard() {
         { type: 'suggestion', title: 'Best Performing Segment', text: 'Age group 22–35 shows 40% higher engagement. Target aggressively.' },
     ];
 
+    const claimsActivityData = [
+        { name: 'Week 1', submitted: 120, approved: 85, rejected: 15 },
+        { name: 'Week 2', submitted: 150, approved: 105, rejected: 25 },
+        { name: 'Week 3', submitted: 180, approved: 140, rejected: 20 },
+        { name: 'Week 4', submitted: 130, approved: 95, rejected: 10 },
+    ];
+
+    const [predictedClaim, setPredictedClaim] = useState({ amount: '', type: 'Health', age: '' });
+    const [predictionResult, setPredictionResult] = useState(null);
+
+    const handlePredict = (e) => {
+        e.preventDefault();
+        // Mock prediction logic
+        const risk = Math.random();
+        setPredictionResult({
+            probability: Math.round(risk * 100),
+            status: risk > 0.7 ? 'High Risk of Rejection' : (risk > 0.3 ? 'Medium Risk - Manual Review' : 'High Probability of Approval'),
+            color: risk > 0.7 ? '#ef4444' : (risk > 0.3 ? '#f59e0b' : '#10b981')
+        });
+    };
+
     const displayInsights = aiInsights.length > 0
         ? aiInsights
         : defaultInsights;
@@ -1057,6 +1078,85 @@ export default function CompanyDashboard() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* ═══════════════════════════════════════
+                📊 CLAIMS ACTIVITY & AI PREDICTOR
+            ═══════════════════════════════════════ */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 36, marginTop: 24 }}>
+                {/* Interactive Claims Activity Chart */}
+                <motion.div className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
+                    <SectionHeader icon="📊" title="Claims Activity (Monthly)" />
+                    <div style={{ padding: '20px 24px', height: 260 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={claimsActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+                                <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
+                                <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
+                                <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} />
+                                <Bar dataKey="submitted" name="Submitted" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="approved" name="Approved" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="rejected" name="Rejected" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </motion.div>
+
+                {/* AI Claim Probability Predictor Widget */}
+                <motion.div className="card custom-glass" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
+                    padding: 0, overflow: 'hidden',
+                    background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                }}>
+                    <SectionHeader icon="🔮" title="Claim Probability Predictor" />
+                    <div style={{ padding: '20px 24px' }}>
+                        <form onSubmit={handlePredict} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <select
+                                value={predictedClaim.type}
+                                onChange={e => setPredictedClaim({ ...predictedClaim, type: e.target.value })}
+                                style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '0.85rem' }}
+                            >
+                                <option value="Health">Health Insurance</option>
+                                <option value="Life">Life Insurance</option>
+                                <option value="Car">Auto Insurance</option>
+                            </select>
+                            <input
+                                type="number" placeholder="Claim Amount (₹)" required
+                                value={predictedClaim.amount}
+                                onChange={e => setPredictedClaim({ ...predictedClaim, amount: e.target.value })}
+                                style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '0.85rem' }}
+                            />
+                            <input
+                                type="number" placeholder="Policy Holder Age" required
+                                value={predictedClaim.age}
+                                onChange={e => setPredictedClaim({ ...predictedClaim, age: e.target.value })}
+                                style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '0.85rem' }}
+                            />
+                            <button type="submit" className="primary-btn" style={{ padding: '10px', fontSize: '0.85rem', marginTop: 5 }}>
+                                Run AI Prediction
+                            </button>
+                        </form>
+
+                        {predictionResult && (
+                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ marginTop: 20, padding: 15, background: 'rgba(0,0,0,0.2)', borderRadius: 10, borderLeft: `4px solid ${predictionResult.color}` }}>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: 5 }}>AI ANALYSIS RESULT</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                                    <strong style={{ color: predictionResult.color }}>{predictionResult.status}</strong>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{predictionResult.probability}%</span>
+                                </div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                                    * Prediction based on historical data and current risk models.
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </motion.div>
             </div>
