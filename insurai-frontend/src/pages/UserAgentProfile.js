@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
+import { useConfirm } from "../components/ConfirmDialog";
 
 // ─────────────────────────────────────────────────
 //  SHARED MICRO-COMPONENTS
@@ -148,6 +149,7 @@ const EyeIcon = ({ open }) => open ? (
 // ─────────────────────────────────────────────────
 function SecuritySection({ user, logout }) {
     const { notify } = useNotification();
+    const confirm = useConfirm();
     const [showSection, setShowSection] = useState(false);
     const [pwForm, setPwForm] = useState({ oldPassword: "", newPassword: "", confirm: "" });
     const [showPw, setShowPw] = useState({ old: false, new: false, confirm: false });
@@ -244,7 +246,16 @@ function SecuritySection({ user, logout }) {
                     background: "rgba(239,68,68,0.03)", border: "1px solid rgba(239,68,68,0.15)",
                     display: "flex", alignItems: "center", gap: 12, transition: "all 0.2s"
                 }}
-                onClick={() => { if (window.confirm("Sign out from all sessions?")) logout(); }}
+                onClick={async () => {
+                    const ok = await confirm({
+                        title: "Logout from All Devices",
+                        message: "This will invalidate all active sessions across every device and browser. You will be signed out immediately.",
+                        confirmLabel: "Yes, Logout All",
+                        cancelLabel: "Cancel",
+                        variant: "logout",
+                    });
+                    if (ok) logout();
+                }}
             >
                 <span style={{ fontSize: "1.1rem" }}>🔓</span>
                 <div>

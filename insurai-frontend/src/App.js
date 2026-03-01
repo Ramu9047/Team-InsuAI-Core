@@ -4,6 +4,7 @@ import AnimatedRoutes from "./components/AnimatedRoutes";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ToastProvider } from './components/ToastSystem';
+import { ConfirmProvider } from './components/ConfirmDialog';
 
 // Main App Component
 export default function App() {
@@ -11,11 +12,13 @@ export default function App() {
         <ToastProvider>
             <AuthProvider>
                 <NotificationProvider>
-                    <BrowserRouter>
-                        <Layout>
-                            <AnimatedRoutes />
-                        </Layout>
-                    </BrowserRouter>
+                    <ConfirmProvider>
+                        <BrowserRouter>
+                            <Layout>
+                                <AnimatedRoutes />
+                            </Layout>
+                        </BrowserRouter>
+                    </ConfirmProvider>
                 </NotificationProvider>
             </AuthProvider>
         </ToastProvider>

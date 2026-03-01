@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
+import { useConfirm } from "../components/ConfirmDialog";
 
 // ─────────────────────────────────────────────────
 //  SHARED MICRO-COMPONENTS
@@ -111,6 +112,7 @@ export default function AdminProfile() {
     const { user, logout } = useAuth();
     const { notify } = useNotification();
     const navigate = useNavigate();
+    const confirm = useConfirm();
 
     const [profileData, setProfileData] = useState(null);
     const [dashStats, setDashStats] = useState(null);
@@ -644,10 +646,15 @@ export default function AdminProfile() {
                                 background: "rgba(255,255,255,0.02)", border: "1px solid rgba(239,68,68,0.15)",
                                 display: "flex", alignItems: "center", gap: 12, transition: "all 0.2s"
                             }}
-                            onClick={() => {
-                                if (window.confirm("Logout from all sessions? You will be signed out.")) {
-                                    logout();
-                                }
+                            onClick={async () => {
+                                const ok = await confirm({
+                                    title: "Logout from All Sessions",
+                                    message: "This will sign you out from all active sessions on every device. You will need to log in again.",
+                                    confirmLabel: "Yes, Logout All",
+                                    cancelLabel: "Cancel",
+                                    variant: "logout",
+                                });
+                                if (ok) logout();
                             }}
                         >
                             <span style={{ fontSize: "1.1rem" }}>🔓</span>

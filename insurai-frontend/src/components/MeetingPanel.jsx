@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
+import { useConfirm } from './ConfirmDialog';
 import api from '../services/api';
 import './MeetingPanel.css';
 
@@ -11,6 +12,7 @@ import './MeetingPanel.css';
 const MeetingPanel = () => {
     const { appointmentId } = useParams();
     const { notify } = useNotification();
+    const confirm = useConfirm();
 
     const [meeting, setMeeting] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -62,11 +64,18 @@ const MeetingPanel = () => {
     };
 
     const handleCompleteMeeting = async () => {
-        if (window.confirm('Mark this consultation as complete?')) {
+        const ok = await confirm({
+            title: "Complete Consultation?",
+            message: "Are you sure you want to mark this consultation as complete? This action will finalize the session.",
+            confirmLabel: "Yes, Mark Complete",
+            cancelLabel: "Cancel",
+            variant: "complete",
+        });
+        if (ok) {
             try {
                 await api.put(`/api/appointments/${appointmentId}/complete`);
                 notify('Consultation marked as complete', 'success');
-                fetchMeetingDetails(); // Refresh
+                fetchMeetingDetails();
             } catch (error) {
                 console.error('Error completing meeting:', error);
                 notify('Failed to complete meeting', 'error');
