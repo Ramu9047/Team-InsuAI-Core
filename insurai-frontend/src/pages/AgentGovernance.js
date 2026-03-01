@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import { useConfirm } from "../components/ConfirmDialog";
 import Modal from "../components/Modal";
 
 export default function AgentGovernance() {
@@ -10,6 +11,7 @@ export default function AgentGovernance() {
     const [selectedAgent, setSelectedAgent] = useState(null);
     const [filter, setFilter] = useState('all'); // all, active, inactive
     const { notify } = useNotification();
+    const confirm = useConfirm();
 
     // Deactivation Modal State
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
@@ -57,6 +59,29 @@ export default function AgentGovernance() {
             } finally {
                 setProcessingId(null);
             }
+        }
+    };
+
+    const handleDeleteAgent = async (agent) => {
+        const ok = await confirm({
+            title: `Delete Agent`,
+            message: `Are you sure you want to permanently delete ${agent.agentName}? This will remove all their data, assignments, and consultation history.`,
+            detail: `⚠️ This action is irreversible and cannot be undone.`,
+            confirmLabel: "Yes, Delete Agent",
+            cancelLabel: "Cancel",
+            variant: "danger",
+        });
+        if (!ok) return;
+        setProcessingId(agent.agentId);
+        try {
+            await api.delete(`/admin/users/${agent.agentId}`);
+            notify(`Agent ${agent.agentName} deleted successfully`, "success");
+            fetchAgents();
+        } catch (err) {
+            console.error(err);
+            notify(err.response?.data?.message || "Failed to delete agent", "error");
+        } finally {
+            setProcessingId(null);
         }
     };
 
@@ -154,6 +179,7 @@ export default function AgentGovernance() {
                             index={index}
                             onClick={() => setSelectedAgent(agent)}
                             onToggleStatus={() => handleToggleStatus(agent)}
+                            onDelete={() => handleDeleteAgent(agent)}
                             isProcessing={processingId === agent.agentId}
                         />
                     ))}
@@ -238,7 +264,7 @@ function FilterTab({ active, onClick, label, count, color }) {
     );
 }
 
-function AgentCard({ agent, index, onClick, onToggleStatus, isProcessing }) {
+function AgentCard({ agent, index, onClick, onToggleStatus, onDelete, isProcessing }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -348,25 +374,24 @@ function AgentCard({ agent, index, onClick, onToggleStatus, isProcessing }) {
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {/* Manage */}
                 <button
                     className="primary-btn"
-                    style={{ flex: 1 }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onClick();
-                    }}
+                    style={{ flex: 2, minWidth: 80 }}
+                    onClick={(e) => { e.stopPropagation(); onClick(); }}
+                    disabled={isProcessing}
                 >
                     Manage
                 </button>
+
+                {/* Activate / Deactivate */}
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleStatus();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); onToggleStatus(); }}
                     disabled={isProcessing}
                     style={{
-                        flex: 1,
+                        flex: 2,
+                        minWidth: 90,
                         padding: '10px',
                         borderRadius: 8,
                         border: '1px solid var(--card-border)',
@@ -379,6 +404,44 @@ function AgentCard({ agent, index, onClick, onToggleStatus, isProcessing }) {
                 >
                     {isProcessing ? 'Processing...' : agent.isActive ? 'Deactivate' : 'Activate'}
                 </button>
+
+                {/* Delete */}
+                <motion.button
+                    whileHover={{ scale: isProcessing ? 1 : 1.06 }}
+                    whileTap={{ scale: isProcessing ? 1 : 0.94 }}
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    disabled={isProcessing}
+                    title="Permanently delete this agent"
+                    style={{
+                        flex: 1,
+                        minWidth: 42,
+                        padding: '10px',
+                        borderRadius: 8,
+                        border: '1px solid rgba(239,68,68,0.35)',
+                        background: 'rgba(239,68,68,0.1)',
+                        color: '#ef4444',
+                        fontWeight: 700,
+                        cursor: isProcessing ? 'not-allowed' : 'pointer',
+                        opacity: isProcessing ? 0.5 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                        if (!isProcessing) {
+                            e.currentTarget.style.background = 'rgba(239,68,68,0.22)';
+                            e.currentTarget.style.borderColor = 'rgba(239,68,68,0.6)';
+                        }
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(239,68,68,0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.35)';
+                    }}
+                >
+                    🗑️
+                </motion.button>
             </div>
         </motion.div>
     );
