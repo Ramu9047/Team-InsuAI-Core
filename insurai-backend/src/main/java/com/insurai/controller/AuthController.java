@@ -179,6 +179,29 @@ public class AuthController {
         return ResponseEntity.ok("Password updated successfully");
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody Map<String, String> payload,
+            org.springframework.security.core.Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        String oldPassword = payload.get("oldPassword");
+        String newPassword = payload.get("newPassword");
+        if (oldPassword == null || newPassword == null || newPassword.length() < 8) {
+            return ResponseEntity.badRequest().body("Invalid request: password must be at least 8 characters");
+        }
+        String email = auth.getName();
+        return userRepository.findByEmail(email).map(user -> {
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return ResponseEntity.status(400).body(Map.of("message", "Current password is incorrect"));
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        }).orElse(ResponseEntity.status(404).body(Map.of("message", "User not found")));
+    }
+
     @GetMapping("/verify")
     public String verify(@RequestParam String email) {
         User u = userRepository.findByEmail(email).orElseThrow();

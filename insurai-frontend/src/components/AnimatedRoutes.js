@@ -34,6 +34,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import RequireAuth from "./RequireAuth";
 import PolicyWorkflowPage from '../pages/PolicyWorkflowPage';
+import AdminProfile from '../pages/AdminProfile';
 
 const pageVariants = {
     initial: { opacity: 0, y: 15 },
@@ -114,6 +115,7 @@ export default function AnimatedRoutes() {
                     <Route path="/issued-policies" element={<PageWrapper><AdminPolicies /></PageWrapper>} />
                     <Route path="/plans-admin" element={<PageWrapper><AdminPlans /></PageWrapper>} />
                     <Route path="/my-consultations" element={<PageWrapper><PolicyWorkflowPage /></PageWrapper>} />
+                    <Route path="/admin-profile" element={<PageWrapper><AdminProfile /></PageWrapper>} />
                 </Route>
 
                 {/* Company Routes */}

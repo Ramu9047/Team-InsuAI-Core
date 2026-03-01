@@ -175,7 +175,11 @@ export default function Navbar() {
                                         <NavLink to="/plans-enhanced" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>AI Recommendations</NavLink>
                                     ) : null}
 
-                                    <NavLink to="/profile" className="nav-link" style={{ display: "block", padding: "8px 15px" }}>Profile</NavLink>
+                                    <NavLink
+                                        to={['SUPER_ADMIN', 'COMPANY_ADMIN', 'COMPANY'].includes(user?.role) ? "/admin-profile" : "/profile"}
+                                        className="nav-link"
+                                        style={{ display: "block", padding: "8px 15px" }}
+                                    >Profile</NavLink>
 
 
                                     <div
