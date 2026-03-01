@@ -441,45 +441,43 @@ export default function CompanyDashboard() {
             <motion.div
                 initial={{ opacity: 0, y: -18 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{
-                    marginBottom: 36,
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    flexWrap: 'wrap', gap: 16
-                }}
+                style={{ marginBottom: 36 }}
             >
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                        <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0px 4px 8px rgba(99,102,241,0.4))' }}>🏢</span>
-                        <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.3rem', fontWeight: 800, textShadow: '0 2px 10px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: 15 }}>
-                            {companyName}
-                            <span style={{ fontSize: '0.7rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.1)', color: '#a5b4fc', borderRadius: 20, fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.2)' }}>
-                                🚀 Real-time Insights
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                            <span className="badge badge-company-admin" style={{ fontSize: '0.7rem' }}>🏢 Company Admin</span>
+                            <span style={{
+                                fontSize: '0.7rem', fontWeight: 700, color: '#10b981',
+                                background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                                padding: '3px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 5
+                            }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                                Real-time
                             </span>
+                        </div>
+                        <h1 style={{ margin: 0, fontSize: '2.15rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif", display: 'flex', alignItems: 'center', gap: 14 }}>
+                            <span style={{ fontSize: '1.8rem', filter: 'drop-shadow(0 4px 8px rgba(20,184,166,0.4))' }}>🏢</span>
+                            <span className="text-gradient">{companyName}</span>
                         </h1>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 8 }}>
+                            <span>📜 Compliance: <strong style={{ color: '#10b981' }}>✅ Approved</strong></span>
+                            <span>🕒 Last Sync: Just now</span>
+                            <span>📅 {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-                        <span>📜 Compliance Status: <strong style={{ color: '#10b981' }}>✅ Approved</strong></span>
-                        <span>🕒 Last Sync: Just now</span>
-                        <span>📅 {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                    </div>
-                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{
-                        padding: '7px 16px', background: 'rgba(16,185,129,0.1)',
-                        borderRadius: 24, border: '1px solid rgba(16,185,129,0.3)',
-                        color: '#10b981', fontWeight: 700, fontSize: '0.83rem'
-                    }}>
-                        🟢 System Health: Stable
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <NotificationCenter userRole="COMPANY" />
+                        <button onClick={openAddModal} className="primary-btn" style={{ padding: '9px 18px', fontWeight: 700 }}>
+                            + Add Policy
+                        </button>
+                        <button onClick={() => setAgentModal({ isOpen: true })} className="secondary-btn" style={{ padding: '9px 18px', color: 'white', borderColor: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
+                            + Invite Agent
+                        </button>
                     </div>
-                    <NotificationCenter userRole="COMPANY" />
-                    <button onClick={openAddModal} className="primary-btn" style={{ padding: '9px 18px', fontWeight: 700 }}>
-                        + Add Policy
-                    </button>
-                    <button onClick={() => setAgentModal({ isOpen: true })} className="secondary-btn" style={{ padding: '9px 18px', color: 'white', borderColor: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
-                        + Invite Agent
-                    </button>
                 </div>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(20,184,166,0.6), rgba(99,102,241,0.3), transparent)', marginTop: 20 }} />
             </motion.div>
 
             {/* ── Company KPI Snapshot ── */}
