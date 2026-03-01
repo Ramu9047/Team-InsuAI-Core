@@ -22,6 +22,7 @@ export default function AgentDashboardAdvanced() {
 
     const [loading, setLoading] = useState(true);
     const [isAvailable, setIsAvailable] = useState(false);
+    const [toggling, setToggling] = useState(false);
 
     // Agent Stats
     const [stats, setStats] = useState({
@@ -269,13 +270,17 @@ export default function AgentDashboardAdvanced() {
     };
 
     const toggleAvailability = async () => {
+        if (toggling) return;
+        setToggling(true);
         try {
             const newState = !isAvailable;
             await agentService.updateAvailability(user.id, newState);
             setIsAvailable(newState);
-            notify(`You are now ${newState ? 'Online 🟢' : 'Offline 🔴'}`, "success");
+            notify(`You are now ${newState ? 'Online 🟢' : 'Offline 🔴'}`, newState ? "success" : "info");
         } catch (e) {
             notify("Failed to update status", "error");
+        } finally {
+            setToggling(false);
         }
     };
 
@@ -396,32 +401,55 @@ export default function AgentDashboardAdvanced() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                         <NotificationCenter userRole="AGENT" />
                         <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: toggling ? 1 : 1.05 }}
+                            whileTap={{ scale: toggling ? 1 : 0.95 }}
                             onClick={toggleAvailability}
+                            disabled={toggling}
                             style={{
-                                background: isAvailable ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
-                                padding: '15px 30px',
+                                background: isAvailable
+                                    ? 'linear-gradient(135deg, #10b981, #059669)'
+                                    : 'linear-gradient(135deg, #6b7280, #4b5563)',
+                                padding: '12px 24px',
                                 color: 'white',
                                 borderRadius: 30,
                                 border: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                fontSize: '1rem',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                cursor: toggling ? 'not-allowed' : 'pointer',
+                                fontWeight: 700,
+                                fontSize: '0.92rem',
+                                boxShadow: isAvailable
+                                    ? '0 4px 20px rgba(16,185,129,0.35)'
+                                    : '0 4px 20px rgba(0,0,0,0.2)',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 10
+                                gap: 10,
+                                opacity: toggling ? 0.7 : 1,
+                                transition: 'all 0.3s ease',
+                                minWidth: 150,
+                                justifyContent: 'center',
                             }}
                         >
                             <div style={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                background: 'white',
-                                boxShadow: '0 0 10px rgba(255,255,255,0.5)'
-                            }}></div>
-                            {isAvailable ? "Online 🟢" : "Offline 🔴"}
+                                position: 'relative',
+                                width: 10,
+                                height: 10,
+                                flexShrink: 0,
+                            }}>
+                                <div style={{
+                                    width: 10, height: 10, borderRadius: '50%',
+                                    background: isAvailable ? '#86efac' : '#d1d5db',
+                                    position: 'absolute',
+                                }} />
+                                {isAvailable && !toggling && (
+                                    <div style={{
+                                        width: 10, height: 10, borderRadius: '50%',
+                                        background: 'rgba(134,239,172,0.6)',
+                                        position: 'absolute',
+                                        animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite',
+                                    }} />
+                                )}
+                            </div>
+                            {toggling ? 'Updating...' : isAvailable ? 'Online' : 'Offline'}
+                            <style>{`@keyframes ping { 75%,100%{ transform:scale(2); opacity:0; } }`}</style>
                         </motion.button>
                     </div>
                 </div>
