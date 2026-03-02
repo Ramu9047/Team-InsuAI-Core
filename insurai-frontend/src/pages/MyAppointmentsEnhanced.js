@@ -62,6 +62,39 @@ const downloadICS = (apt) => {
     document.body.removeChild(link);
 };
 
+/* ── Meeting Countdown Badge ── */
+function CountdownBadge({ startTime }) {
+    const [countdown, setCountdown] = useState('');
+    const [urgency, setUrgency] = useState('normal'); // normal | soon | imminent
+
+    useEffect(() => {
+        const update = () => {
+            const diff = new Date(startTime) - new Date();
+            if (diff <= 0) { setCountdown('Starting now'); setUrgency('imminent'); return; }
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            setUrgency(diff < 3600000 ? 'imminent' : diff < 86400000 ? 'soon' : 'normal');
+            setCountdown(days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`);
+        };
+        update();
+        const timer = setInterval(update, 30000);
+        return () => clearInterval(timer);
+    }, [startTime]);
+
+    const colors = { normal: '#6366f1', soon: '#f59e0b', imminent: '#ef4444' };
+    const color = colors[urgency];
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            background: `${color}18`, color, border: `1px solid ${color}30`,
+            padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700
+        }}>
+            ⏱️ {countdown}
+        </span>
+    );
+}
+
 export default function MyAppointmentsEnhanced() {
     const { user } = useAuth();
     const { notify } = useNotification();
@@ -173,10 +206,10 @@ export default function MyAppointmentsEnhanced() {
             <div className="skeleton" style={{ height: 36, width: '40%', marginBottom: 12, borderRadius: 10 }} />
             <div className="skeleton" style={{ height: 18, width: '22%', marginBottom: 32, borderRadius: 8 }} />
             <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
-                {[1,2].map(i => <div key={i} className="skeleton" style={{ height: 44, width: 160, borderRadius: 24 }} />)}
+                {[1, 2].map(i => <div key={i} className="skeleton" style={{ height: 44, width: 160, borderRadius: 24 }} />)}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px,1fr))', gap: 20 }}>
-                {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 260, borderRadius: 16 }} />)}
+                {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 260, borderRadius: 16 }} />)}
             </div>
         </div>
     );
@@ -371,7 +404,7 @@ export default function MyAppointmentsEnhanced() {
             <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
                 {[
                     { key: 'appointments', label: '📅 Appointments', count: appointments.length },
-                    { key: 'policies',     label: '📄 My Policies',   count: policies.length },
+                    { key: 'policies', label: '📄 My Policies', count: policies.length },
                 ].map(tab => (
                     <button
                         key={tab.key}
@@ -441,6 +474,12 @@ export default function MyAppointmentsEnhanced() {
                                     📅 {new Date(apt.startTime).toLocaleDateString()}<br />
                                     ⏰ {new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
+
+                                {apt.status === 'MEETING_APPROVED' && new Date(apt.startTime) > new Date() && (
+                                    <div style={{ marginBottom: 12 }}>
+                                        <CountdownBadge startTime={apt.startTime} />
+                                    </div>
+                                )}
 
                                 {apt.meetingLink && apt.status === 'MEETING_APPROVED' && (
                                     <div style={{ marginTop: 15 }}>

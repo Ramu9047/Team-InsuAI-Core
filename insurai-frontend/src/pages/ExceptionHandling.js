@@ -43,15 +43,21 @@ export default function ExceptionHandling() {
     const resolvedCount = cases.filter(c => c.status === 'RESOLVED').length;
 
     return (
-        <div>
-            <div style={{ marginBottom: 30 }}>
-                <h1 className="text-gradient" style={{ marginBottom: 10, fontSize: "2.5rem" }}>
-                    ⚖️ Exception Handling
+        <div style={{ padding: '36px 40px', maxWidth: 1400, margin: '0 auto' }}>
+
+            {/* ── Hero Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-super-admin" style={{ fontSize: '0.7rem' }}>🔐 Super Admin</span>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                    ⚖️ Exception <span className="text-gradient">Handling</span>
                 </h1>
-                <p style={{ opacity: 0.8 }}>
-                    Manage escalated rejections, disputed claims, and agent misconduct cases
+                <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Manage escalated rejections, disputed claims, and agent misconduct cases.
                 </p>
-            </div>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(245,158,11,0.5), transparent)', marginTop: 16 }} />
+            </motion.div>
 
             {/* Status Filter Tabs */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>

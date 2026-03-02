@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNotification } from "../context/NotificationContext";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
-import StandardCard from "../components/StandardCard";
 import Modal from "../components/Modal";
 
 export default function AdminFeedbackDashboard() {
@@ -72,10 +72,18 @@ export default function AdminFeedbackDashboard() {
         return statusMatch && categoryMatch;
     });
 
-    if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Loading...</div>;
+    if (loading) return (
+        <div style={{ padding: '60px 40px', maxWidth: 1200, margin: '0 auto' }}>
+            <div className="skeleton" style={{ height: 36, width: '40%', marginBottom: 12, borderRadius: 10 }} />
+            <div className="skeleton" style={{ height: 16, width: '26%', marginBottom: 36, borderRadius: 8 }} />
+            <div className="grid">
+                {[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 140, borderRadius: 16 }} />)}
+            </div>
+        </div>
+    );
 
     return (
-        <div className="container" style={{ marginTop: 20 }}>
+        <div style={{ padding: '36px 40px', maxWidth: 1200, margin: '0 auto' }}>
             {/* Detail Modal */}
             <FeedbackDetailModal
                 isOpen={detailModal.isOpen}
@@ -93,174 +101,169 @@ export default function AdminFeedbackDashboard() {
                 onAssign={handleAssign}
             />
 
-            {/* Header */}
-            <h1 className="text-gradient" style={{ marginBottom: 30 }}>Feedback Management</h1>
+            {/* ── Hero Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-super-admin" style={{ fontSize: '0.7rem' }}>🔐 Super Admin</span>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                    Feedback <span className="text-gradient">Management</span>
+                </h1>
+                <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Review, assign, and resolve all platform feedback and agent reviews.
+                </p>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(245,158,11,0.5), transparent)', marginTop: 16 }} />
+            </motion.div>
 
-            {/* Statistics */}
+            {/* ── Stats KPI Row ── */}
             {stats && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 20, marginBottom: 30 }}>
-                    <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>{stats.totalFeedback}</div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Feedback</div>
-                    </div>
-                    <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--status-pending)' }}>{stats.openFeedback}</div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open</div>
-                    </div>
-                    <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>{stats.inProgressFeedback}</div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>In Progress</div>
-                    </div>
-                    <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--status-approved)' }}>{stats.resolvedFeedback}</div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Resolved</div>
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 28 }}>
+                    {[{ label: 'Total', value: stats.totalFeedback, color: '#6366f1', icon: '📥' },
+                    { label: 'Open', value: stats.openFeedback, color: '#f59e0b', icon: '🕓' },
+                    { label: 'In Progress', value: stats.inProgressFeedback, color: '#3b82f6', icon: '⚙️' },
+                    { label: 'Resolved', value: stats.resolvedFeedback, color: '#10b981', icon: '✅' }
+                    ].map((s, i) => (
+                        <motion.div
+                            key={s.label}
+                            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                            className="card"
+                            style={{ borderTop: `3px solid ${s.color}`, padding: '18px 20px', textAlign: 'center' }}
+                        >
+                            <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>{s.icon}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 4, fontWeight: 600 }}>{s.label}</div>
+                        </motion.div>
+                    ))}
                 </div>
             )}
 
-            {/* Filters */}
-            <div style={{ marginBottom: 30 }}>
-                <div style={{ display: 'flex', gap: 20, marginBottom: 20, borderBottom: '1px solid var(--glass-border)', paddingBottom: 10 }}>
-                    <h2
-                        onClick={() => setActiveDashboard('SYSTEM')}
-                        style={{
-                            cursor: 'pointer',
-                            color: activeDashboard === 'SYSTEM' ? 'var(--primary)' : 'var(--text-muted)',
-                            borderBottom: activeDashboard === 'SYSTEM' ? '2px solid var(--primary)' : 'none',
-                            paddingBottom: 5
-                        }}
-                    >
-                        System Feedback
-                    </h2>
-                    <h2
-                        onClick={() => setActiveDashboard('AGENTS')}
-                        style={{
-                            cursor: 'pointer',
-                            color: activeDashboard === 'AGENTS' ? 'var(--primary)' : 'var(--text-muted)',
-                            borderBottom: activeDashboard === 'AGENTS' ? '2px solid var(--primary)' : 'none',
-                            paddingBottom: 5
-                        }}
-                    >
-                        Agent Reviews
-                    </h2>
+            {/* ── Filters ── */}
+            <div style={{ marginBottom: 26 }}>
+                {/* Section tabs */}
+                <div style={{ display: 'flex', gap: 6, marginBottom: 20, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 0 }}>
+                    {['SYSTEM', 'AGENTS'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveDashboard(tab)}
+                            style={{
+                                padding: '9px 20px', background: 'transparent', border: 'none',
+                                borderBottom: activeDashboard === tab ? '2px solid var(--primary)' : '2px solid transparent',
+                                color: activeDashboard === tab ? 'var(--primary)' : 'var(--text-muted)',
+                                fontWeight: activeDashboard === tab ? 700 : 500,
+                                cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s'
+                            }}
+                        >
+                            {tab === 'SYSTEM' ? '📊 System Feedback' : '⭐ Agent Reviews'}
+                        </button>
+                    ))}
                 </div>
 
                 {activeDashboard === 'SYSTEM' ? (
-                    <>
-                        <div style={{ marginBottom: 15 }}>
-                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Status Filter</label>
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                        <div>
+                            <label className="form-label">Status</label>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                 {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'].map(status => (
                                     <button
                                         key={status}
                                         onClick={() => setFilter(status)}
-                                        style={{
-                                            padding: '8px 16px',
-                                            background: filter === status ? 'var(--primary)' : 'transparent',
-                                            border: '1px solid var(--primary)',
-                                            borderRadius: 20,
-                                            color: filter === status ? 'white' : 'var(--primary)',
-                                            cursor: 'pointer',
-                                            fontSize: '0.9rem'
-                                        }}
+                                        className={filter === status ? 'primary-btn' : 'secondary-btn'}
+                                        style={{ padding: '7px 16px', fontSize: '0.82rem' }}
                                     >
                                         {status.replace(/_/g, ' ')}
                                     </button>
                                 ))}
                             </div>
                         </div>
-
                         <div>
-                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Category Filter</label>
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                            <label className="form-label">Category</label>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                 {['ALL', 'BUG', 'QUERY', 'SUGGESTION', 'COMPLAINT'].map(category => (
                                     <button
                                         key={category}
                                         onClick={() => setCategoryFilter(category)}
-                                        style={{
-                                            padding: '8px 16px',
-                                            background: categoryFilter === category ? 'var(--primary)' : 'transparent',
-                                            border: '1px solid var(--primary)',
-                                            borderRadius: 20,
-                                            color: categoryFilter === category ? 'white' : 'var(--primary)',
-                                            cursor: 'pointer',
-                                            fontSize: '0.9rem'
-                                        }}
+                                        className={categoryFilter === category ? 'primary-btn' : 'secondary-btn'}
+                                        style={{ padding: '7px 16px', fontSize: '0.82rem' }}
                                     >
-                                        {category}
+                                        {category === 'BUG' ? '🐛' : category === 'QUERY' ? '❓' : category === 'SUGGESTION' ? '💡' : category === 'COMPLAINT' ? '⚠️' : '🗂️'} {category}
                                     </button>
                                 ))}
                             </div>
                         </div>
-                    </>
+                    </div>
                 ) : (
-                    <div style={{ padding: 15, background: 'rgba(255,255,255,0.05)', borderRadius: 8 }}>
-                        Viewing all agent reviews. Use browser search to filter by agent/user.
+                    <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                        Viewing all agent reviews from your platform.
                     </div>
                 )}
             </div>
 
-            {/* Content Switch */}
+            {/* ── Content Switch ── */}
             {activeDashboard === 'AGENTS' ? (
                 <AgentReviewsList />
             ) : (
-                /* Feedback List */
                 filteredFeedback.length === 0 ? (
-                    <div className="card" style={{ padding: 40, textAlign: 'center' }}>
-                        <p style={{ color: 'var(--text-muted)' }}>No feedback found with selected filters</p>
+                    <div className="card" style={{ padding: '50px 40px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📬</div>
+                        <p style={{ color: 'var(--text-muted)' }}>No feedback found with selected filters.</p>
                     </div>
                 ) : (
-                    <div className="standard-card-grid">
-                        {filteredFeedback.map(item => {
-                            const categoryIcons = {
-                                BUG: '🐛',
-                                QUERY: '❓',
-                                SUGGESTION: '💡',
-                                COMPLAINT: '⚠️'
-                            };
-
-                            const actions = [];
-
-                            if (item.status !== 'RESOLVED') {
-                                actions.push({
-                                    label: 'View Details',
-                                    onClick: () => setDetailModal({ isOpen: true, feedback: item }),
-                                    variant: 'primary',
-                                    icon: '👁️'
-                                });
-                            }
-
-                            if (!item.assignedTo) {
-                                actions.push({
-                                    label: 'Assign',
-                                    onClick: () => setAssignModal({ isOpen: true, feedback: item }),
-                                    variant: 'secondary',
-                                    icon: '👤'
-                                });
-                            }
-
-                            return (
-                                <StandardCard
-                                    key={item.id}
-                                    variant="default"
-                                    title={item.subject}
-                                    subtitle={`${categoryIcons[item.category]} ${item.category} • ${new Date(item.createdAt).toLocaleDateString()}`}
-                                    status={item.status}
-                                    icon={categoryIcons[item.category]}
-                                    actions={actions}
-                                >
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                                        <p style={{ margin: '0 0 10px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    <div className="grid">
+                        <AnimatePresence>
+                            {filteredFeedback.map((item, i) => {
+                                const categoryIcons = { BUG: '🐛', QUERY: '❓', SUGGESTION: '💡', COMPLAINT: '⚠️' };
+                                const statusColors = { OPEN: '#f59e0b', IN_PROGRESS: '#6366f1', RESOLVED: '#10b981' };
+                                const statusColor = statusColors[item.status] || '#6b7280';
+                                return (
+                                    <motion.div
+                                        key={item.id}
+                                        initial={{ opacity: 0, y: 14 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ delay: i * 0.04 }}
+                                        className="card"
+                                        style={{ borderLeft: `3px solid ${statusColor}`, padding: '18px 20px' }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                                            <div style={{ flex: 1, marginRight: 12 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                                    <span style={{ fontSize: '1.1rem' }}>{categoryIcons[item.category] || '📥'}</span>
+                                                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>{item.subject}</h4>
+                                                </div>
+                                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                                    {item.category} • {new Date(item.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <span style={{
+                                                background: `${statusColor}18`, color: statusColor,
+                                                border: `1px solid ${statusColor}30`,
+                                                padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, whiteSpace: 'nowrap'
+                                            }}>{item.status.replace('_', ' ')}</span>
+                                        </div>
+                                        <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--text-muted)', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                                             {item.description}
                                         </p>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginTop: 10 }}>
-                                            <span><strong>From:</strong> {item.user?.name || 'User'}</span>
-                                            {item.assignedTo && <span><strong>Assigned to:</strong> {item.assignedTo.name}</span>}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                                            <span style={{ color: 'var(--text-muted)' }}>👤 {item.user?.name || 'User'}{item.assignedTo ? ` • 🧑‍💼 ${item.assignedTo.name}` : ''}</span>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                {item.status !== 'RESOLVED' && (
+                                                    <button className="secondary-btn" style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                                                        onClick={() => setDetailModal({ isOpen: true, feedback: item })}>
+                                                        👁️ View
+                                                    </button>
+                                                )}
+                                                {!item.assignedTo && (
+                                                    <button className="primary-btn" style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                                                        onClick={() => setAssignModal({ isOpen: true, feedback: item })}>
+                                                        👤 Assign
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </StandardCard>
-                            );
-                        })}
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
                     </div>
                 )
             )}
@@ -436,29 +439,43 @@ function AgentReviewsList() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div>Loading reviews...</div>;
+    if (loading) return <div className="skeleton" style={{ height: 200, borderRadius: 14 }} />;
 
     if (reviews.length === 0) {
         return (
-            <div className="card" style={{ padding: 40, textAlign: 'center' }}>
-                <p>No agent reviews found.</p>
+            <div className="card" style={{ padding: '50px 40px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⭐</div>
+                <p style={{ color: 'var(--text-muted)' }}>No agent reviews found.</p>
             </div>
         );
     }
 
     return (
-        <div className="standard-card-grid">
-            {reviews.map(review => (
-                <StandardCard
+        <div className="grid">
+            {reviews.map((review, i) => (
+                <motion.div
                     key={review.id}
-                    title={`${review.agent?.name || 'Agent'} (${review.rating}★)`}
-                    subtitle={`From: ${review.user?.name || 'User'} • ${new Date(review.createdAt).toLocaleDateString()}`}
-                    icon="⭐"
-                    variant="default"
-                    status="COMPLETED"
+                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                    className="card"
+                    style={{ borderTop: `3px solid ${review.rating >= 4 ? '#10b981' : review.rating >= 3 ? '#f59e0b' : '#ef4444'}`, padding: '18px 20px' }}
                 >
-                    <p style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>"{review.feedback}"</p>
-                </StandardCard>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                            🧑‍💼 {review.agent?.name || 'Agent'}
+                        </div>
+                        <div style={{ display: 'flex', gap: 2 }}>
+                            {[1, 2, 3, 4, 5].map(s => (
+                                <span key={s} style={{ fontSize: '0.9rem', color: s <= review.rating ? '#fbbf24' : 'rgba(255,255,255,0.15)' }}>★</span>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 10 }}>
+                        👤 {review.user?.name || 'User'} • {new Date(review.createdAt).toLocaleDateString()}
+                    </div>
+                    <div style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', borderLeft: '3px solid rgba(251,191,36,0.4)', borderRadius: 8, fontSize: '0.88rem', fontStyle: 'italic', color: 'var(--text-sub)' }}>
+                        "{review.feedback}"
+                    </div>
+                </motion.div>
             ))}
         </div>
     );
