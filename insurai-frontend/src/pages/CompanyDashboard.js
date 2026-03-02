@@ -132,6 +132,8 @@ export default function CompanyDashboard() {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [predictedClaim, setPredictedClaim] = useState({ amount: '', type: 'Health', age: '' });
+    const [predictionResult, setPredictionResult] = useState(null);
 
     // Modals
     const [policyModal, setPolicyModal] = useState({ isOpen: false, mode: 'add', policy: null });
@@ -432,9 +434,6 @@ export default function CompanyDashboard() {
         { name: 'Week 3', submitted: 180, approved: 140, rejected: 20 },
         { name: 'Week 4', submitted: 130, approved: 95, rejected: 10 },
     ];
-
-    const [predictedClaim, setPredictedClaim] = useState({ amount: '', type: 'Health', age: '' });
-    const [predictionResult, setPredictionResult] = useState(null);
 
     const handlePredict = (e) => {
         e.preventDefault();

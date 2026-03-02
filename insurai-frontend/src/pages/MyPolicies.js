@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
-import { motion } from "framer-motion";
 
 const PolicyStatusTracker = ({ status }) => {
     // Map system statuses to the 5-step flow
