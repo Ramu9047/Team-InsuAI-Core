@@ -5,6 +5,72 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 
+const ClaimStatusTracker = ({ status }) => {
+    // Map system statuses to the 5-step flow
+    // Steps: 0:Submitted, 1:Document Verification, 2:Under Review, 3:Approved/Rejected, 4:Settled
+    let stepIndex = 0;
+    let isRejected = false;
+
+    if (status === 'DOCS_VERIFIED') stepIndex = 1;
+    else if (status === 'UNDER_REVIEW') stepIndex = 2;
+    else if (status === 'APPROVED') stepIndex = 3;
+    else if (status === 'REJECTED') {
+        stepIndex = 3;
+        isRejected = true;
+    }
+    else if (status === 'SETTLED') stepIndex = 4;
+
+    const steps = ['Submitted', 'Verification', 'Review', isRejected ? 'Rejected' : 'Approved', 'Settled'];
+
+    return (
+        <div style={{ marginTop: 20, marginBottom: 15, padding: '0 10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                {steps.map((step, idx) => {
+                    let isCompleted = idx <= stepIndex;
+                    if (isRejected && idx === 4) isCompleted = false; // Never reaching Settled if rejected
+
+                    const isActive = idx === stepIndex;
+
+                    let color = '#22c55e'; // default green
+                    if (isRejected && idx === 3 && isCompleted) color = '#ef4444'; // Red if rejected at step 3
+                    if (isActive && idx !== 4 && !isRejected) color = '#6366f1'; // Indigo if active but not done
+
+                    return (
+                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '20%' }}>
+                            <div style={{
+                                width: 24, height: 24, borderRadius: '50%',
+                                background: isCompleted ? color : 'rgba(255,255,255,0.1)',
+                                border: `2px solid ${isCompleted ? color : 'rgba(255,255,255,0.2)'}`,
+                                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.7rem', fontWeight: 700, marginBottom: 6,
+                                boxShadow: isActive ? `0 0 10px ${color}` : 'none'
+                            }}>
+                                {isCompleted && !(isRejected && idx === 3) ? '✓' : (isRejected && idx === 3 ? '✗' : idx + 1)}
+                            </div>
+                            <span style={{
+                                fontSize: '0.65rem', fontWeight: isActive ? 700 : 500,
+                                color: isCompleted ? 'var(--text-main)' : 'var(--text-muted)',
+                                textAlign: 'center'
+                            }}>
+                                {step}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+            {/* Connecting lines */}
+            <div style={{ position: 'relative', height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, top: '-34px', zIndex: 0, margin: '0 10%' }}>
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(stepIndex / (steps.length - 1)) * 100}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{ height: '100%', background: isRejected ? '#ef4444' : (stepIndex >= 4 ? '#22c55e' : '#6366f1'), borderRadius: 2 }}
+                />
+            </div>
+        </div>
+    );
+};
+
 export default function MyClaims() {
     const { user } = useAuth();
     const { notify } = useNotification();
@@ -139,9 +205,36 @@ export default function MyClaims() {
                         exit={{ opacity: 0, y: -10 }}
                     >
                         {claims.length === 0 ? (
-                            <div style={{ textAlign: "center", marginTop: 50, opacity: 0.7 }}>
-                                <p>No claims filed yet.</p>
-                            </div>
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                style={{
+                                    margin: "50px auto", maxWidth: 500, padding: 50,
+                                    background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)',
+                                    borderRadius: 24, border: '1px solid rgba(255,255,255,0.08)',
+                                    textAlign: "center", boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                                }}
+                            >
+                                <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 30px' }}>
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                        style={{ position: 'absolute', inset: 0, border: '2px dashed rgba(99,102,241,0.3)', borderRadius: '50%' }}
+                                    />
+                                    <div style={{ position: 'absolute', inset: 10, background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4.5rem', boxShadow: 'inset 0 0 20px rgba(99,102,241,0.2)' }}>
+                                        🛡️
+                                    </div>
+                                </div>
+                                <h2 style={{ fontSize: "1.8rem", marginBottom: 15, background: 'linear-gradient(to right, #a855f7, #6366f1)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+                                    No Claims Yet!
+                                </h2>
+                                <p style={{ fontSize: "1rem", color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 30 }}>
+                                    You haven't filed any claims yet. When you do, they'll appear here.
+                                </p>
+                                <button className="primary-btn" onClick={() => setView("FORM")} style={{ padding: '14px 35px', fontSize: '1.1rem', borderRadius: 30, boxShadow: '0 8px 20px rgba(99,102,241,0.4)' }}>
+                                    File Your First Claim 🚀
+                                </button>
+                            </motion.div>
                         ) : (
                             <div className="grid">
                                 {claims.map(claim => (
@@ -159,6 +252,15 @@ export default function MyClaims() {
                                         </div>
                                         <p style={{ marginTop: 10, marginBottom: 5 }}><strong>Amount:</strong> ₹{claim.amount}</p>
                                         <p style={{ opacity: 0.8, fontSize: "0.95rem" }}>{claim.description}</p>
+
+                                        <ClaimStatusTracker status={claim.status} />
+
+                                        {claim.status === 'PENDING' && !claim.documentUrl && (
+                                            <div style={{ background: "rgba(234, 179, 8, 0.1)", padding: "10px", borderRadius: 8, marginTop: 10, fontSize: "0.85rem", color: "#eab308", border: "1px solid rgba(234, 179, 8, 0.2)" }}>
+                                                ⚠️ <strong>Action Required:</strong> Missing documents. Please upload required files to speed up verification.
+                                            </div>
+                                        )}
+
                                         <div style={{ marginTop: 15, fontSize: "0.8rem", opacity: 0.6 }}>
                                             Filed on: {new Date(claim.date).toLocaleDateString()}
                                         </div>
@@ -234,7 +336,7 @@ export default function MyClaims() {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Attach Documents (Optional)</label>
+                                <label className="form-label">Attach Documents (Required for Verfication)</label>
                                 <input
                                     type="file"
                                     id="file-upload"
@@ -247,27 +349,45 @@ export default function MyClaims() {
                                     }}
                                 />
                                 <div
-                                    className="file-upload-label"
+                                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                    onDrop={(e) => {
+                                        e.preventDefault(); e.stopPropagation();
+                                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                            setFormData({ ...formData, attachedFile: e.dataTransfer.files[0] });
+                                            notify(`File chosen: ${e.dataTransfer.files[0].name}`, "success");
+                                        }
+                                    }}
                                     onClick={() => document.getElementById("file-upload").click()}
+                                    style={{
+                                        border: "2px dashed rgba(255,255,255,0.2)",
+                                        borderRadius: "var(--radius-md)",
+                                        padding: "30px",
+                                        textAlign: "center",
+                                        cursor: "pointer",
+                                        background: "rgba(255,255,255,0.02)",
+                                        transition: "all 0.3s"
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                                    onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                                 >
-                                    <div style={{ fontSize: "2rem", marginBottom: 5 }}>
+                                    <div style={{ fontSize: "2.5rem", marginBottom: 10 }}>
                                         {formData.attachedFile ? "📄" : "📤"}
                                     </div>
                                     {formData.attachedFile ? (
                                         <div>
-                                            <p style={{ fontWeight: 600, color: "var(--primary)" }}>{formData.attachedFile.name}</p>
-                                            <p style={{ fontSize: "0.8rem", margin: 0 }}>Click to change</p>
+                                            <p style={{ fontWeight: 600, color: "var(--primary)", fontSize: "1.1rem" }}>{formData.attachedFile.name}</p>
+                                            <p style={{ fontSize: "0.85rem", margin: "5px 0 0 0", opacity: 0.7 }}>Click or drag to change</p>
                                         </div>
                                     ) : (
                                         <div>
-                                            <p style={{ fontWeight: 500, margin: "0 0 5px 0" }}>Click to upload documents</p>
-                                            <p style={{ fontSize: "0.8rem", margin: 0, opacity: 0.7 }}>Support for PDF, JPG, PNG from medical reports</p>
+                                            <p style={{ fontWeight: 600, margin: "0 0 8px 0", fontSize: "1.1rem" }}>Click or drag files here to upload</p>
+                                            <p style={{ fontSize: "0.85rem", margin: 0, opacity: 0.6 }}>Support for PDF, JPG, PNG from medical reports</p>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            <button type="submit" className="primary-btn" style={{ width: "100%" }}>Submit Claim</button>
+                            <button type="submit" className="primary-btn" style={{ width: "100%", padding: "12px", fontSize: "1rem" }}>Submit Claim</button>
                         </form>
                     </motion.div>
                 )}

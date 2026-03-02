@@ -54,6 +54,16 @@ const getRiskLevel = (score) => {
   return { label: 'HIGH', color: '#ef4444', emoji: '🔴' };
 };
 
+const ProgressBar = ({ value, max, color }) => (
+  <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden', height: 6, marginTop: 10 }}>
+    <motion.div
+      initial={{ width: 0 }} animate={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }}
+      transition={{ duration: 1, ease: 'easeOut' }}
+      style={{ height: '100%', background: color, borderRadius: 4 }}
+    />
+  </div>
+);
+
 export default function UserDashboard() {
   const { user } = useAuth();
   const { notify, refreshSignal } = useNotification();
@@ -71,11 +81,10 @@ export default function UserDashboard() {
   });
 
   const [appointments, setAppointments] = useState([]);
-  // const [policies, setPolicies] = useState([]); // policies removed as unused state, using local vars
   const [aiInsights, setAiInsights] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [comparisonPolicies, setComparisonPolicies] = useState([]);
-  const [riskData, setRiskData] = useState(null); // Full risk profile
+  const [riskData, setRiskData] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -383,6 +392,48 @@ export default function UserDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* ── Gamification: Rewards & Achievements ── */}
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div className="card custom-glass" style={{ borderLeft: '4px solid #f59e0b' }}>
+          <h3 style={{ marginTop: 0 }}>🏆 InsurAI Rewards</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ position: 'relative', width: 80, height: 80, borderRadius: '50%', border: '4px solid #f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', background: 'rgba(245,158,11,0.1)', color: '#f59e0b', boxShadow: '0 0 20px rgba(245,158,11,0.3)' }}>
+              🥈
+            </div>
+            <div style={{ flex: 1 }}>
+              <h4 style={{ margin: 0, fontSize: '1.2rem', color: '#f59e0b' }}>Silver Member</h4>
+              <p style={{ margin: '5px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>1,250 Points • 250 to Gold</p>
+              <ProgressBar value={1250} max={1500} color="#f59e0b" />
+              <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: 'var(--primary)' }}>+50 pts for next premium payment</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card custom-glass" style={{ borderLeft: '4px solid #10b981' }}>
+          <h3 style={{ marginTop: 0 }}>🎯 Journey Achievements</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginTop: 15 }}>
+            <div style={{ textAlign: 'center', opacity: 1, position: 'relative' }}>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(16,185,129,0.2)', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 8px', boxShadow: '0 0 15px rgba(16,185,129,0.3)' }}>🛡️</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>Coverage<br />Started</div>
+              <div style={{ position: 'absolute', top: -5, right: 5, background: '#10b981', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+            </div>
+            <div style={{ textAlign: 'center', opacity: 1, position: 'relative' }}>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(59,130,246,0.2)', border: '2px solid #3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 8px', boxShadow: '0 0 15px rgba(59,130,246,0.3)' }}>👨‍⚕️</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>Health<br />Check</div>
+              <div style={{ position: 'absolute', top: -5, right: 5, background: '#3b82f6', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+            </div>
+            <div style={{ textAlign: 'center', opacity: 0.4 }}>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '2px dotted rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 8px' }}>⭐</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>1Yr No<br />Claim</div>
+            </div>
+            <div style={{ textAlign: 'center', opacity: 0.4 }}>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '2px dotted rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 8px' }}>👑</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>Gold<br />Status</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* ── KPI Metrics Row ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 18, marginBottom: 40 }}>

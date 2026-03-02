@@ -5,6 +5,64 @@ import { Link, useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
+import { motion } from "framer-motion";
+
+const PolicyStatusTracker = ({ status }) => {
+    // Map system statuses to the 5-step flow
+    // Steps: 0:Applied, 1:Processing, 2:Approved, 3:Active, 4:Renewed
+    let stepIndex = 0;
+
+    if (['QUOTED', 'PAYMENT_PENDING', 'APPROVED'].includes(status)) {
+        stepIndex = 2;
+    } else if (status === 'ACTIVE') {
+        stepIndex = 3;
+    } else if (status === 'RENEWED') {
+        stepIndex = 4;
+    }
+
+    const steps = ['Applied', 'Processing', 'Approved', 'Active', 'Renewed'];
+
+    return (
+        <div style={{ marginTop: 20, marginBottom: 15, padding: '0 10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                {steps.map((step, idx) => {
+                    const isCompleted = idx <= stepIndex;
+                    const isActive = idx === stepIndex;
+                    return (
+                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '20%' }}>
+                            <div style={{
+                                width: 24, height: 24, borderRadius: '50%',
+                                background: isCompleted ? (isActive && idx !== 4 ? '#6366f1' : '#22c55e') : 'rgba(255,255,255,0.1)',
+                                border: `2px solid ${isCompleted ? (isActive && idx !== 4 ? '#6366f1' : '#22c55e') : 'rgba(255,255,255,0.2)'}`,
+                                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.7rem', fontWeight: 700, marginBottom: 6,
+                                boxShadow: isActive ? `0 0 10px ${isActive && idx !== 4 ? '#6366f1' : '#22c55e'}` : 'none'
+                            }}>
+                                {isCompleted ? '✓' : idx + 1}
+                            </div>
+                            <span style={{
+                                fontSize: '0.7rem', fontWeight: isActive ? 700 : 500,
+                                color: isCompleted ? 'var(--text-main)' : 'var(--text-muted)',
+                                textAlign: 'center'
+                            }}>
+                                {step}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+            {/* Connecting lines */}
+            <div style={{ position: 'relative', height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, top: '-36px', zIndex: 0, margin: '0 10%' }}>
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(stepIndex / (steps.length - 1)) * 100}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{ height: '100%', background: stepIndex >= 3 ? '#22c55e' : '#6366f1', borderRadius: 2 }}
+                />
+            </div>
+        </div>
+    );
+};
 
 export default function MyPolicies() {
     const { user } = useAuth();
