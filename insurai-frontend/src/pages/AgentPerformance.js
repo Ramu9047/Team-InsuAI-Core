@@ -26,15 +26,14 @@ export default function AgentPerformance() {
 
     if (loading) {
         return (
-            <div>
-                <h1 className="text-gradient" style={{ marginBottom: 30, fontSize: "2.5rem" }}>
-                    My Performance
-                </h1>
+            <div style={{ padding: '60px 40px', maxWidth: 1400, margin: '0 auto' }}>
+                <div className="skeleton" style={{ height: 36, width: '38%', marginBottom: 12, borderRadius: 10 }} />
+                <div className="skeleton" style={{ height: 16, width: '26%', marginBottom: 36, borderRadius: 8 }} />
                 <div className="grid">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="card" style={{ minHeight: 150 }}>
-                            <div className="skeleton" style={{ height: 20, width: "40%", marginBottom: 10 }}></div>
-                            <div className="skeleton" style={{ height: 40, width: "60%", marginBottom: 10 }}></div>
+                            <div className="skeleton" style={{ height: 14, width: '50%', marginBottom: 14, borderRadius: 6 }} />
+                            <div className="skeleton" style={{ height: 40, width: '40%', borderRadius: 8 }} />
                         </div>
                     ))}
                 </div>
@@ -51,19 +50,29 @@ export default function AgentPerformance() {
     }
 
     return (
-        <div>
-            <div style={{ marginBottom: 30 }}>
-                <h1 className="text-gradient" style={{ marginBottom: 10, fontSize: "2.5rem" }}>
-                    My Performance
-                </h1>
-                <p style={{ opacity: 0.8 }}>
-                    Track your consultation metrics, SLA compliance, and quality indicators
-                </p>
-            </div>
+        <div style={{ padding: '36px 40px', maxWidth: 1400, margin: '0 auto' }}>
 
-            {/* SLA Metrics */}
+            {/* ── Hero Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-agent" style={{ fontSize: '0.7rem' }}>🧑‍💼 Agent</span>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                    My <span className="text-gradient">Performance</span>
+                </h1>
+                <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Track your consultation metrics, SLA compliance, and quality indicators.
+                </p>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(139,92,246,0.5), transparent)', marginTop: 16 }} />
+            </motion.div>
+
+            {/* ── SLA Metrics ── */}
             <div style={{ marginBottom: 40 }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>⏱️ SLA Metrics</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <span style={{ fontSize: '1.2rem' }}>⏱️</span>
+                    <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>SLA Metrics</h2>
+                    <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, rgba(139,92,246,0.3), transparent)' }} />
+                </div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
                     <MetricCard
                         icon="⚡"
@@ -100,9 +109,13 @@ export default function AgentPerformance() {
                 </div>
             </div>
 
-            {/* Performance Metrics */}
+            {/* ── Performance Metrics ── */}
             <div style={{ marginBottom: 40 }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>📊 Performance Metrics</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <span style={{ fontSize: '1.2rem' }}>📊</span>
+                    <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Performance Metrics</h2>
+                    <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, rgba(139,92,246,0.3), transparent)' }} />
+                </div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
                     <MetricCard
                         icon="👍"
@@ -139,8 +152,8 @@ export default function AgentPerformance() {
                 </div>
             </div>
 
-            {/* Activity Charts */}
-            <div style={{ marginBottom: 40, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
+            {/* ── Activity Charts ── */}
+            <div style={{ marginBottom: 40, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
