@@ -28,15 +28,15 @@ export default function AdminAnalytics() {
 
     if (loading) {
         return (
-            <div>
-                <h1 className="text-gradient" style={{ marginBottom: 30, fontSize: "2.5rem" }}>
-                    Admin Analytics
-                </h1>
+            <div style={{ padding: '60px 40px', maxWidth: 1400, margin: '0 auto' }}>
+                <div className="skeleton" style={{ height: 36, width: '40%', marginBottom: 12, borderRadius: 10 }} />
+                <div className="skeleton" style={{ height: 18, width: '24%', marginBottom: 36, borderRadius: 8 }} />
                 <div className="grid">
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div key={i} className="card" style={{ minHeight: 150 }}>
-                            <div className="skeleton" style={{ height: 20, width: "60%", marginBottom: 10 }}></div>
-                            <div className="skeleton" style={{ height: 40, width: "40%", marginBottom: 10 }}></div>
+                            <div className="skeleton" style={{ height: 14, width: '55%', marginBottom: 14, borderRadius: 6 }} />
+                            <div className="skeleton" style={{ height: 42, width: '45%', marginBottom: 10, borderRadius: 8 }} />
+                            <div className="skeleton" style={{ height: 10, width: '35%', borderRadius: 6 }} />
                         </div>
                     ))}
                 </div>
@@ -55,211 +55,108 @@ export default function AdminAnalytics() {
     const { funnelMetrics, agentPerformance, policyMetrics, financialMetrics, dropOffAnalysis } = analytics;
 
     return (
-        <div>
-            <div style={{ marginBottom: 30 }}>
-                <h1 className="text-gradient" style={{ marginBottom: 10, fontSize: "2.5rem" }}>
-                    📊 Admin Analytics
+        <div style={{ padding: '36px 40px', maxWidth: 1400, margin: '0 auto' }}>
+
+            {/* ── Hero Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-super-admin" style={{ fontSize: '0.7rem' }}>⚡ Super Admin</span>
+                    <span style={{
+                        fontSize: '0.7rem', fontWeight: 700, color: '#10b981',
+                        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                        padding: '3px 10px', borderRadius: 20
+                    }}>Live Data</span>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '2.1rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                    📊 Platform <span className="text-gradient">Analytics</span>
                 </h1>
-                <p style={{ opacity: 0.8 }}>
-                    Full lifecycle visibility with funnel metrics and drop-off analysis
+                <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Full lifecycle visibility — funnel metrics, agent performance, and financial overview.
                 </p>
-            </div>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(99,102,241,0.5), rgba(139,92,246,0.3), transparent)', marginTop: 16 }} />
+            </motion.div>
 
-            {/* Funnel Metrics */}
+            {/* ── Conversion Funnel ── */}
             {funnelMetrics && (
-                <div style={{ marginBottom: 40 }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>🎯 Conversion Funnel</h2>
-
-                    {/* Funnel Visualization */}
+                <div style={{ marginBottom: 44 }}>
+                    <SectionHeader icon="🎯" title="Conversion Funnel" subtitle="Track how users move from viewing to purchasing" />
                     <FunnelVisualization funnel={funnelMetrics} />
-
-                    {/* Conversion Rates */}
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginTop: 20 }}>
-                        <MetricCard
-                            icon="👁️"
-                            title="Policy Views"
-                            value={funnelMetrics.totalPolicyViews?.toLocaleString() || '0'}
-                            subtitle="Total impressions"
-                            index={0}
-                        />
-                        <MetricCard
-                            icon="📅"
-                            title="Appointments"
-                            value={funnelMetrics.totalAppointmentsBooked?.toLocaleString() || '0'}
-                            subtitle={`${funnelMetrics.viewToAppointmentRate?.toFixed(1) || '0'}% conversion`}
-                            index={1}
-                        />
-                        <MetricCard
-                            icon="💬"
-                            title="Consultations"
-                            value={funnelMetrics.totalConsultationsCompleted?.toLocaleString() || '0'}
-                            subtitle={`${funnelMetrics.appointmentToConsultationRate?.toFixed(1) || '0'}% completion`}
-                            index={2}
-                        />
-                        <MetricCard
-                            icon="✅"
-                            title="Approvals"
-                            value={funnelMetrics.totalApprovalsGiven?.toLocaleString() || '0'}
-                            subtitle={`${funnelMetrics.consultationToApprovalRate?.toFixed(1) || '0'}% approved`}
-                            index={3}
-                        />
-                        <MetricCard
-                            icon="💰"
-                            title="Purchases"
-                            value={funnelMetrics.totalPurchasesCompleted?.toLocaleString() || '0'}
-                            subtitle={`${funnelMetrics.overallConversionRate?.toFixed(2) || '0'}% overall`}
-                            index={4}
-                            status="good"
-                        />
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginTop: 20 }}>
+                        <MetricCard icon="👁️" title="Policy Views" value={funnelMetrics.totalPolicyViews?.toLocaleString() || '0'} subtitle="Total impressions" index={0} accentColor="#6366f1" />
+                        <MetricCard icon="📅" title="Appointments" value={funnelMetrics.totalAppointmentsBooked?.toLocaleString() || '0'} subtitle={`${funnelMetrics.viewToAppointmentRate?.toFixed(1) || '0'}% from views`} index={1} accentColor="#8b5cf6" />
+                        <MetricCard icon="💬" title="Consultations" value={funnelMetrics.totalConsultationsCompleted?.toLocaleString() || '0'} subtitle={`${funnelMetrics.appointmentToConsultationRate?.toFixed(1) || '0'}% completion`} index={2} accentColor="#ec4899" />
+                        <MetricCard icon="✅" title="Approvals" value={funnelMetrics.totalApprovalsGiven?.toLocaleString() || '0'} subtitle={`${funnelMetrics.consultationToApprovalRate?.toFixed(1) || '0'}% approved`} index={3} accentColor="#f59e0b" />
+                        <MetricCard icon="💰" title="Purchases" value={funnelMetrics.totalPurchasesCompleted?.toLocaleString() || '0'} subtitle={`${funnelMetrics.overallConversionRate?.toFixed(2) || '0'}% overall`} index={4} accentColor="#10b981" status="good" />
                     </div>
                 </div>
             )}
 
-            {/* Drop-off Analysis */}
+            {/* ── Drop-off Analysis ── */}
             {dropOffAnalysis && (
-                <div style={{ marginBottom: 40 }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>📉 Drop-off Analysis</h2>
-                    <p style={{ opacity: 0.7, marginBottom: 20 }}>Identify bottlenecks in the customer journey</p>
-
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-                        {dropOffAnalysis.viewToAppointment && (
-                            <DropOffCard dropOff={dropOffAnalysis.viewToAppointment} index={0} />
-                        )}
-                        {dropOffAnalysis.appointmentToConsultation && (
-                            <DropOffCard dropOff={dropOffAnalysis.appointmentToConsultation} index={1} />
-                        )}
-                        {dropOffAnalysis.consultationToApproval && (
-                            <DropOffCard dropOff={dropOffAnalysis.consultationToApproval} index={2} />
-                        )}
-                        {dropOffAnalysis.approvalToPurchase && (
-                            <DropOffCard dropOff={dropOffAnalysis.approvalToPurchase} index={3} />
-                        )}
+                <div style={{ marginBottom: 44 }}>
+                    <SectionHeader icon="📉" title="Drop-off Analysis" subtitle="Identify bottlenecks in the customer journey" />
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                        {dropOffAnalysis.viewToAppointment && <DropOffCard dropOff={dropOffAnalysis.viewToAppointment} index={0} />}
+                        {dropOffAnalysis.appointmentToConsultation && <DropOffCard dropOff={dropOffAnalysis.appointmentToConsultation} index={1} />}
+                        {dropOffAnalysis.consultationToApproval && <DropOffCard dropOff={dropOffAnalysis.consultationToApproval} index={2} />}
+                        {dropOffAnalysis.approvalToPurchase && <DropOffCard dropOff={dropOffAnalysis.approvalToPurchase} index={3} />}
                     </div>
                 </div>
             )}
 
-            {/* Agent Performance Summary */}
+            {/* ── Agent Performance ── */}
             {agentPerformance && (
-                <div style={{ marginBottom: 40 }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>👥 Agent Performance</h2>
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                        <MetricCard
-                            icon="👨‍💼"
-                            title="Total Agents"
-                            value={agentPerformance.totalAgents || 0}
-                            subtitle={`${agentPerformance.activeAgents || 0} active`}
-                            index={5}
-                        />
-                        <MetricCard
-                            icon="⚡"
-                            title="Avg Response Time"
-                            value={`${agentPerformance.averageResponseTime?.toFixed(1) || '0'}h`}
-                            subtitle={agentPerformance.averageResponseTime < 24 ? 'Within SLA' : 'Exceeds SLA'}
-                            status={agentPerformance.averageResponseTime < 24 ? 'good' : 'warning'}
-                            index={6}
-                        />
-                        <MetricCard
-                            icon="👍"
-                            title="Avg Approval Rate"
-                            value={`${agentPerformance.averageApprovalRate?.toFixed(1) || '0'}%`}
-                            subtitle="Across all agents"
-                            index={7}
-                        />
-                        <MetricCard
-                            icon="⚠️"
-                            title="SLA Breaches"
-                            value={agentPerformance.totalSLABreaches || 0}
-                            subtitle={`${agentPerformance.agentsWithSLABreaches || 0} agents affected`}
-                            status={agentPerformance.totalSLABreaches > 0 ? 'error' : 'good'}
-                            index={8}
-                        />
+                <div style={{ marginBottom: 44 }}>
+                    <SectionHeader icon="🧑‍💼" title="Agent Performance" subtitle="SLA tracking and approval metrics" />
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                        <MetricCard icon="👨‍💼" title="Total Agents" value={agentPerformance.totalAgents || 0} subtitle={`${agentPerformance.activeAgents || 0} active`} index={5} accentColor="#6366f1" />
+                        <MetricCard icon="⚡" title="Avg Response" value={`${agentPerformance.averageResponseTime?.toFixed(1) || '0'}h`} subtitle={agentPerformance.averageResponseTime < 24 ? 'Within SLA ✅' : 'Exceeds SLA ⚠️'} status={agentPerformance.averageResponseTime < 24 ? 'good' : 'warning'} index={6} accentColor="#8b5cf6" />
+                        <MetricCard icon="👍" title="Avg Approval Rate" value={`${agentPerformance.averageApprovalRate?.toFixed(1) || '0'}%`} subtitle="Across all agents" index={7} accentColor="#10b981" status="good" />
+                        <MetricCard icon="⚠️" title="SLA Breaches" value={agentPerformance.totalSLABreaches || 0} subtitle={`${agentPerformance.agentsWithSLABreaches || 0} agents affected`} index={8} accentColor="#ef4444" status={agentPerformance.totalSLABreaches > 0 ? 'error' : 'good'} />
                     </div>
                 </div>
             )}
 
-            {/* Financial Metrics */}
+            {/* ── Financial Metrics ── */}
             {financialMetrics && (
-                <div style={{ marginBottom: 40 }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>💵 Financial Metrics</h2>
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                        <MetricCard
-                            icon="💰"
-                            title="Total Revenue"
-                            value={`₹${(financialMetrics.totalRevenue || 0).toLocaleString('en-IN')}`}
-                            subtitle="All time"
-                            status="good"
-                            index={9}
-                        />
-                        <MetricCard
-                            icon="📅"
-                            title="Monthly Revenue"
-                            value={`₹${(financialMetrics.monthlyRevenue || 0).toLocaleString('en-IN')}`}
-                            subtitle="This month"
-                            index={10}
-                        />
-                        <MetricCard
-                            icon="📊"
-                            title="Avg Premium"
-                            value={`₹${(financialMetrics.averagePremium || 0).toLocaleString('en-IN')}`}
-                            subtitle="Per policy"
-                            index={11}
-                        />
-                        <MetricCard
-                            icon="🛡️"
-                            title="Coverage Issued"
-                            value={`₹${((financialMetrics.totalCoverageIssued || 0) / 10000000).toFixed(1)}Cr`}
-                            subtitle="Total protection"
-                            index={12}
-                        />
-                        <MetricCard
-                            icon="👤"
-                            title="Total Users"
-                            value={financialMetrics.totalUsers || 0}
-                            subtitle={`${financialMetrics.activeUsers || 0} with policies`}
-                            index={13}
-                        />
+                <div style={{ marginBottom: 44 }}>
+                    <SectionHeader icon="💵" title="Financial Metrics" subtitle="Revenue, premium, and coverage overview" />
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                        <MetricCard icon="💰" title="Total Revenue" value={`₹${(financialMetrics.totalRevenue || 0).toLocaleString('en-IN')}`} subtitle="All time" status="good" index={9} accentColor="#10b981" />
+                        <MetricCard icon="📅" title="Monthly Revenue" value={`₹${(financialMetrics.monthlyRevenue || 0).toLocaleString('en-IN')}`} subtitle="This month" index={10} accentColor="#6366f1" />
+                        <MetricCard icon="📊" title="Avg Premium" value={`₹${(financialMetrics.averagePremium || 0).toLocaleString('en-IN')}`} subtitle="Per policy" index={11} accentColor="#8b5cf6" />
+                        <MetricCard icon="🛡️" title="Coverage Issued" value={`₹${((financialMetrics.totalCoverageIssued || 0) / 10000000).toFixed(1)}Cr`} subtitle="Total protection" index={12} accentColor="#f59e0b" />
+                        <MetricCard icon="👤" title="Total Users" value={financialMetrics.totalUsers || 0} subtitle={`${financialMetrics.activeUsers || 0} with policies`} index={13} accentColor="#3b82f6" />
                     </div>
                 </div>
             )}
 
-            {/* Policy Metrics */}
+            {/* ── Policy Metrics ── */}
             {policyMetrics && (
-                <div>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>📋 Policy Metrics</h2>
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                        <MetricCard
-                            icon="📄"
-                            title="Total Policies"
-                            value={policyMetrics.totalPolicies || 0}
-                            subtitle="In catalog"
-                            index={14}
-                        />
-                        <MetricCard
-                            icon="✅"
-                            title="Active Policies"
-                            value={policyMetrics.activePolicies || 0}
-                            subtitle="Currently active"
-                            status="good"
-                            index={15}
-                        />
-                        <MetricCard
-                            icon="💭"
-                            title="Quoted Policies"
-                            value={policyMetrics.quotedPolicies || 0}
-                            subtitle="Pending purchase"
-                            index={16}
-                        />
-                        <MetricCard
-                            icon="❌"
-                            title="Rejected"
-                            value={policyMetrics.rejectedPolicies || 0}
-                            subtitle="Not approved"
-                            status="error"
-                            index={17}
-                        />
+                <div style={{ marginBottom: 20 }}>
+                    <SectionHeader icon="📋" title="Policy Metrics" subtitle="Platform catalog and activation status" />
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                        <MetricCard icon="📄" title="Total Policies" value={policyMetrics.totalPolicies || 0} subtitle="In catalog" index={14} accentColor="#6366f1" />
+                        <MetricCard icon="✅" title="Active Policies" value={policyMetrics.activePolicies || 0} subtitle="Currently active" status="good" index={15} accentColor="#10b981" />
+                        <MetricCard icon="💭" title="Quoted" value={policyMetrics.quotedPolicies || 0} subtitle="Pending purchase" index={16} accentColor="#f59e0b" />
+                        <MetricCard icon="❌" title="Rejected" value={policyMetrics.rejectedPolicies || 0} subtitle="Not approved" status="error" index={17} accentColor="#ef4444" />
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ── Section Header Helper ──
+function SectionHeader({ icon, title, subtitle }) {
+    return (
+        <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: '1.3rem' }}>{icon}</span>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)' }}>{title}</h2>
+                <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, rgba(99,102,241,0.3), transparent)' }} />
+            </div>
+            {subtitle && <p style={{ margin: '5px 0 0 32px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{subtitle}</p>}
         </div>
     );
 }
@@ -387,48 +284,34 @@ function DropOffCard({ dropOff, index }) {
     );
 }
 
-function MetricCard({ icon, title, value, subtitle, status, index }) {
-    const getStatusColor = () => {
-        switch (status) {
-            case 'good': return '#22c55e';
-            case 'warning': return '#eab308';
-            case 'error': return '#ef4444';
-            default: return 'var(--primary)';
-        }
-    };
+function MetricCard({ icon, title, value, subtitle, status, index, accentColor }) {
+    const statusColor = status === 'good' ? '#10b981' : status === 'warning' ? '#f59e0b' : status === 'error' ? '#ef4444' : null;
+    const topColor = statusColor || accentColor || 'var(--primary)';
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: index * 0.04 }}
             className="card"
-            style={{
-                borderLeft: status ? `4px solid ${getStatusColor()}` : undefined,
-                position: 'relative',
-                overflow: 'hidden'
-            }}
+            style={{ borderTop: `3px solid ${topColor}`, padding: '20px 22px', position: 'relative', overflow: 'hidden' }}
         >
-            <div style={{
-                position: 'absolute',
-                top: -20,
-                right: -20,
-                fontSize: '5rem',
-                opacity: 0.05
-            }}>
+            <div style={{ position: 'absolute', top: -18, right: -12, fontSize: '4.5rem', opacity: 0.04, pointerEvents: 'none' }}>
                 {icon}
             </div>
-
             <div style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, opacity: 0.6, marginBottom: 8 }}>
-                    {title}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1.3 }}>
+                        {title}
+                    </div>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: `${topColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+                        {icon}
+                    </div>
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: status ? getStatusColor() : 'var(--text-main)', marginBottom: 4 }}>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: statusColor || 'var(--text-main)', lineHeight: 1 }}>
                     {value}
                 </div>
-                <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                    {subtitle}
-                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 6 }}>{subtitle}</div>
             </div>
         </motion.div>
     );

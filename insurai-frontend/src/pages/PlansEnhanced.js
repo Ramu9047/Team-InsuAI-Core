@@ -151,97 +151,90 @@ export default function PlansEnhanced() {
     const otherRecommendations = recommendations.filter(r => !r.isRecommended);
 
     return (
-        <div>
-            <div className="breadcrumbs">
+        <div style={{ padding: '36px 32px', maxWidth: 1400, margin: '0 auto' }}>
+            {/* ── Breadcrumb ── */}
+            <div className="breadcrumbs" style={{ marginBottom: 16 }}>
                 <Link to="/">Home</Link>
                 <span>/</span>
                 <span>Insurance Plans</span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
-                <div>
-                    <h1 className="text-gradient" style={{ marginBottom: 10, fontSize: "2.5rem" }}>
-                        Insurance Plans
-                    </h1>
-                    <p style={{ opacity: 0.8 }}>
-                        {user && user.role === 'USER'
-                            ? 'AI-powered recommendations based on your profile'
-                            : 'Compare and buy the best insurance plans for your needs'}
-                    </p>
+            {/* ── Hero Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-user" style={{ fontSize: '0.7rem' }}>👤 User</span>
+                    {user?.role === 'USER' && (
+                        <span style={{
+                            fontSize: '0.7rem', fontWeight: 700, color: '#8b5cf6',
+                            background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
+                            padding: '3px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 5,
+                        }}>
+                            🤖 AI-Powered
+                        </span>
+                    )}
                 </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '2.1rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                            📜 <span className="text-gradient">Insurance Plans</span>
+                        </h1>
+                        <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                            {user?.role === 'USER'
+                                ? 'AI-powered recommendations based on your age, income, and health profile'
+                                : 'Compare and explore the best insurance plans available on the platform'}
+                        </p>
+                    </div>
+                    {user?.role === 'USER' && (
+                        <button
+                            className="secondary-btn"
+                            onClick={() => setShowFilters(!showFilters)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', fontWeight: 700, flexShrink: 0 }}
+                        >
+                            <span>🔍</span>
+                            {showFilters ? 'Hide Filters' : 'Refine Results'}
+                        </button>
+                    )}
+                </div>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(99,102,241,0.5), rgba(139,92,246,0.3), transparent)', marginTop: 16 }} />
+            </motion.div>
 
-                {user && user.role === 'USER' && (
-                    <button
-                        className="primary-btn"
-                        onClick={() => setShowFilters(!showFilters)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                    >
-                        <span>🔍</span>
-                        {showFilters ? 'Hide Filters' : 'Show Filters'}
-                    </button>
-                )}
-            </div>
-
-            {/* Filter Panel */}
+            {/* ── Filter Panel ── */}
             <AnimatePresence>
-                {showFilters && user && user.role === 'USER' && (
+                {showFilters && user?.role === 'USER' && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         className="card"
-                        style={{ marginBottom: 30, padding: 20 }}
+                        style={{ marginBottom: 28, padding: '22px 26px', overflow: 'hidden' }}
                     >
-                        <h3 style={{ marginTop: 0, marginBottom: 20 }}>Filter Policies</h3>
+                        <h3 style={{ marginTop: 0, marginBottom: 18, fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            🔍 Refine Your Results
+                        </h3>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 15 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                            {[
+                                { key: 'maxPremium', label: 'Max Premium (₹/month)', placeholder: 'e.g. 5000', type: 'number' },
+                                { key: 'minCoverage', label: 'Min Coverage (₹)', placeholder: 'e.g. 500000', type: 'number' },
+                                { key: 'maxCoverage', label: 'Max Coverage (₹)', placeholder: 'e.g. 10000000', type: 'number' },
+                            ].map(f => (
+                                <div key={f.key}>
+                                    <label className="form-label">{f.label}</label>
+                                    <input
+                                        type={f.type}
+                                        className="form-input"
+                                        value={filters[f.key]}
+                                        onChange={e => setFilters({ ...filters, [f.key]: e.target.value })}
+                                        placeholder={f.placeholder}
+                                    />
+                                </div>
+                            ))}
                             <div>
-                                <label style={{ display: 'block', marginBottom: 5, fontSize: '0.9rem', fontWeight: 600 }}>
-                                    Max Premium (₹/month)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={filters.maxPremium}
-                                    onChange={e => setFilters({ ...filters, maxPremium: e.target.value })}
-                                    placeholder="e.g., 5000"
-                                    style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--card-border)' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: 5, fontSize: '0.9rem', fontWeight: 600 }}>
-                                    Min Coverage (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={filters.minCoverage}
-                                    onChange={e => setFilters({ ...filters, minCoverage: e.target.value })}
-                                    placeholder="e.g., 500000"
-                                    style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--card-border)' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: 5, fontSize: '0.9rem', fontWeight: 600 }}>
-                                    Max Coverage (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={filters.maxCoverage}
-                                    onChange={e => setFilters({ ...filters, maxCoverage: e.target.value })}
-                                    placeholder="e.g., 10000000"
-                                    style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--card-border)' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: 5, fontSize: '0.9rem', fontWeight: 600 }}>
-                                    Policy Type
-                                </label>
+                                <label className="form-label">Policy Type</label>
                                 <select
+                                    className="form-input"
                                     value={filters.type}
                                     onChange={e => setFilters({ ...filters, type: e.target.value })}
-                                    style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--card-border)' }}
                                 >
                                     <option value="">All Types</option>
                                     <option value="Health">Health</option>
@@ -253,40 +246,36 @@ export default function PlansEnhanced() {
                         </div>
 
                         <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                            <button className="primary-btn" onClick={applyFilters}>
+                            <button className="primary-btn" onClick={applyFilters} style={{ padding: '9px 22px' }}>
                                 Apply Filters
                             </button>
-                            <button
-                                onClick={clearFilters}
-                                style={{
-                                    padding: '10px 20px',
-                                    borderRadius: 8,
-                                    border: '1px solid var(--card-border)',
-                                    background: 'transparent',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Clear Filters
+                            <button className="secondary-btn" onClick={clearFilters} style={{ padding: '9px 22px' }}>
+                                Clear All
                             </button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Top Picks Section */}
-            {user && user.role === 'USER' && topPicks.length > 0 && (
-                <div style={{ marginBottom: 50 }}>
+            {/* ── Top AI Picks ── */}
+            {user?.role === 'USER' && topPicks.length > 0 && (
+                <div style={{ marginBottom: 48 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                        <span style={{ fontSize: '2rem' }}>⭐</span>
-                        <h2 style={{ fontSize: '1.8rem', margin: 0 }}>Top Picks for You</h2>
+                        <div style={{
+                            padding: '6px 16px', background: 'rgba(245,158,11,0.1)',
+                            border: '1px solid rgba(245,158,11,0.3)', borderRadius: 'var(--radius-pill)',
+                            color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem',
+                            display: 'flex', alignItems: 'center', gap: 6
+                        }}>
+                            ⭐ Top AI Picks for You
+                        </div>
+                        <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, rgba(245,158,11,0.3), transparent)' }} />
                     </div>
-
                     <div className="grid">
                         {topPicks.map((rec, i) => (
                             <PolicyRecommendationCard
                                 key={rec.policy?.id || rec.policyId || i}
-                                recommendation={rec}
-                                index={i}
+                                recommendation={rec} index={i}
                                 onSelect={setSelectedPlan}
                                 getEligibilityColor={getEligibilityColor}
                                 getEligibilityText={getEligibilityText}
@@ -297,10 +286,17 @@ export default function PlansEnhanced() {
                 </div>
             )}
 
-            {/* All Policies */}
+            {/* ── All Policies── */}
             <div>
-                {user && user.role === 'USER' && topPicks.length > 0 && (
-                    <h2 style={{ fontSize: '1.6rem', marginBottom: 20 }}>Other Recommendations</h2>
+                {user?.role === 'USER' && topPicks.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                        <div style={{
+                            padding: '6px 16px', background: 'rgba(99,102,241,0.1)',
+                            border: '1px solid rgba(99,102,241,0.25)', borderRadius: 'var(--radius-pill)',
+                            color: '#a5b4fc', fontWeight: 700, fontSize: '0.85rem'
+                        }}>Other Recommendations</div>
+                        <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, rgba(99,102,241,0.3), transparent)' }} />
+                    </div>
                 )}
 
                 {loading ? (
