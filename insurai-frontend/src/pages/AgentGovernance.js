@@ -433,14 +433,27 @@ function AgentCard({ agent, index, onClick, onToggleStatus, onDelete, isProcessi
                         if (!isProcessing) {
                             e.currentTarget.style.background = 'rgba(239,68,68,0.22)';
                             e.currentTarget.style.borderColor = 'rgba(239,68,68,0.6)';
+                            e.currentTarget.style.boxShadow = '0 0 12px rgba(239,68,68,0.4)';
                         }
                     }}
                     onMouseLeave={e => {
                         e.currentTarget.style.background = 'rgba(239,68,68,0.1)';
                         e.currentTarget.style.borderColor = 'rgba(239,68,68,0.35)';
+                        e.currentTarget.style.boxShadow = 'none';
                     }}
                 >
-                    🗑️
+                    {/* Custom Delete Icon: X-slash in circle */}
+                    <svg
+                        width="18" height="18" viewBox="0 0 20 20"
+                        fill="none" xmlns="http://www.w3.org/2000/svg"
+                        style={{ display: 'block' }}
+                    >
+                        {/* Outer ring */}
+                        <circle cx="10" cy="10" r="9" stroke="#ef4444" strokeWidth="1.5" fill="rgba(239,68,68,0.12)" />
+                        {/* X strokes */}
+                        <line x1="6.5" y1="6.5" x2="13.5" y2="13.5" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="13.5" y1="6.5" x2="6.5" y2="13.5" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
                 </motion.button>
             </div>
         </motion.div>

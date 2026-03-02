@@ -81,13 +81,14 @@ function BrandPanel() {
 
   return (
     <div style={{
-      flex: "0 0 42%",
+      flex: 1,
+      width: "100%",
       background: "linear-gradient(145deg, #0d1529 0%, #070c1a 100%)",
       borderRight: "1px solid rgba(99,102,241,0.10)",
       display: "flex",
       flexDirection: "column",
       justifyContent: "center",
-      padding: "60px 48px",
+      padding: "50px 40px",
       position: "relative",
       overflow: "hidden",
     }}>
@@ -115,8 +116,8 @@ function BrandPanel() {
             User Account
           </span>
         </div>
-        <h1 style={{ fontSize: "2.1rem", fontWeight: 800, color: "#f1f5f9", lineHeight: 1.25, marginBottom: 12, fontFamily: "'Space Grotesk', sans-serif" }}>
-          Join InsurAI as a<br />
+        <h1 style={{ fontSize: "1.95rem", fontWeight: 800, color: "#f1f5f9", lineHeight: 1.2, marginBottom: 12, fontFamily: "'Space Grotesk', sans-serif" }}>
+          Join InsurAI as a{" "}
           <span style={{ background: "linear-gradient(135deg, #6366f1, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             Policy Holder
           </span>
@@ -210,176 +211,183 @@ export default function Register() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      position: "fixed",
+      top: 64,
+      left: 0,
+      right: 0,
+      bottom: 0,
       display: "flex",
       background: "linear-gradient(135deg, #020617 0%, #070c1a 100%)",
+      overflow: "hidden",
+      zIndex: 0,
     }}>
-      <div style={{ display: "flex", flex: 1 }}>
-        <div style={{ flex: "0 0 42%", display: "flex" }} className="auth-brand-panel">
-          <BrandPanel />
-        </div>
+      <div style={{ flex: "0 0 42%", minWidth: 0, display: "flex" }} className="auth-brand-panel">
+        <BrandPanel />
+      </div>
 
-        {/* Right panel — Form */}
-        <div style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "40px 24px",
-          overflowY: "auto",
-        }}>
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            style={{ width: "100%", maxWidth: 420 }}
-          >
-            {/* Header */}
-            <div style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#f1f5f9", marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>
-                Create your account
-              </h2>
-              <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
-                Already have an account?{" "}
-                <Link to="/login" style={{ color: "#818cf8", fontWeight: 600 }}>Sign in here</Link>
-              </p>
+      {/* Right panel — Form */}
+      <div style={{
+        flex: 1,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px",
+        overflowY: "auto",
+        minWidth: 0,
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          style={{ width: "100%", maxWidth: 480 }}
+        >
+          {/* Header */}
+          <div style={{ marginBottom: 32 }}>
+            <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#f1f5f9", marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>
+              Create your account
+            </h2>
+            <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
+              Already have an account?{" "}
+              <Link to="/login" style={{ color: "#818cf8", fontWeight: 600 }}>Sign in here</Link>
+            </p>
+          </div>
+
+          {/* Account type indicator */}
+          <div style={{
+            padding: "12px 16px",
+            borderRadius: 10,
+            background: "rgba(59,130,246,0.07)",
+            border: "1px solid rgba(59,130,246,0.2)",
+            marginBottom: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}>
+            <span style={{ fontSize: "1.1rem" }}>👤</span>
+            <div>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#93c5fd" }}>User Account</div>
+              <div style={{ fontSize: "0.75rem", color: "#475569" }}>For insurance buyers only — agents & admins are provisioned separately</div>
+            </div>
+          </div>
+
+          {/* Server error */}
+          <AnimatePresence>
+            {errors.form && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: "0.88rem", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
+                ⚠️ {errors.form}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <form onSubmit={submit} noValidate>
+            {/* Full Name */}
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <input
+                id="reg-name"
+                className="form-input"
+                autoFocus
+                placeholder="Jane Doe"
+                value={form.name}
+                autoComplete="name"
+                onChange={e => setField("name", e.target.value)}
+                style={errors.name ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
+              />
+              {errors.name && <p className="error-msg">⚠ {errors.name}</p>}
             </div>
 
-            {/* Account type indicator */}
-            <div style={{
-              padding: "12px 16px",
-              borderRadius: 10,
-              background: "rgba(59,130,246,0.07)",
-              border: "1px solid rgba(59,130,246,0.2)",
-              marginBottom: 24,
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}>
-              <span style={{ fontSize: "1.1rem" }}>👤</span>
-              <div>
-                <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#93c5fd" }}>User Account</div>
-                <div style={{ fontSize: "0.75rem", color: "#475569" }}>For insurance buyers only — agents & admins are provisioned separately</div>
+            {/* Email */}
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                id="reg-email"
+                className="form-input"
+                type="email"
+                placeholder="jane@example.com"
+                value={form.email}
+                autoComplete="email"
+                onChange={e => setField("email", e.target.value)}
+                style={errors.email ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
+              />
+              {errors.email && <p className="error-msg">⚠ {errors.email}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="reg-password"
+                  className="form-input"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min 8 chars, 1 upper, 1 number, 1 special"
+                  value={form.password}
+                  autoComplete="new-password"
+                  onChange={e => setField("password", e.target.value)}
+                  style={{ paddingRight: 50, ...(errors.password ? { borderColor: "rgba(239,68,68,0.5)" } : {}) }}
+                />
+                <button type="button" className="input-icon-btn" onClick={() => setShowPassword(s => !s)}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={showPassword ? "on" : "off"}
+                      initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
+                      transition={{ duration: 0.15 }} style={{ display: "flex" }}>
+                      {showPassword ? <EyeOff /> : <EyeOn />}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
               </div>
-            </div>
 
-            {/* Server error */}
-            <AnimatePresence>
-              {errors.form && (
-                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: "0.88rem", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                  ⚠️ {errors.form}
+              {/* Strength bar */}
+              <PasswordStrengthBar password={form.password} />
+              {errors.password && <p className="error-msg">⚠ {errors.password}</p>}
+
+              {/* Requirements checklist */}
+              {form.password && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                  style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
+                  {pwRules.map(r => <PasswordRequirement key={r.text} met={r.met} text={r.text} />)}
                 </motion.div>
               )}
-            </AnimatePresence>
+            </div>
 
-            <form onSubmit={submit} noValidate>
-              {/* Full Name */}
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input
-                  id="reg-name"
-                  className="form-input"
-                  autoFocus
-                  placeholder="Jane Doe"
-                  value={form.name}
-                  autoComplete="name"
-                  onChange={e => setField("name", e.target.value)}
-                  style={errors.name ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
-                />
-                {errors.name && <p className="error-msg">⚠ {errors.name}</p>}
-              </div>
+            {/* Submit */}
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.97 }}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: 12,
+                border: "none",
+                background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                color: "#fff",
+                fontSize: "0.98rem",
+                fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer",
+                marginTop: 8,
+                boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {loading ? (
+                <><span style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Creating account...</>
+              ) : "Create Account →"}
+            </motion.button>
+          </form>
 
-              {/* Email */}
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input
-                  id="reg-email"
-                  className="form-input"
-                  type="email"
-                  placeholder="jane@example.com"
-                  value={form.email}
-                  autoComplete="email"
-                  onChange={e => setField("email", e.target.value)}
-                  style={errors.email ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
-                />
-                {errors.email && <p className="error-msg">⚠ {errors.email}</p>}
-              </div>
-
-              {/* Password */}
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    id="reg-password"
-                    className="form-input"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Min 8 chars, 1 upper, 1 number, 1 special"
-                    value={form.password}
-                    autoComplete="new-password"
-                    onChange={e => setField("password", e.target.value)}
-                    style={{ paddingRight: 50, ...(errors.password ? { borderColor: "rgba(239,68,68,0.5)" } : {}) }}
-                  />
-                  <button type="button" className="input-icon-btn" onClick={() => setShowPassword(s => !s)}>
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span key={showPassword ? "on" : "off"}
-                        initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
-                        transition={{ duration: 0.15 }} style={{ display: "flex" }}>
-                        {showPassword ? <EyeOff /> : <EyeOn />}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
-                </div>
-
-                {/* Strength bar */}
-                <PasswordStrengthBar password={form.password} />
-                {errors.password && <p className="error-msg">⚠ {errors.password}</p>}
-
-                {/* Requirements checklist */}
-                {form.password && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                    style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
-                    {pwRules.map(r => <PasswordRequirement key={r.text} met={r.met} text={r.text} />)}
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Submit */}
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.97 }}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                  color: "#fff",
-                  fontSize: "0.98rem",
-                  fontWeight: 700,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  marginTop: 8,
-                  boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.35)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                {loading ? (
-                  <><span style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Creating account...</>
-                ) : "Create Account →"}
-              </motion.button>
-            </form>
-
-            <p style={{ marginTop: 24, fontSize: "0.75rem", color: "#334155", textAlign: "center", lineHeight: 1.6 }}>
-              By creating an account you agree to our Terms of Service and Privacy Policy.
-            </p>
-          </motion.div>
-        </div>
+          <p style={{ marginTop: 24, fontSize: "0.75rem", color: "#334155", textAlign: "center", lineHeight: 1.6 }}>
+            By creating an account you agree to our Terms of Service and Privacy Policy.
+          </p>
+        </motion.div>
       </div>
 
       <style>{`
@@ -388,6 +396,6 @@ export default function Register() {
           .auth-brand-panel { display: none !important; }
         }
       `}</style>
-    </div>
+    </div >
   );
 }

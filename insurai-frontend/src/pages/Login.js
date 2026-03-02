@@ -34,7 +34,8 @@ function BrandPanel() {
 
   return (
     <div style={{
-      flex: "0 0 42%",
+      flex: 1,
+      width: "100%",
       background: "linear-gradient(145deg, #0d1529 0%, #0a0f1e 50%, #070c1a 100%)",
       borderRight: "1px solid rgba(99,102,241,0.12)",
       display: "flex",
@@ -165,174 +166,182 @@ export default function Login() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      position: "fixed",
+      top: 64,
+      left: 0,
+      right: 0,
+      bottom: 0,
       display: "flex",
       background: "linear-gradient(135deg, #020617 0%, #070c1a 100%)",
+      overflow: "hidden",
+      zIndex: 0,
     }}>
       {/* Left panel — hide on mobile */}
-      <div style={{ display: "flex", flex: 1 }}>
-        <div style={{ flex: "0 0 42%", display: "flex" }} className="auth-brand-panel">
-          <BrandPanel />
-        </div>
+      <div style={{ flex: "0 0 42%", minWidth: 0, display: "flex" }} className="auth-brand-panel">
+        <BrandPanel />
+      </div>
 
-        {/* Right — Form panel */}
-        <div style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "40px 24px",
-          background: "rgba(2,6,23,0.7)",
-        }}>
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            style={{ width: "100%", maxWidth: 420 }}
-          >
-            {/* Header */}
-            <div style={{ marginBottom: 36 }}>
-              <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#f1f5f9", marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>
-                Sign in to your account
-              </h2>
-              <p style={{ color: "#64748b", fontSize: "0.92rem" }}>
-                Don't have an account?{" "}
-                <Link to="/register" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
-                  Create one for free
-                </Link>
-              </p>
-            </div>
+      {/* Right — Form panel */}
+      <div style={{
+        flex: 1,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px",
+        background: "rgba(2,6,23,0.7)",
+        minWidth: 0,
+        overflowY: "auto",
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          style={{ width: "100%", maxWidth: 480 }}
+        >
+          {/* Header */}
+          <div style={{ marginBottom: 36 }}>
+            <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#f1f5f9", marginBottom: 8, fontFamily: "'Space Grotesk', sans-serif" }}>
+              Sign in to your account
+            </h2>
+            <p style={{ color: "#64748b", fontSize: "0.92rem" }}>
+              Don't have an account?{" "}
+              <Link to="/register" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
+                Create one for free
+              </Link>
+            </p>
+          </div>
 
-            {/* Error banner */}
-            <AnimatePresence>
-              {errors.form && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{
-                    padding: "12px 16px", borderRadius: 10,
-                    background: "rgba(239,68,68,0.08)",
-                    border: "1px solid rgba(239,68,68,0.25)",
-                    color: "#ef4444", fontSize: "0.88rem", marginBottom: 24,
-                    display: "flex", alignItems: "center", gap: 8,
-                  }}
-                >
-                  <span>⚠️</span> {errors.form}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <form onSubmit={handleLogin} noValidate>
-              {/* Email */}
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input
-                  id="login-email"
-                  className="form-input"
-                  type="email"
-                  autoFocus
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={form.email}
-                  onChange={e => setField("email", e.target.value)}
-                  style={errors.email ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
-                />
-                {errors.email && <p className="error-msg">⚠ {errors.email}</p>}
-              </div>
-
-              {/* Password */}
-              <div className="form-group">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <label className="form-label" style={{ margin: 0 }}>Password</label>
-                  <Link to="/forgot-password" style={{ fontSize: "0.78rem", color: "#6366f1", fontWeight: 500 }}>
-                    Forgot password?
-                  </Link>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    id="login-password"
-                    className="form-input"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    placeholder="••••••••••"
-                    value={form.password}
-                    onChange={e => setField("password", e.target.value)}
-                    style={{ paddingRight: 50, ...(errors.password ? { borderColor: "rgba(239,68,68,0.5)" } : {}) }}
-                  />
-                  <button type="button" className="input-icon-btn" onClick={() => setShowPassword(s => !s)}>
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span key={showPassword ? "on" : "off"}
-                        initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
-                        transition={{ duration: 0.15 }} style={{ display: "flex" }}>
-                        {showPassword ? <EyeOff /> : <EyeOn />}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
-                </div>
-                {errors.password && <p className="error-msg">⚠ {errors.password}</p>}
-              </div>
-
-              {/* Submit */}
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.97 }}
+          {/* Error banner */}
+          <AnimatePresence>
+            {errors.form && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 style={{
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                  color: "#fff",
-                  fontSize: "0.98rem",
-                  fontWeight: 700,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  marginBottom: 24,
-                  boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.35)",
-                  transition: "all 0.25s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  letterSpacing: "0.02em",
+                  padding: "12px 16px", borderRadius: 10,
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  color: "#ef4444", fontSize: "0.88rem", marginBottom: 24,
+                  display: "flex", alignItems: "center", gap: 8,
                 }}
               >
-                {loading ? (
-                  <><span style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Signing in...</>
-                ) : (
-                  <> Sign In →</>
-                )}
-              </motion.button>
-            </form>
+                <span>⚠️</span> {errors.form}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Divider */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
-              <span style={{ fontSize: "0.78rem", color: "#475569", fontWeight: 500 }}>Role Access</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+          <form onSubmit={handleLogin} noValidate>
+            {/* Email */}
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                id="login-email"
+                className="form-input"
+                type="email"
+                autoFocus
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={e => setField("email", e.target.value)}
+                style={errors.email ? { borderColor: "rgba(239,68,68,0.5)" } : {}}
+              />
+              {errors.email && <p className="error-msg">⚠ {errors.email}</p>}
             </div>
 
-            {/* Role indicators */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { role: "User", color: "#3b82f6", icon: "👤" },
-                { role: "Agent", color: "#8b5cf6", icon: "🧑‍💼" },
-                { role: "Company Admin", color: "#14b8a6", icon: "🏢" },
-                { role: "Super Admin", color: "#f59e0b", icon: "⚡" },
-              ].map(r => (
-                <div key={r.role} style={{
-                  padding: "9px 12px", borderRadius: 10,
-                  background: `rgba(${r.color === "#3b82f6" ? "59,130,246" : r.color === "#8b5cf6" ? "139,92,246" : r.color === "#14b8a6" ? "20,184,166" : "245,158,11"},0.07)`,
-                  border: `1px solid ${r.color}22`,
-                  display: "flex", alignItems: "center", gap: 8,
-                }}>
-                  <span style={{ fontSize: "0.95rem" }}>{r.icon}</span>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#94a3b8" }}>{r.role}</span>
-                </div>
-              ))}
+            {/* Password */}
+            <div className="form-group">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <label className="form-label" style={{ margin: 0 }}>Password</label>
+                <Link to="/forgot-password" style={{ fontSize: "0.78rem", color: "#6366f1", fontWeight: 500 }}>
+                  Forgot password?
+                </Link>
+              </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="login-password"
+                  className="form-input"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••••"
+                  value={form.password}
+                  onChange={e => setField("password", e.target.value)}
+                  style={{ paddingRight: 50, ...(errors.password ? { borderColor: "rgba(239,68,68,0.5)" } : {}) }}
+                />
+                <button type="button" className="input-icon-btn" onClick={() => setShowPassword(s => !s)}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={showPassword ? "on" : "off"}
+                      initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
+                      transition={{ duration: 0.15 }} style={{ display: "flex" }}>
+                      {showPassword ? <EyeOff /> : <EyeOn />}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
+              </div>
+              {errors.password && <p className="error-msg">⚠ {errors.password}</p>}
             </div>
-          </motion.div>
-        </div>
+
+            {/* Submit */}
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.97 }}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: 12,
+                border: "none",
+                background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                color: "#fff",
+                fontSize: "0.98rem",
+                fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer",
+                marginBottom: 24,
+                boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.35)",
+                transition: "all 0.25s ease",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {loading ? (
+                <><span style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Signing in...</>
+              ) : (
+                <> Sign In →</>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Divider */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+            <span style={{ fontSize: "0.78rem", color: "#475569", fontWeight: 500 }}>Role Access</span>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+          </div>
+
+          {/* Role indicators */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[
+              { role: "User", color: "#3b82f6", icon: "👤" },
+              { role: "Agent", color: "#8b5cf6", icon: "🧑‍💼" },
+              { role: "Company Admin", color: "#14b8a6", icon: "🏢" },
+              { role: "Super Admin", color: "#f59e0b", icon: "⚡" },
+            ].map(r => (
+              <div key={r.role} style={{
+                padding: "9px 12px", borderRadius: 10,
+                background: `rgba(${r.color === "#3b82f6" ? "59,130,246" : r.color === "#8b5cf6" ? "139,92,246" : r.color === "#14b8a6" ? "20,184,166" : "245,158,11"},0.07)`,
+                border: `1px solid ${r.color}22`,
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: "0.95rem" }}>{r.icon}</span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#94a3b8" }}>{r.role}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
       <style>{`
@@ -341,6 +350,6 @@ export default function Login() {
           .auth-brand-panel { display: none !important; }
         }
       `}</style>
-    </div>
+    </div >
   );
 }

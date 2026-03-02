@@ -60,15 +60,8 @@ Follow these steps to get the project up and running locally.
     CREATE DATABASE insurai_db;
     ```
 
-2. **Run Migration Script**:
-    The project includes a migration script to set up the initial schema and required tables.
-
-    ```bash
-    # If using command line
-    mysql -u root -p insurai_db < database_migration.sql
-    ```
-
-    *Alternatively, you can let Spring Boot auto-generate tables (`ddl-auto=update`), but running the script is recommended for consistent state.*
+2. **Run Application**:
+    Spring Boot is configured to automatically generate the database schema when it runs (`spring.jpa.hibernate.ddl-auto=update`). You don't need to run any manual migration scripts.
 
 ### 2. Backend Setup (`insurai-backend`)
 
@@ -128,28 +121,21 @@ Follow these steps to get the project up and running locally.
 
 ---
 
-## 🔐 User Roles & Default Credentials
+## 🔐 Automated Data Seeding & Default Credentials
 
-To fully test the system, you'll need users for different roles.
+When you start the backend on a clean database (no users), the application's `DataSeeder` automatically generates a comprehensive mock dataset for testing and exploring the application:
 
-### Create a Super Admin
+* **Super Admin** (1 user) -> `superadmin@insurai.com` / `sUpEr@123`
+* **Company Admins** (11 Users, one for each major company like LIC, HDFC, etc.) -> e.g., `ca.lic@insurai.com` / `cOmPaNy@123`
+* **Agents** (100 Users) -> `agent1@insurai.com` through `agent100@insurai.com` / `aGeNt@123`
+* **End Users** (250 Users) -> `user1@insurai.com` through `user250@insurai.com` / `uSeR@123`
 
-Run this SQL command in your database to create the initial Super Admin account:
-
-```sql
--- Password usually needs to be BCrypt hashed. 
--- For a default setup (check your backend logic), you might need to register via API or insert directly.
--- Using a hash for 'password': $2a$10$w.... (example)
-
-INSERT INTO user (name, email, password, role, is_active) 
-VALUES ('Super Admin', 'admin@insurai.com', '$2a$10$YourHashedPasswordHere', 'SUPER_ADMIN', true);
-```
+The seeder also automatically generates interlinked **Policies, Bookings, Claims, Agent Reviews, Documents, Audit Logs,** and **Feedback** to allow unrestricted exploration of the entire application.
 
 ### Roles Hierarchy
 
 * **SUPER_ADMIN**: Full system control, approves companies.
-* **COMPANY**: Manages their own insurance policies.
-* **ADMIN**: internal staff management (Users/Agents).
+* **COMPANY_ADMIN**: Manages their own insurance policies.
 * **AGENT**: Handles consultations and policy recommendations.
 * **USER**: End-customer who buys policies and claims insurance.
 
@@ -190,7 +176,6 @@ insurai/
 │   ├── src/pages/        # Dashboard Pages (User, Agent, Admin, Company)
 │   ├── src/styles/       # CSS Design Tokens & Global Styles
 │   └── public/           # Static assets, index.html
-├── database_migration.sql # Initial Database Setup Script
 └── README.md             # Project Documentation
 ```
 
