@@ -6,6 +6,7 @@ import { useNotification } from "../context/NotificationContext";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
 
+// eslint-disable-next-line no-unused-vars
 const PolicyStatusTracker = ({ status }) => {
     // Map system statuses to the 5-step flow
     // Steps: 0:Applied, 1:Processing, 2:Approved, 3:Active, 4:Renewed
