@@ -168,10 +168,21 @@ export default function MyAppointmentsEnhanced() {
         return icons[status] || '📌';
     };
 
-    if (loading) return <div style={{ textAlign: "center", marginTop: 50 }}>Loading...</div>;
+    if (loading) return (
+        <div style={{ padding: '60px 40px', maxWidth: 1400, margin: '0 auto' }}>
+            <div className="skeleton" style={{ height: 36, width: '40%', marginBottom: 12, borderRadius: 10 }} />
+            <div className="skeleton" style={{ height: 18, width: '22%', marginBottom: 32, borderRadius: 8 }} />
+            <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
+                {[1,2].map(i => <div key={i} className="skeleton" style={{ height: 44, width: 160, borderRadius: 24 }} />)}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px,1fr))', gap: 20 }}>
+                {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 260, borderRadius: 16 }} />)}
+            </div>
+        </div>
+    );
 
     return (
-        <div style={{ padding: 30 }}>
+        <div style={{ padding: '36px 32px', maxWidth: 1400, margin: '0 auto' }}>
             {/* Payment Modal */}
             <Modal
                 isOpen={paymentModal.isOpen}
@@ -342,39 +353,48 @@ export default function MyAppointmentsEnhanced() {
                 )}
             </Modal>
 
-            <h1 className="text-gradient" style={{ marginBottom: 30 }}>My Appointments & Policies</h1>
+            {/* ── Page Header ── */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span className="badge badge-user" style={{ fontSize: '0.7rem' }}>👤 User</span>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                    My <span className="text-gradient">Appointments & Policies</span>
+                </h1>
+                <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Track your consultations, upcoming meetings, and active insurance policies.
+                </p>
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(59,130,246,0.5), transparent)', marginTop: 16 }} />
+            </motion.div>
 
-            <div style={{ marginBottom: 30, display: 'flex', gap: 10, borderBottom: '1px solid var(--card-border)' }}>
-                <button
-                    onClick={() => setActiveTab("appointments")}
-                    style={{
-                        padding: "12px 24px",
-                        background: activeTab === "appointments" ? "var(--primary)" : "transparent",
-                        color: activeTab === "appointments" ? "white" : "var(--text-muted)",
-                        border: "none",
-                        borderBottom: activeTab === "appointments" ? "3px solid white" : "3px solid transparent",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        transition: "all 0.3s"
-                    }}
-                >
-                    Appointments ({appointments.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab("policies")}
-                    style={{
-                        padding: "12px 24px",
-                        background: activeTab === "policies" ? "var(--primary)" : "transparent",
-                        color: activeTab === "policies" ? "white" : "var(--text-muted)",
-                        border: "none",
-                        borderBottom: activeTab === "policies" ? "3px solid white" : "3px solid transparent",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        transition: "all 0.3s"
-                    }}
-                >
-                    Policies ({policies.length})
-                </button>
+            {/* ── Tab Selector ── */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+                {[
+                    { key: 'appointments', label: '📅 Appointments', count: appointments.length },
+                    { key: 'policies',     label: '📄 My Policies',   count: policies.length },
+                ].map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        style={{
+                            padding: '9px 22px',
+                            borderRadius: 'var(--radius-pill)',
+                            border: activeTab === tab.key ? '1px solid var(--primary)' : '1px solid var(--border-input)',
+                            background: activeTab === tab.key ? 'rgba(99,102,241,0.15)' : 'transparent',
+                            color: activeTab === tab.key ? '#a5b4fc' : 'var(--text-muted)',
+                            fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex', alignItems: 'center', gap: 8,
+                        }}
+                    >
+                        {tab.label}
+                        <span style={{
+                            background: activeTab === tab.key ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)',
+                            color: activeTab === tab.key ? '#c7d2fe' : 'var(--text-muted)',
+                            padding: '1px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 800,
+                        }}>{tab.count}</span>
+                    </button>
+                ))}
             </div>
 
             {activeTab === "appointments" && (

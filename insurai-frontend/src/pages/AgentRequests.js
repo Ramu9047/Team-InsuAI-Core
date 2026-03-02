@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import api from "../services/api";
-import Card from "../components/Card";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import Modal from "../components/Modal";
+import { motion } from "framer-motion";
 
 export default function AgentRequests() {
   const { user } = useAuth();
@@ -90,8 +90,9 @@ export default function AgentRequests() {
   if (!user || user.role !== 'AGENT') return <div style={{ padding: 40 }}>Access Denied</div>;
 
   return (
-    <div className="container" style={{ marginTop: 20 }}>
-      {/* Proof Modal */}
+    <div style={{ padding: '36px 32px', maxWidth: 1400, margin: '0 auto' }}>
+
+      {/* ── Proof Modal ── */}
       <Modal
         isOpen={proofModal.isOpen}
         onClose={() => setProofModal({ isOpen: false, url: "" })}
@@ -115,30 +116,52 @@ export default function AgentRequests() {
         </div>
       </Modal>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 30 }}>
-        <h2 className="text-gradient" style={{ margin: 0 }}>Agent Dashboard</h2>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            onClick={() => setActiveTab("appointments")}
-            style={{
-              padding: "8px 16px", background: activeTab === "appointments" ? "var(--primary)" : "transparent",
-              border: "1px solid var(--primary)",
-              borderRadius: 20, color: activeTab === "appointments" ? "white" : "var(--primary)", cursor: "pointer"
-            }}
-          >
-            Appointments
-          </button>
-          <button
-            onClick={() => setActiveTab("claims")}
-            style={{
-              padding: "8px 16px", background: activeTab === "claims" ? "var(--primary)" : "transparent",
-              border: "1px solid var(--primary)",
-              borderRadius: 20, color: activeTab === "claims" ? "white" : "var(--primary)", cursor: "pointer"
-            }}
-          >
-            Start Claims Process
-          </button>
+      {/* ── Page Header ── */}
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span className="badge badge-agent" style={{ fontSize: '0.7rem' }}>🧑‍💼 Agent</span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
+              My <span className="text-gradient">Consultation Queue</span>
+            </h1>
+            <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              Review, approve, and complete appointment requests from users.
+            </p>
+          </div>
+        </div>
+        <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(139,92,246,0.5), transparent)', marginTop: 16 }} />
+      </motion.div>
+
+      {/* ── Tab Selector ── */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+        {[
+          { key: 'appointments', label: '📅 Appointments', count: requests.length },
+          { key: 'claims', label: '🛡️ Claims Review', count: claims.filter(c => ['PENDING', 'INITIATED', 'DOCS_UPLOADED', 'UNDER_REVIEW', 'FLAGGED_FRAUD'].includes(c.status)).length },
+        ].map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              padding: '9px 22px',
+              borderRadius: 'var(--radius-pill)',
+              border: activeTab === tab.key ? '1px solid var(--role-agent)' : '1px solid var(--border-input)',
+              background: activeTab === tab.key ? 'rgba(139,92,246,0.15)' : 'transparent',
+              color: activeTab === tab.key ? '#c4b5fd' : 'var(--text-muted)',
+              fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            {tab.label}
+            <span style={{
+              background: activeTab === tab.key ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)',
+              color: activeTab === tab.key ? '#ddd6fe' : 'var(--text-muted)',
+              padding: '1px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 800,
+            }}>{tab.count}</span>
+          </button>
+        ))}
       </div>
 
       {/* Profile Viewer Modal */}
@@ -223,180 +246,195 @@ export default function AgentRequests() {
 
       {activeTab === "appointments" && (
         requests.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 50, opacity: 0.6 }}>
-            <p>No pending appointment requests.</p>
+          <div style={{ textAlign: "center", padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-card)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📥</div>
+            <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No pending appointment requests.</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30 }}>
-            {requests.map(b => (
-              <Card key={b.id} style={{ display: "flex", flexDirection: "column", height: "100%", margin: "0 auto", width: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>{b.user.name}</span>
-                  <span style={{
-                    padding: "2px 8px", borderRadius: 10, fontSize: "0.8rem",
-                    background: b.status === "PENDING" ? "rgba(245, 158, 11, 0.1)" : b.status === "APPROVED" ? "rgba(16, 185, 129, 0.1)" : b.status === "COMPLETED" ? "rgba(59, 130, 246, 0.1)" : b.status === "EXPIRED" ? "rgba(107, 114, 128, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                    color: b.status === "PENDING" ? "#f59e0b" : b.status === "APPROVED" ? "#10b981" : b.status === "COMPLETED" ? "#3b82f6" : b.status === "EXPIRED" ? "#6b7280" : "#ef4444",
-                    border: b.status === "PENDING" ? "1px solid rgba(245, 158, 11, 0.4)" : b.status === "APPROVED" ? "1px solid rgba(16, 185, 129, 0.4)" : b.status === "COMPLETED" ? "1px solid rgba(59, 130, 246, 0.4)" : b.status === "EXPIRED" ? "1px solid rgba(107, 114, 128, 0.4)" : "1px solid rgba(239, 68, 68, 0.4)"
-                  }}>{b.status === "COMPLETED" ? "CONSULTED" : b.status}</span>
-                </div>
-                <p style={{ margin: "5px 0", fontSize: "0.9rem", color: "var(--text-muted)" }}>📅 {new Date(b.startTime).toLocaleString()}</p>
-
-                {b.policy ? (
-                  <div style={{ background: b.bookingType === 'ENQUIRY' ? "rgba(59, 130, 246, 0.1)" : "rgba(16, 185, 129, 0.1)", padding: 10, borderRadius: 8, margin: "10px 0", borderLeft: b.bookingType === 'ENQUIRY' ? "4px solid #3b82f6" : "4px solid #10b981" }}>
-                    <strong style={{ color: b.bookingType === 'ENQUIRY' ? "#3b82f6" : "#10b981" }}>{b.bookingType === 'ENQUIRY' ? "Policy Enquiry:" : "Purchase Request:"}</strong>
-                    <div style={{ fontSize: "1rem", fontWeight: "bold" }}>{b.policy.name}</div>
-                    <div style={{ fontSize: "0.8rem", opacity: 0.8 }}>Premium: ₹{b.policy.premium}</div>
-                  </div>
-                ) : b.reason && (
-                  <div style={{ background: "rgba(255,255,255,0.03)", padding: 8, borderRadius: 4, margin: "10px 0", fontSize: "0.9rem" }}>
-                    <strong>Goal:</strong> {b.reason}
-                  </div>
-                )}
-
-                <button
-                  className="secondary-btn"
-                  style={{ width: "100%", marginBottom: 10, marginTop: "auto", fontSize: "0.85rem", background: viewedProfiles.has(b.user.id) ? "rgba(34, 197, 94, 0.1)" : "transparent", borderColor: viewedProfiles.has(b.user.id) ? "#22c55e" : "rgba(255,255,255,0.2)" }}
-                  onClick={() => handleViewProfile(b.user)}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
+            {requests.map((b, idx) => {
+              const statusColors = {
+                PENDING: '#f59e0b', APPROVED: '#10b981', COMPLETED: '#3b82f6',
+                REJECTED: '#ef4444', EXPIRED: '#6b7280'
+              };
+              const statusColor = statusColors[b.status] || '#6b7280';
+              return (
+                <motion.div
+                  key={b.id}
+                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }}
+                  className="card"
+                  style={{ borderLeft: `4px solid ${statusColor}`, padding: '22px 24px' }}
                 >
-                  {viewedProfiles.has(b.user.id) ? "✅ Profile Analyzed" : "🔍 Analyze User Profile"}
-                </button>
-
-                {b.status === "PENDING" && (
-                  <div style={{ marginTop: 15 }}>
-                    {!viewedProfiles.has(b.user.id) && (
-                      <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
-                        ⚠️ Analyze profile before decision
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: 'flex-start', marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>{b.user.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                        📅 {new Date(b.startTime).toLocaleString()}
                       </div>
-                    )}
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button
-                        className="primary-btn"
-                        style={{ flex: 1, padding: "8px", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
-                        onClick={() => viewedProfiles.has(b.user.id) && updateStatus(b.id, "APPROVED")}
-                        disabled={!viewedProfiles.has(b.user.id)}
-                      >
-                        {b.policy ? (b.bookingType === 'ENQUIRY' ? "Approve Enquiry" : "Approve Issue") : "Approve Meeting"}
-                      </button>
-                      <button
-                        className="secondary-btn"
-                        style={{ flex: 1, padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}
-                        onClick={() => setRejectionModal({ isOpen: true, bookingId: b.id, reason: "" })}
-                      >
-                        Reject
-                      </button>
                     </div>
+                    <span className={`badge badge-${b.status === 'PENDING' ? 'warning' : b.status === 'APPROVED' ? 'success' : b.status === 'COMPLETED' ? 'info' : b.status === 'EXPIRED' ? 'neutral' : 'danger'}`}>
+                      {b.status === 'COMPLETED' ? 'CONSULTED' : b.status}
+                    </span>
                   </div>
-                )}
 
-                {b.status === "APPROVED" && (
-                  <div style={{ marginTop: 15 }}>
-                    {/* Meeting Link if available */}
-                    {b.meetingLink && (
-                      <a
-                        href={b.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="primary-btn"
-                        style={{
-                          display: 'block',
-                          textAlign: 'center',
-                          marginBottom: 10,
-                          background: '#22c55e',
-                          borderColor: '#22c55e',
-                          textDecoration: 'none'
-                        }}
-                      >
-                        🎥 Join Meeting
-                      </a>
-                    )}
+                  {b.policy ? (
+                    <div style={{ background: b.bookingType === 'ENQUIRY' ? 'rgba(59,130,246,0.08)' : 'rgba(16,185,129,0.08)', padding: '10px 14px', borderRadius: 10, margin: '14px 0', borderLeft: b.bookingType === 'ENQUIRY' ? '3px solid #3b82f6' : '3px solid #10b981' }}>
+                      <strong style={{ color: b.bookingType === 'ENQUIRY' ? '#60a5fa' : '#34d399', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{b.bookingType === 'ENQUIRY' ? 'Policy Enquiry' : 'Purchase Request'}</strong>
+                      <div style={{ fontSize: '0.97rem', fontWeight: 700, color: 'var(--text-main)', marginTop: 3 }}>{b.policy.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Premium: ₹{b.policy.premium}/mo</div>
+                    </div>
+                  ) : b.reason && (
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: 10, margin: '10px 0', fontSize: '0.9rem', border: '1px solid var(--border-subtle)' }}>
+                      <strong style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>GOAL</strong>
+                      <div style={{ color: 'var(--text-main)', marginTop: 3 }}>{b.reason}</div>
+                    </div>
+                  )}
 
-                    {/* Add to Google Calendar */}
-                    {b.startTime && b.endTime && (
-                      <a
-                        href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Consultation with ${b.user.name}`)}&dates=${new Date(b.startTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(b.endTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(`Policy consultation for ${b.policy?.name || 'General Discussion'}`)}&location=${encodeURIComponent(b.meetingLink || 'To be shared')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="secondary-btn"
-                        style={{
-                          display: 'block',
-                          textAlign: 'center',
-                          marginBottom: 10,
-                          textDecoration: 'none'
-                        }}
-                      >
-                        📅 Add to Google Calendar
-                      </a>
-                    )}
+                  <button
+                    className="secondary-btn"
+                    style={{ width: "100%", marginBottom: 10, marginTop: "auto", fontSize: "0.85rem", background: viewedProfiles.has(b.user.id) ? "rgba(34, 197, 94, 0.1)" : "transparent", borderColor: viewedProfiles.has(b.user.id) ? "#22c55e" : "rgba(255,255,255,0.2)" }}
+                    onClick={() => handleViewProfile(b.user)}
+                  >
+                    {viewedProfiles.has(b.user.id) ? "✅ Profile Analyzed" : "🔍 Analyze User Profile"}
+                  </button>
 
-                    {!b.policy && (
-                      <>
-                        {!viewedProfiles.has(b.user.id) ? (
-                          <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
-                            ⚠️ Analyze profile before recommending
-                          </div>
-                        ) : null}
+                  {b.status === "PENDING" && (
+                    <div style={{ marginTop: 15 }}>
+                      {!viewedProfiles.has(b.user.id) && (
+                        <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
+                          ⚠️ Analyze profile before decision
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 10 }}>
                         <button
                           className="primary-btn"
-                          style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
-                          onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
+                          style={{ flex: 1, padding: "8px", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
+                          onClick={() => viewedProfiles.has(b.user.id) && updateStatus(b.id, "APPROVED")}
                           disabled={!viewedProfiles.has(b.user.id)}
                         >
-                          ✨ Recommend Policy
+                          {b.policy ? (b.bookingType === 'ENQUIRY' ? "Approve Enquiry" : "Approve Issue") : "Approve Meeting"}
                         </button>
-                      </>
-                    )}
-
-                    {b.policy && (
-                      <div style={{ marginTop: 10 }}>
                         <button
-                          className="primary-btn"
-                          style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6", marginBottom: 10 }}
-                          onClick={() => updateStatus(b.id, "COMPLETED")}
+                          className="secondary-btn"
+                          style={{ flex: 1, padding: "8px", color: "#ef4444", borderColor: "#ef4444" }}
+                          onClick={() => setRejectionModal({ isOpen: true, bookingId: b.id, reason: "" })}
                         >
-                          {b.bookingType === 'ENQUIRY' ? "✅ Complete Policy Enquiry" : "✅ Complete Consultation & Issue Policy"}
+                          Reject
                         </button>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {b.status === "COMPLETED" && (
-                  <div style={{ marginTop: 15, padding: 10, background: "rgba(59, 130, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
-                    <div style={{ fontWeight: "bold", color: "#3b82f6", marginBottom: 5 }}>Consultation Completed</div>
-                    <div style={{ fontSize: "0.9rem" }}>
-                      {b.bookingType === 'ENQUIRY'
-                        ? `Enquiry for ${b.policy?.name} has been resolved.`
-                        : `Policy ${b.policy?.name} has been issued (Payment Pending).`}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {b.status === "EXPIRED" && (
-                  <div style={{ marginTop: 15, padding: 10, background: "rgba(107, 114, 128, 0.1)", borderRadius: 8, border: "1px solid rgba(107, 114, 128, 0.3)" }}>
-                    <div style={{ fontWeight: "bold", color: "#6b7280", marginBottom: 5 }}>Consultation Expired</div>
-                    <div style={{ fontSize: "0.9rem" }}>No action was taken during the scheduled time slot.</div>
-                  </div>
-                )}
+                  {b.status === "APPROVED" && (
+                    <div style={{ marginTop: 15 }}>
+                      {/* Meeting Link if available */}
+                      {b.meetingLink && (
+                        <a
+                          href={b.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="primary-btn"
+                          style={{
+                            display: 'block',
+                            textAlign: 'center',
+                            marginBottom: 10,
+                            background: '#22c55e',
+                            borderColor: '#22c55e',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          🎥 Join Meeting
+                        </a>
+                      )}
 
-                {b.status === "REJECTED" && (
-                  <div style={{ marginTop: 15 }}>
-                    <div style={{ padding: 10, background: "rgba(239, 68, 68, 0.1)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.3)", marginBottom: 10 }}>
-                      <strong style={{ color: "#ef4444" }}>Rejection Reason:</strong>
-                      <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>{b.rejectionReason}</p>
-                    </div>
-                    {b.aiAnalysis && (
-                      <div style={{ padding: 10, background: "rgba(139, 92, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(139, 92, 246, 0.3)" }}>
-                        <strong style={{ color: "#8b5cf6" }}>🤖 AI Analysis:</strong>
-                        <div style={{ fontSize: "0.85rem", marginTop: 5 }}>
-                          <div><strong>Risk Score:</strong> {b.riskScore ? (b.riskScore * 100).toFixed(0) + "%" : "N/A"}</div>
-                          <p style={{ marginTop: 5 }}>{b.aiAnalysis}</p>
+                      {/* Add to Google Calendar */}
+                      {b.startTime && b.endTime && (
+                        <a
+                          href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Consultation with ${b.user.name}`)}&dates=${new Date(b.startTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(b.endTime).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(`Policy consultation for ${b.policy?.name || 'General Discussion'}`)}&location=${encodeURIComponent(b.meetingLink || 'To be shared')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="secondary-btn"
+                          style={{
+                            display: 'block',
+                            textAlign: 'center',
+                            marginBottom: 10,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          📅 Add to Google Calendar
+                        </a>
+                      )}
+
+                      {!b.policy && (
+                        <>
+                          {!viewedProfiles.has(b.user.id) ? (
+                            <div style={{ fontSize: "0.8rem", color: "#f59e0b", textAlign: "center", marginBottom: 5 }}>
+                              ⚠️ Analyze profile before recommending
+                            </div>
+                          ) : null}
+                          <button
+                            className="primary-btn"
+                            style={{ width: "100%", background: "#6366f1", border: "none", opacity: viewedProfiles.has(b.user.id) ? 1 : 0.5, cursor: viewedProfiles.has(b.user.id) ? "pointer" : "not-allowed" }}
+                            onClick={() => viewedProfiles.has(b.user.id) && setSelectedBooking(b)}
+                            disabled={!viewedProfiles.has(b.user.id)}
+                          >
+                            ✨ Recommend Policy
+                          </button>
+                        </>
+                      )}
+
+                      {b.policy && (
+                        <div style={{ marginTop: 10 }}>
+                          <button
+                            className="primary-btn"
+                            style={{ width: "100%", background: "#3b82f6", borderColor: "#3b82f6", marginBottom: 10 }}
+                            onClick={() => updateStatus(b.id, "COMPLETED")}
+                          >
+                            {b.bookingType === 'ENQUIRY' ? "✅ Complete Policy Enquiry" : "✅ Complete Consultation & Issue Policy"}
+                          </button>
                         </div>
+                      )}
+                    </div>
+                  )}
+
+                  {b.status === "COMPLETED" && (
+                    <div style={{ marginTop: 15, padding: 10, background: "rgba(59, 130, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                      <div style={{ fontWeight: "bold", color: "#3b82f6", marginBottom: 5 }}>Consultation Completed</div>
+                      <div style={{ fontSize: "0.9rem" }}>
+                        {b.bookingType === 'ENQUIRY'
+                          ? `Enquiry for ${b.policy?.name} has been resolved.`
+                          : `Policy ${b.policy?.name} has been issued (Payment Pending).`}
                       </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            ))}
+                    </div>
+                  )}
+
+                  {b.status === "EXPIRED" && (
+                    <div style={{ marginTop: 15, padding: 10, background: "rgba(107, 114, 128, 0.1)", borderRadius: 8, border: "1px solid rgba(107, 114, 128, 0.3)" }}>
+                      <div style={{ fontWeight: "bold", color: "#6b7280", marginBottom: 5 }}>Consultation Expired</div>
+                      <div style={{ fontSize: "0.9rem" }}>No action was taken during the scheduled time slot.</div>
+                    </div>
+                  )}
+
+                  {b.status === "REJECTED" && (
+                    <div style={{ marginTop: 15 }}>
+                      <div style={{ padding: 10, background: "rgba(239, 68, 68, 0.1)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.3)", marginBottom: 10 }}>
+                        <strong style={{ color: "#ef4444" }}>Rejection Reason:</strong>
+                        <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>{b.rejectionReason}</p>
+                      </div>
+                      {b.aiAnalysis && (
+                        <div style={{ padding: 10, background: "rgba(139, 92, 246, 0.1)", borderRadius: 8, border: "1px solid rgba(139, 92, 246, 0.3)" }}>
+                          <strong style={{ color: "#8b5cf6" }}>🤖 AI Analysis:</strong>
+                          <div style={{ fontSize: "0.85rem", marginTop: 5 }}>
+                            <div><strong>Risk Score:</strong> {b.riskScore ? (b.riskScore * 100).toFixed(0) + "%" : "N/A"}</div>
+                            <p style={{ marginTop: 5 }}>{b.aiAnalysis}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         )
       )}
@@ -408,10 +446,14 @@ export default function AgentRequests() {
               <p>✅ All caught up! No pending claims to review.</p>
             </div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30 }}>
-            {/* Map claims... */}
-            {claims.map(c => (
-              <Card key={c.id} style={{ display: "flex", flexDirection: "column", height: "100%", margin: "0 auto", width: "100%" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
+            {claims.map((c, idx) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }}
+                className="card"
+                style={{ borderLeft: `4px solid ${c.status === 'APPROVED' ? '#10b981' : c.status === 'REJECTED' ? '#ef4444' : c.status === 'FLAGGED_FRAUD' ? '#ef4444' : '#f59e0b'}`, padding: '22px 24px' }}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
                   <div>
                     <strong style={{ fontSize: "1.1rem", display: "block" }}>Claim #{c.id}</strong>
@@ -447,7 +489,7 @@ export default function AgentRequests() {
                     <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Process Completed</div>
                   )}
                 </div>
-              </Card>
+              </motion.div>
             ))}
           </div>
         </>
