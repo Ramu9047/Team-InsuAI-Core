@@ -34,20 +34,29 @@ public class FraudRiskService {
     }
 
     /**
-     * Get fraud risk heatmap for all users
+     * Get fraud risk heatmap for users (filtered by company if provided)
      */
-    public FraudHeatmap getFraudHeatmap() {
-        List<User> allUsers = userRepository.findAll();
-        FraudHeatmap heatmap = new FraudHeatmap();
+    public FraudHeatmap getFraudHeatmap(Long companyId) {
+        List<User> users;
+        if (companyId != null) {
+            // In a large system, this should be a DB join.
+            // For now, we filter high-level to users who have policies or bookings with
+            // this company.
+            users = userRepository.findAll().stream()
+                    .filter(u -> hasCompanyInteraction(u, companyId))
+                    .collect(java.util.stream.Collectors.toList());
+        } else {
+            users = userRepository.findAll();
+        }
 
+        FraudHeatmap heatmap = new FraudHeatmap();
         List<UserRiskScore> riskScores = new ArrayList<>();
         int greenCount = 0, yellowCount = 0, redCount = 0;
 
-        for (User user : allUsers) {
+        for (User user : users) {
             UserRiskScore score = calculateUserRiskScore(user);
             riskScores.add(score);
 
-            // Count by risk level
             if ("GREEN".equals(score.getRiskLevel()))
                 greenCount++;
             else if ("YELLOW".equals(score.getRiskLevel()))
@@ -57,13 +66,28 @@ public class FraudRiskService {
         }
 
         heatmap.setUserRiskScores(riskScores);
-        heatmap.setTotalUsers(allUsers.size());
+        heatmap.setTotalUsers(users.size());
         heatmap.setGreenCount(greenCount);
         heatmap.setYellowCount(yellowCount);
         heatmap.setRedCount(redCount);
         heatmap.setGeneratedAt(LocalDateTime.now());
 
         return heatmap;
+    }
+
+    private boolean hasCompanyInteraction(User user, Long companyId) {
+        // Find if user has bookings with company's agents
+        boolean hasBooking = bookingRepository.findByUserId(user.getId()).stream()
+                .anyMatch(b -> b.getAgent() != null && b.getAgent().getCompany() != null
+                        && b.getAgent().getCompany().getId().equals(companyId));
+        if (hasBooking)
+            return true;
+
+        // Find if user has policies from this company
+        boolean hasPolicy = userPolicyRepository.findByUserId(user.getId()).stream()
+                .anyMatch(up -> up.getPolicy() != null && up.getPolicy().getCompany() != null
+                        && up.getPolicy().getCompany().getId().equals(companyId));
+        return hasPolicy;
     }
 
     /**
@@ -301,8 +325,8 @@ public class FraudRiskService {
     /**
      * Get high-risk users for admin review
      */
-    public List<UserRiskScore> getHighRiskUsers() {
-        FraudHeatmap heatmap = getFraudHeatmap();
+    public List<UserRiskScore> getHighRiskUsers(Long companyId) {
+        FraudHeatmap heatmap = getFraudHeatmap(companyId);
 
         return heatmap.getUserRiskScores().stream()
                 .filter(score -> "RED".equals(score.getRiskLevel()))

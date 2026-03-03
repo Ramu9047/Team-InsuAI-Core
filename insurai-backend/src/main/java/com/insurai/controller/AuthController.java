@@ -209,4 +209,9 @@ public class AuthController {
         userRepository.save(u);
         return "Account verified successfully!";
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<?> health() {
+        return ResponseEntity.ok(Map.of("status", "UP", "timestamp", System.currentTimeMillis()));
+    }
 }

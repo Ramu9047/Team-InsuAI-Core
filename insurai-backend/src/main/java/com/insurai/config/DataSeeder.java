@@ -392,6 +392,7 @@ public class DataSeeder implements CommandLineRunner {
                                 ec.setPriority("HIGH");
                                 ec.setStatus("PENDING");
                                 ec.setUser(c.getUser());
+                                ec.setPolicy(c.getPolicy()); // Link the policy so company admins can see it
                                 ec.setCreatedAt(c.getDate().plusDays(2));
                                 exceptions.add(ec);
                         }

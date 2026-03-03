@@ -133,8 +133,10 @@ public class AIFeaturesController {
          */
         @GetMapping("/fraud/heatmap")
         @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
-        public ResponseEntity<FraudRiskService.FraudHeatmap> getFraudHeatmap() {
-                FraudRiskService.FraudHeatmap heatmap = fraudRiskService.getFraudHeatmap();
+        public ResponseEntity<FraudRiskService.FraudHeatmap> getFraudHeatmap(
+                        org.springframework.security.core.Authentication auth) {
+                Long companyId = getCompanyIdFromEmail(auth.getName());
+                FraudRiskService.FraudHeatmap heatmap = fraudRiskService.getFraudHeatmap(companyId);
                 return ResponseEntity.ok(heatmap);
         }
 
@@ -144,9 +146,21 @@ public class AIFeaturesController {
          */
         @GetMapping("/fraud/high-risk")
         @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')")
-        public ResponseEntity<List<FraudRiskService.UserRiskScore>> getHighRiskUsers() {
-                List<FraudRiskService.UserRiskScore> highRiskUsers = fraudRiskService.getHighRiskUsers();
+        public ResponseEntity<List<FraudRiskService.UserRiskScore>> getHighRiskUsers(
+                        org.springframework.security.core.Authentication auth) {
+                Long companyId = getCompanyIdFromEmail(auth.getName());
+                List<FraudRiskService.UserRiskScore> highRiskUsers = fraudRiskService.getHighRiskUsers(companyId);
                 return ResponseEntity.ok(highRiskUsers);
+        }
+
+        private Long getCompanyIdFromEmail(String email) {
+                // Find the company of the admin by their email.
+                User user = userRepository.findByEmail(email).orElse(null);
+                if (user != null && ("COMPANY_ADMIN".equals(user.getRole()) || "COMPANY".equals(user.getRole()))
+                                && user.getCompany() != null) {
+                        return user.getCompany().getId();
+                }
+                return null;
         }
 
         /**

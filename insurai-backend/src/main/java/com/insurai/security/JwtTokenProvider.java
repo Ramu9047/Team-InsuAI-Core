@@ -11,11 +11,14 @@ import java.util.Map;
 @Component
 public class JwtTokenProvider {
 
-    private final String JWT_SECRET = "insurai_super_secure_secret_key_1234567890_change_me_in_prod";
-    private final long JWT_EXPIRATION = 86400000; // 1 day
+    private final com.insurai.config.JwtProperties jwtProperties;
+
+    public JwtTokenProvider(com.insurai.config.JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
 
     public String generateToken(String email, String role, Long userId) {
@@ -27,7 +30,7 @@ public class JwtTokenProvider {
                 .claims(claims)
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }

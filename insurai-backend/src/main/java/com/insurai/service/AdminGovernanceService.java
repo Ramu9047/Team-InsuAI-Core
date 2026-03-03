@@ -46,54 +46,57 @@ public class AdminGovernanceService {
         /**
          * Get comprehensive admin analytics with funnel metrics and drop-off analysis
          */
-        public AdminAnalyticsDTO getAdminAnalytics() {
+        public AdminAnalyticsDTO getAdminAnalytics(String email) {
+                Long companyId = getCompanyIdFromEmail(email);
                 AdminAnalyticsDTO analytics = new AdminAnalyticsDTO();
 
                 // Funnel Metrics
-                analytics.setFunnelMetrics(calculateFunnelMetrics());
+                analytics.setFunnelMetrics(calculateFunnelMetrics(companyId));
 
                 // Agent Performance Summary
-                analytics.setAgentPerformance(calculateAgentPerformanceSummary());
+                analytics.setAgentPerformance(calculateAgentPerformanceSummary(companyId));
 
                 // Policy Metrics
-                analytics.setPolicyMetrics(calculatePolicyMetrics());
+                analytics.setPolicyMetrics(calculatePolicyMetrics(companyId));
 
                 // Financial Metrics
-                analytics.setFinancialMetrics(calculateFinancialMetrics());
+                analytics.setFinancialMetrics(calculateFinancialMetrics(companyId));
 
                 // Drop-off Analysis
-                analytics.setDropOffAnalysis(calculateDropOffAnalysis());
+                analytics.setDropOffAnalysis(calculateDropOffAnalysis(companyId));
 
                 return analytics;
         }
 
-        private AdminAnalyticsDTO.FunnelMetrics calculateFunnelMetrics() {
+        private AdminAnalyticsDTO.FunnelMetrics calculateFunnelMetrics(Long companyId) {
                 AdminAnalyticsDTO.FunnelMetrics funnel = new AdminAnalyticsDTO.FunnelMetrics();
 
                 // Count policies (views proxy)
-                long totalPolicies = policyRepository.count();
-                funnel.setTotalPolicyViews(totalPolicies * 10); // Estimate: each policy viewed 10 times on average
+                long totalPolicies = companyId != null ? policyRepository.countByCompanyId(companyId)
+                                : policyRepository.count();
+                funnel.setTotalPolicyViews(totalPolicies * 10); // Estimate
 
                 // Count appointments
-                long totalAppointments = bookingRepository.count();
+                long totalAppointments = companyId != null ? bookingRepository.countByAgentCompanyId(companyId)
+                                : bookingRepository.count();
                 funnel.setTotalAppointmentsBooked(totalAppointments);
 
                 // Count completed consultations
-                long completedConsultations = bookingRepository.findAll().stream()
-                                .filter(b -> b.getCompletedAt() != null)
-                                .count();
+                long completedConsultations = companyId != null
+                                ? bookingRepository.countByAgentCompanyIdAndCompletedAtIsNotNull(companyId)
+                                : bookingRepository.countByCompletedAtIsNotNull();
                 funnel.setTotalConsultationsCompleted(completedConsultations);
 
                 // Count approvals
-                long approvals = userPolicyRepository.findAll().stream()
-                                .filter(up -> "APPROVED".equals(up.getWorkflowStatus()))
-                                .count();
+                long approvals = companyId != null
+                                ? userPolicyRepository.countByPolicyCompanyIdAndWorkflowStatus(companyId, "APPROVED")
+                                : userPolicyRepository.countByWorkflowStatus("APPROVED");
                 funnel.setTotalApprovalsGiven(approvals);
 
                 // Count purchases (active policies)
-                long purchases = userPolicyRepository.findAll().stream()
-                                .filter(up -> "ACTIVE".equals(up.getStatus()))
-                                .count();
+                long purchases = companyId != null
+                                ? userPolicyRepository.countByPolicyCompanyIdAndStatus(companyId, "ACTIVE")
+                                : userPolicyRepository.countByStatus("ACTIVE");
                 funnel.setTotalPurchasesCompleted(purchases);
 
                 // Calculate conversion rates
@@ -118,16 +121,18 @@ public class AdminGovernanceService {
                 return funnel;
         }
 
-        private AdminAnalyticsDTO.AgentPerformanceSummary calculateAgentPerformanceSummary() {
+        private AdminAnalyticsDTO.AgentPerformanceSummary calculateAgentPerformanceSummary(Long companyId) {
                 AdminAnalyticsDTO.AgentPerformanceSummary summary = new AdminAnalyticsDTO.AgentPerformanceSummary();
 
-                List<User> agents = userRepository.findByRole("AGENT");
+                List<User> agents = companyId != null ? userRepository.findByCompanyIdAndRole(companyId, "AGENT")
+                                : userRepository.findByRole("AGENT");
                 summary.setTotalAgents(agents.size());
                 summary.setActiveAgents((int) agents.stream().filter(User::getIsActive).count());
                 summary.setInactiveAgents((int) agents.stream().filter(a -> !a.getIsActive()).count());
 
-                // Calculate average metrics across all agents
-                List<Booking> allBookings = bookingRepository.findAll();
+                // Calculate average metrics across agents
+                List<Booking> allBookings = companyId != null ? bookingRepository.findByAgentCompanyId(companyId)
+                                : bookingRepository.findAll();
 
                 // Average response time
                 double avgResponseTime = allBookings.stream()
@@ -152,7 +157,8 @@ public class AdminGovernanceService {
                 summary.setAgentsWithSLABreaches(agentsWithBreaches);
 
                 // Average approval and conversion rates
-                List<UserPolicy> allPolicies = userPolicyRepository.findAll();
+                List<UserPolicy> allPolicies = companyId != null ? userPolicyRepository.findByPolicyCompanyId(companyId)
+                                : userPolicyRepository.findAll();
                 if (!allPolicies.isEmpty()) {
                         double approvalRate = (double) allPolicies.stream()
                                         .filter(up -> "APPROVED".equals(up.getWorkflowStatus()))
@@ -168,13 +174,16 @@ public class AdminGovernanceService {
                 return summary;
         }
 
-        private AdminAnalyticsDTO.PolicyMetrics calculatePolicyMetrics() {
+        private AdminAnalyticsDTO.PolicyMetrics calculatePolicyMetrics(Long companyId) {
                 AdminAnalyticsDTO.PolicyMetrics metrics = new AdminAnalyticsDTO.PolicyMetrics();
 
-                List<Policy> allPolicies = policyRepository.findAll();
+                List<Policy> allPolicies = companyId != null ? policyRepository.findByCompanyId(companyId)
+                                : policyRepository.findAll();
                 metrics.setTotalPolicies(allPolicies.size());
 
-                List<UserPolicy> userPolicies = userPolicyRepository.findAll();
+                List<UserPolicy> userPolicies = companyId != null
+                                ? userPolicyRepository.findByPolicyCompanyId(companyId)
+                                : userPolicyRepository.findAll();
                 metrics.setActivePolicies((int) userPolicies.stream()
                                 .filter(up -> "ACTIVE".equals(up.getStatus()))
                                 .count());
@@ -202,10 +211,13 @@ public class AdminGovernanceService {
                 return metrics;
         }
 
-        private AdminAnalyticsDTO.FinancialMetrics calculateFinancialMetrics() {
+        private AdminAnalyticsDTO.FinancialMetrics calculateFinancialMetrics(Long companyId) {
                 AdminAnalyticsDTO.FinancialMetrics metrics = new AdminAnalyticsDTO.FinancialMetrics();
 
-                List<UserPolicy> activePolicies = userPolicyRepository.findAll().stream()
+                List<UserPolicy> activePolicies = (companyId != null
+                                ? userPolicyRepository.findByPolicyCompanyId(companyId)
+                                : userPolicyRepository.findAll())
+                                .stream()
                                 .filter(up -> "ACTIVE".equals(up.getStatus()))
                                 .collect(Collectors.toList());
 
@@ -236,32 +248,34 @@ public class AdminGovernanceService {
                                 .sum();
                 metrics.setTotalCoverageIssued(totalCoverage);
 
-                // User metrics
+                // User metrics (simplified to all users for platform context, or could be
+                // linked to purchases)
                 List<User> users = userRepository.findByRole("USER");
                 metrics.setTotalUsers(users.size());
                 metrics.setActiveUsers((int) users.stream()
-                                .filter(u -> userPolicyRepository.findAll().stream()
-                                                .anyMatch(up -> up.getUser().getId().equals(u.getId())
-                                                                && "ACTIVE".equals(up.getStatus())))
+                                .filter(u -> activePolicies.stream()
+                                                .anyMatch(up -> up.getUser().getId().equals(u.getId())))
                                 .count());
 
                 return metrics;
         }
 
-        private AdminAnalyticsDTO.DropOffAnalysis calculateDropOffAnalysis() {
+        private AdminAnalyticsDTO.DropOffAnalysis calculateDropOffAnalysis(Long companyId) {
                 AdminAnalyticsDTO.DropOffAnalysis analysis = new AdminAnalyticsDTO.DropOffAnalysis();
 
-                long totalViews = policyRepository.count() * 10; // Estimate
-                long totalAppointments = bookingRepository.count();
-                long completedConsultations = bookingRepository.findAll().stream()
-                                .filter(b -> b.getCompletedAt() != null)
-                                .count();
-                long approvals = userPolicyRepository.findAll().stream()
-                                .filter(up -> "APPROVED".equals(up.getWorkflowStatus()))
-                                .count();
-                long purchases = userPolicyRepository.findAll().stream()
-                                .filter(up -> "ACTIVE".equals(up.getStatus()))
-                                .count();
+                long totalViews = (companyId != null ? policyRepository.countByCompanyId(companyId)
+                                : policyRepository.count()) * 10;
+                long totalAppointments = companyId != null ? bookingRepository.countByAgentCompanyId(companyId)
+                                : bookingRepository.count();
+                long completedConsultations = companyId != null
+                                ? bookingRepository.countByAgentCompanyIdAndCompletedAtIsNotNull(companyId)
+                                : bookingRepository.countByCompletedAtIsNotNull();
+                long approvals = companyId != null
+                                ? userPolicyRepository.countByPolicyCompanyIdAndWorkflowStatus(companyId, "APPROVED")
+                                : userPolicyRepository.countByWorkflowStatus("APPROVED");
+                long purchases = companyId != null
+                                ? userPolicyRepository.countByPolicyCompanyIdAndStatus(companyId, "ACTIVE")
+                                : userPolicyRepository.countByStatus("ACTIVE");
 
                 // View to Appointment
                 AdminAnalyticsDTO.DropOffAnalysis.DropOffPoint viewToAppt = new AdminAnalyticsDTO.DropOffAnalysis.DropOffPoint();
@@ -269,7 +283,9 @@ public class AdminGovernanceService {
                 viewToAppt.setEntered(totalViews);
                 viewToAppt.setExited(totalAppointments);
                 viewToAppt.setDropped(totalViews - totalAppointments);
-                viewToAppt.setDropOffRate((double) (totalViews - totalAppointments) / totalViews * 100);
+                if (totalViews > 0) {
+                        viewToAppt.setDropOffRate((double) (totalViews - totalAppointments) / totalViews * 100);
+                }
                 viewToAppt.setPrimaryReason("User browsing, not ready to commit");
                 analysis.setViewToAppointment(viewToAppt);
 
@@ -323,13 +339,8 @@ public class AdminGovernanceService {
          */
         public List<AgentGovernanceDTO> getAllAgentsGovernance(String email) {
                 Long companyId = getCompanyIdFromEmail(email);
-                List<User> agents = userRepository.findByRole("AGENT");
-
-                if (companyId != null) {
-                        agents = agents.stream()
-                                        .filter(a -> a.getCompany() != null && a.getCompany().getId().equals(companyId))
-                                        .collect(Collectors.toList());
-                }
+                List<User> agents = companyId != null ? userRepository.findByCompanyIdAndRole(companyId, "AGENT")
+                                : userRepository.findByRole("AGENT");
 
                 return agents.stream()
                                 .map(this::mapToAgentGovernanceDTO)
@@ -496,14 +507,8 @@ public class AdminGovernanceService {
          */
         public List<ExceptionCaseDTO> getAllExceptionCases(String email) {
                 Long companyId = getCompanyIdFromEmail(email);
-                List<ExceptionCase> cases = exceptionCaseRepository.findAll();
-
-                if (companyId != null) {
-                        cases = cases.stream()
-                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
-                                                        c.getUser().getCompany().getId().equals(companyId))
-                                        .collect(Collectors.toList());
-                }
+                List<ExceptionCase> cases = companyId != null ? exceptionCaseRepository.findByCompanyId(companyId)
+                                : exceptionCaseRepository.findAll();
 
                 return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
@@ -515,14 +520,9 @@ public class AdminGovernanceService {
          */
         public List<ExceptionCaseDTO> getExceptionCasesByStatus(String status, String email) {
                 Long companyId = getCompanyIdFromEmail(email);
-                List<ExceptionCase> cases = exceptionCaseRepository.findByStatus(status);
-
-                if (companyId != null) {
-                        cases = cases.stream()
-                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
-                                                        c.getUser().getCompany().getId().equals(companyId))
-                                        .collect(Collectors.toList());
-                }
+                List<ExceptionCase> cases = companyId != null
+                                ? exceptionCaseRepository.findByStatusAndCompanyId(status, companyId)
+                                : exceptionCaseRepository.findByStatus(status);
 
                 return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
@@ -534,14 +534,9 @@ public class AdminGovernanceService {
          */
         public List<ExceptionCaseDTO> getExceptionCasesByType(String caseType, String email) {
                 Long companyId = getCompanyIdFromEmail(email);
-                List<ExceptionCase> cases = exceptionCaseRepository.findByCaseType(caseType);
-
-                if (companyId != null) {
-                        cases = cases.stream()
-                                        .filter(c -> c.getUser() != null && c.getUser().getCompany() != null &&
-                                                        c.getUser().getCompany().getId().equals(companyId))
-                                        .collect(Collectors.toList());
-                }
+                List<ExceptionCase> cases = companyId != null
+                                ? exceptionCaseRepository.findByCaseTypeAndCompanyId(caseType, companyId)
+                                : exceptionCaseRepository.findByCaseType(caseType);
 
                 return cases.stream()
                                 .map(this::mapToExceptionCaseDTO)
@@ -623,6 +618,12 @@ public class AdminGovernanceService {
                 }
 
                 return mapToExceptionCaseDTO(saved);
+        }
+
+        public void resolveExceptionCaseFromEmail(Long caseId, String resolution, String actionTaken, String email) {
+                User admin = userRepository.findByEmail(email).orElse(null);
+                Long adminId = admin != null ? admin.getId() : null;
+                resolveExceptionCase(caseId, resolution, actionTaken, adminId);
         }
 
         /**

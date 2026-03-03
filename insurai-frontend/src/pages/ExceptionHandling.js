@@ -48,7 +48,17 @@ export default function ExceptionHandling() {
             {/* ── Hero Header ── */}
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <span className="badge badge-super-admin" style={{ fontSize: '0.7rem' }}>🔐 Super Admin</span>
+                    <span className={`badge badge-${user?.role === 'SUPER_ADMIN' ? 'super-admin' : 'company-admin'}`} style={{ fontSize: '0.7rem' }}>
+                        {user?.role === 'SUPER_ADMIN' ? '⚡ SUPER ADMIN' : '🏢 COMPANY ADMIN'}
+                    </span>
+                    <span style={{
+                        fontSize: '0.7rem', fontWeight: 700, color: '#10b981',
+                        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                        padding: '3px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 5
+                    }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                        Real-time
+                    </span>
                 </div>
                 <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif" }}>
                     ⚖️ Exception <span className="text-gradient">Handling</span>

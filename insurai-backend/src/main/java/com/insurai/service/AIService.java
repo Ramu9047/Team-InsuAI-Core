@@ -69,8 +69,11 @@ public class AIService {
 
     // 3. Chatbot Logic (Advanced)
     // 3. Chatbot Logic (Advanced)
-    @org.springframework.beans.factory.annotation.Value("${groq.api.key:}")
-    private String groqApiKey;
+    private final com.insurai.config.GroqProperties groqProperties;
+
+    public AIService(com.insurai.config.GroqProperties groqProperties) {
+        this.groqProperties = groqProperties;
+    }
 
     private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
 
@@ -80,7 +83,8 @@ public class AIService {
     // 3. Chatbot Logic (Advanced)
     @SuppressWarnings({ "null", "unchecked" })
     public String getChatResponse(String message) {
-        if (groqApiKey == null || groqApiKey.isBlank() || groqApiKey.startsWith("${")) {
+        String apiKey = groqProperties.getKey();
+        if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("${")) {
             return getManualResponse(message);
         }
 
@@ -89,7 +93,7 @@ public class AIService {
 
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
+            headers.setBearerAuth(apiKey);
 
             java.util.Map<String, Object> body = new java.util.HashMap<>();
             body.put("model", "llama-3.3-70b-versatile");

@@ -274,8 +274,8 @@ export default function SuperAdminDashboard() {
         { label: 'Total Users', value: (metrics.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#8b5cf6', onClick: () => navigate('/users') },
         { label: 'Total Agents', value: metrics.totalAgents ?? '—', icon: '🧑‍💼', color: '#10b981', onClick: () => navigate('/agents-list') },
         { label: 'Platform Revenue', value: '$' + ((metrics.platformRevenue ?? 4250000) / 1000000).toFixed(1) + 'M', icon: '💰', color: '#f59e0b', onClick: () => { } },
-        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#ef4444', onClick: () => navigate('/issued-policies') },
-        { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '3', icon: '⚠️', color: '#eab308', onClick: () => navigate('/exceptions') },
+        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#06b6d4', onClick: () => navigate('/issued-policies') },
+        { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '3', icon: '⚠️', color: '#ef4444', onClick: () => navigate('/exceptions') },
     ];
 
     const feedbackRows = data?.feedbackSummary || [
@@ -331,7 +331,7 @@ export default function SuperAdminDashboard() {
                         <h1 style={{ margin: 0, fontSize: '2.15rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: "'Space Grotesk',sans-serif", display: 'flex', alignItems: 'center', gap: 14 }}>
                             <span style={{ fontSize: '1.8rem' }}>👑</span>
                             <span className="text-gradient">Super Admin</span>
-                            <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>Control Center</span>
+                            <span style={{ color: '#ffffff', fontWeight: 500 }}>Control Center</span>
                         </h1>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 8 }}>
                             <span>🌐 InsurAI Platform</span>

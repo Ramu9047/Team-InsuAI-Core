@@ -31,8 +31,9 @@ public class AdminGovernanceController {
      * Get comprehensive admin analytics with funnel metrics
      */
     @GetMapping("/analytics")
-    public ResponseEntity<AdminAnalyticsDTO> getAnalytics() {
-        AdminAnalyticsDTO analytics = adminGovernanceService.getAdminAnalytics();
+    public ResponseEntity<AdminAnalyticsDTO> getAnalytics(Authentication auth) {
+        String email = auth.getName();
+        AdminAnalyticsDTO analytics = adminGovernanceService.getAdminAnalytics(email);
         return ResponseEntity.ok(analytics);
     }
 
@@ -177,10 +178,9 @@ public class AdminGovernanceController {
         String resolutionText = resolution.get("resolution");
         String actionTaken = resolution.get("actionTaken");
 
-        // Get admin ID from authentication
-        Long adminId = Long.parseLong(auth.getName()); // Assuming auth name is user ID
-
-        adminGovernanceService.resolveExceptionCase(caseId, resolutionText, actionTaken, adminId);
+        // Get admin ID from authentication email
+        String email = auth.getName();
+        adminGovernanceService.resolveExceptionCaseFromEmail(caseId, resolutionText, actionTaken, email);
         return ResponseEntity.ok("Exception case resolved successfully");
     }
 

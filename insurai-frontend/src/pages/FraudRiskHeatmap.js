@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Fraud Risk Heatmap — Phase 8 Redesign
@@ -57,6 +58,7 @@ export default function FraudRiskHeatmap() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
+    const { user } = useAuth();
 
     useEffect(() => { loadHeatmap(); }, []);
 
@@ -115,7 +117,9 @@ export default function FraudRiskHeatmap() {
             {/* ── Hero Header ── */}
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <span className="badge badge-super-admin" style={{ fontSize: '0.7rem' }}>⚡ Super Admin</span>
+                    <span className={`badge badge-${user?.role === 'SUPER_ADMIN' ? 'super-admin' : 'company-admin'}`} style={{ fontSize: '0.7rem' }}>
+                        {user?.role === 'SUPER_ADMIN' ? '⚡ SUPER ADMIN' : '🏢 COMPANY ADMIN'}
+                    </span>
                     <span style={{
                         fontSize: '0.7rem', fontWeight: 700, color: '#ef4444',
                         background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
