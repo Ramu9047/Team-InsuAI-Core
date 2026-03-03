@@ -62,6 +62,9 @@ public class CompanyController {
     @Autowired
     private com.insurai.service.NotificationService notificationService;
 
+    @Autowired
+    private com.insurai.repository.ExceptionCaseRepository exceptionCaseRepository;
+
     /**
      * Resolves the authenticated company from JWT.
      * Company admins log in with a Company email (stored in company table).
@@ -289,19 +292,8 @@ public class CompanyController {
                         && u.getCompany().getId().equals(companyId))
                 .count();
 
-        // Policy names for fraud alert lookup
-        List<String> policyNamesForClaims = allPolicies.stream()
-                .map(Policy::getName)
-                .collect(java.util.stream.Collectors.toList());
-
-        // Fraud Alerts: claims with fraud score > 0.7 not yet resolved
-        List<com.insurai.model.Claim> companyClaims = policyNamesForClaims.isEmpty()
-                ? new java.util.ArrayList<>()
-                : claimRepository.findByPolicyNameIn(policyNamesForClaims);
-        long fraudAlerts = companyClaims.stream()
-                .filter(c -> c.getFraudScore() != null && c.getFraudScore() > 0.7)
-                .filter(c -> !"REJECTED".equals(c.getStatus()) && !"APPROVED".equals(c.getStatus()))
-                .count();
+        // Fraud Alerts: count ExceptionCase entities for this company
+        long fraudAlerts = exceptionCaseRepository.countByCompanyId(companyId);
 
         // Feedback scoped to users of this company
         long totalFeedback = agentReviewRepository.findAll().stream()

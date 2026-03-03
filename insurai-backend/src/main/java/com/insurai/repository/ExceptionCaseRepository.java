@@ -31,33 +31,18 @@ public interface ExceptionCaseRepository extends JpaRepository<ExceptionCase, Lo
 
         Long countByAgentId(Long agentId);
 
-        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE " +
-                        "(ec.agent IS NOT NULL AND ec.agent.company.id = :companyId) OR " +
-                        "(ec.policy IS NOT NULL AND ec.policy.company.id = :companyId) OR " +
-                        "(ec.booking IS NOT NULL AND ec.booking.agent IS NOT NULL AND ec.booking.agent.company.id = :companyId) OR "
-                        +
-                        "(ec.user IS NOT NULL AND ec.user.company.id = :companyId)")
+        Long countByCompanyId(Long companyId);
+
+        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE ec.company.id = :companyId")
         List<ExceptionCase> findByCompanyId(
                         @org.springframework.data.repository.query.Param("companyId") Long companyId);
 
-        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE ec.status = :status AND "
-                        +
-                        "((ec.agent IS NOT NULL AND ec.agent.company.id = :companyId) OR " +
-                        "(ec.policy IS NOT NULL AND ec.policy.company.id = :companyId) OR " +
-                        "(ec.booking IS NOT NULL AND ec.booking.agent IS NOT NULL AND ec.booking.agent.company.id = :companyId) OR "
-                        +
-                        "(ec.user IS NOT NULL AND ec.user.company.id = :companyId))")
+        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE ec.status = :status AND ec.company.id = :companyId")
         List<ExceptionCase> findByStatusAndCompanyId(
                         @org.springframework.data.repository.query.Param("status") String status,
                         @org.springframework.data.repository.query.Param("companyId") Long companyId);
 
-        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE ec.caseType = :caseType AND "
-                        +
-                        "((ec.agent IS NOT NULL AND ec.agent.company.id = :companyId) OR " +
-                        "(ec.policy IS NOT NULL AND ec.policy.company.id = :companyId) OR " +
-                        "(ec.booking IS NOT NULL AND ec.booking.agent IS NOT NULL AND ec.booking.agent.company.id = :companyId) OR "
-                        +
-                        "(ec.user IS NOT NULL AND ec.user.company.id = :companyId))")
+        @org.springframework.data.jpa.repository.Query("SELECT ec FROM ExceptionCase ec WHERE ec.caseType = :caseType AND ec.company.id = :companyId")
         List<ExceptionCase> findByCaseTypeAndCompanyId(
                         @org.springframework.data.repository.query.Param("caseType") String caseType,
                         @org.springframework.data.repository.query.Param("companyId") Long companyId);

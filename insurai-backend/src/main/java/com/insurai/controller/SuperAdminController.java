@@ -321,9 +321,6 @@ public class SuperAdminController {
     }
 
     @Autowired
-    private com.insurai.repository.ClaimRepository claimRepository;
-
-    @Autowired
     private com.insurai.repository.BookingRepository bookingRepository;
 
     @Autowired
@@ -337,6 +334,9 @@ public class SuperAdminController {
 
     @Autowired
     private com.insurai.repository.FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private com.insurai.repository.ExceptionCaseRepository exceptionCaseRepository;
 
     @GetMapping("/dashboard-stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
@@ -353,12 +353,8 @@ public class SuperAdminController {
         long totalAgents = userRepository.findByRole("AGENT").size();
         long totalFeedback = feedbackRepository.count();
 
-        // 3. Claims & Fraud (Global)
-        List<com.insurai.model.Claim> allClaims = claimRepository.findAll();
-        long fraudAlerts = allClaims.stream()
-                .filter(c -> c.getFraudScore() != null && c.getFraudScore() > 0.7)
-                .filter(c -> !"REJECTED".equals(c.getStatus()) && !"APPROVED".equals(c.getStatus()))
-                .count();
+        // 3. Exception Cases & Fraud (Global)
+        long fraudAlerts = exceptionCaseRepository.count();
 
         // 4. Funnel Metrics (Global)
         long totalBookings = bookingRepository.count();

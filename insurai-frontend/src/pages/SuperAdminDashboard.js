@@ -274,7 +274,7 @@ export default function SuperAdminDashboard() {
         { label: 'Total Users', value: (metrics.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#8b5cf6', onClick: () => navigate('/users') },
         { label: 'Total Agents', value: metrics.totalAgents ?? '—', icon: '🧑‍💼', color: '#10b981', onClick: () => navigate('/agents-list') },
         { label: 'Platform Revenue', value: '$' + ((metrics.platformRevenue ?? 4250000) / 1000000).toFixed(1) + 'M', icon: '💰', color: '#f59e0b', onClick: () => { } },
-        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#06b6d4', onClick: () => navigate('/issued-policies') },
+        { label: 'Policies Issued', value: (metrics.policiesIssued ?? 0).toLocaleString(), icon: '📄', color: '#10b981', onClick: () => navigate('/issued-policies') },
         { label: 'Fraud Alerts', value: metrics.fraudAlerts ?? '3', icon: '⚠️', color: '#ef4444', onClick: () => navigate('/exceptions') },
     ];
 

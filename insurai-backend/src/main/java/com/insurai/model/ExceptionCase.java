@@ -37,6 +37,10 @@ public class ExceptionCase {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
+
     private Long claimId; // Reference to claim (if claim system exists)
 
     // Exception Details
@@ -151,6 +155,14 @@ public class ExceptionCase {
 
     public void setClaimId(Long claimId) {
         this.claimId = claimId;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public String getTitle() {
