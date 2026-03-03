@@ -210,95 +210,96 @@ export default function PolicyComparison({ policies = [], onSelect }) {
                                             </div>
                                         )}
 
-                                        {/* Selection Checkbox */}
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 15,
-                                            left: 15,
-                                            width: 24,
-                                            height: 24,
-                                            borderRadius: 6,
-                                            border: `2px solid ${selectedPolicies.includes(policy.id) ? '#8b5cf6' : 'rgba(255,255,255,0.3)'}`,
-                                            background: selectedPolicies.includes(policy.id) ? '#8b5cf6' : 'transparent',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.9rem'
-                                        }}>
-                                            {selectedPolicies.includes(policy.id) && '✓'}
+                                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16, marginTop: policy.recommended ? 25 : 0 }}>
+                                            {/* Selection Checkbox */}
+                                            <div style={{
+                                                width: 24,
+                                                height: 24,
+                                                borderRadius: 6,
+                                                border: `2px solid ${selectedPolicies.includes(policy.id) ? '#8b5cf6' : 'rgba(255,255,255,0.3)'}`,
+                                                background: selectedPolicies.includes(policy.id) ? '#8b5cf6' : 'transparent',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.9rem',
+                                                flexShrink: 0,
+                                                marginTop: 2
+                                            }}>
+                                                {selectedPolicies.includes(policy.id) && '✓'}
+                                            </div>
+
+                                            <div>
+                                                <h4 style={{ margin: '0 0 4px 0', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.3 }}>
+                                                    {policy.name}
+                                                </h4>
+                                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                                    {policy.provider}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <div style={{ marginTop: policy.recommended ? 20 : 0 }}>
-                                            <h4 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                                                {policy.name}
-                                            </h4>
-                                            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                                {policy.provider}
-                                            </p>
-
-                                            <div style={{ marginBottom: 16 }}>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
-                                                    Premium (Annual)
-                                                </div>
-                                                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#8b5cf6' }}>
-                                                    {formatCurrency(policy.premium)}
-                                                </div>
+                                        <div style={{ marginBottom: 16 }}>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                                                Premium (Annual)
                                             </div>
-
-                                            <div style={{ marginBottom: 16 }}>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
-                                                    Coverage
-                                                </div>
-                                                <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                                                    {formatCurrency(policy.coverage)}
-                                                </div>
+                                            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#8b5cf6' }}>
+                                                {formatCurrency(policy.premium)}
                                             </div>
+                                        </div>
 
-                                            {/* AI Score */}
-                                            <div style={{
-                                                padding: '12px 16px',
-                                                background: `${getScoreColor(policy.aiScore)}20`,
-                                                border: `1px solid ${getScoreColor(policy.aiScore)}40`,
-                                                borderRadius: 8,
-                                                marginBottom: 12
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                                                        AI Match Score
-                                                    </span>
-                                                    <span style={{ fontSize: '1.3rem', fontWeight: 800, color: getScoreColor(policy.aiScore) }}>
-                                                        {policy.aiScore}%
-                                                    </span>
-                                                </div>
+                                        <div style={{ marginBottom: 16 }}>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                                                Coverage
                                             </div>
+                                            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                                                {formatCurrency(policy.coverage)}
+                                            </div>
+                                        </div>
 
-                                            {/* Quick Features */}
-                                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                                {policy.features.cashless && (
-                                                    <span style={{
-                                                        padding: '4px 10px',
-                                                        background: 'rgba(16,185,129,0.1)',
-                                                        border: '1px solid rgba(16,185,129,0.3)',
-                                                        borderRadius: 12,
-                                                        fontSize: '0.75rem',
-                                                        color: '#10b981'
-                                                    }}>
-                                                        💳 Cashless
-                                                    </span>
-                                                )}
-                                                {policy.features.preExisting && (
-                                                    <span style={{
-                                                        padding: '4px 10px',
-                                                        background: 'rgba(59,130,246,0.1)',
-                                                        border: '1px solid rgba(59,130,246,0.3)',
-                                                        borderRadius: 12,
-                                                        fontSize: '0.75rem',
-                                                        color: '#3b82f6'
-                                                    }}>
-                                                        🏥 Pre-existing
-                                                    </span>
-                                                )}
+                                        {/* AI Score */}
+                                        <div style={{
+                                            padding: '12px 16px',
+                                            background: `${getScoreColor(policy.aiScore)}20`,
+                                            border: `1px solid ${getScoreColor(policy.aiScore)}40`,
+                                            borderRadius: 8,
+                                            marginBottom: 12
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                                    AI Match Score
+                                                </span>
+                                                <span style={{ fontSize: '1.3rem', fontWeight: 800, color: getScoreColor(policy.aiScore) }}>
+                                                    {policy.aiScore}%
+                                                </span>
                                             </div>
+                                        </div>
+
+                                        {/* Quick Features */}
+                                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                            {policy.features.cashless && (
+                                                <span style={{
+                                                    padding: '4px 10px',
+                                                    background: 'rgba(16,185,129,0.1)',
+                                                    border: '1px solid rgba(16,185,129,0.3)',
+                                                    borderRadius: 12,
+                                                    fontSize: '0.75rem',
+                                                    color: '#10b981'
+                                                }}>
+                                                    💳 Cashless
+                                                </span>
+                                            )}
+                                            {policy.features.preExisting && (
+                                                <span style={{
+                                                    padding: '4px 10px',
+                                                    background: 'rgba(59,130,246,0.1)',
+                                                    border: '1px solid rgba(59,130,246,0.3)',
+                                                    borderRadius: 12,
+                                                    fontSize: '0.75rem',
+                                                    color: '#3b82f6'
+                                                }}>
+                                                    🏥 Pre-existing
+                                                </span>
+                                            )}
                                         </div>
                                     </motion.div>
                                 ))}
@@ -451,6 +452,6 @@ export default function PolicyComparison({ policies = [], onSelect }) {
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
