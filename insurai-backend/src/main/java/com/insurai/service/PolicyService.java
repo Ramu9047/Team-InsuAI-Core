@@ -38,15 +38,15 @@ public class PolicyService {
         if ("USER".equals(role)) {
             // Users see only ACTIVE policies from APPROVED companies
             return policyRepo.findByStatusAndCompany_Status("ACTIVE", "APPROVED");
-        } else if ("COMPANY".equals(role) || "COMPANY_ADMIN".equals(role)) {
-            // Company sees only their own policies
-            // (Assuming User entity links to Company via getCompany())
+        } else if ("COMPANY".equals(role)) {
+            // The Company Entity itself sees only its own policies in its dashboard/manager
             User user = userRepo.findById(userId).orElseThrow();
             if (user.getCompany() == null)
                 return List.of();
             return policyRepo.findByCompanyId(user.getCompany().getId());
         } else {
-            // SUPER_ADMIN see all
+            // SUPER_ADMIN, COMPANY_ADMIN, and AGENT see all policies for
+            // comparison/governance
             return policyRepo.findAll();
         }
     }

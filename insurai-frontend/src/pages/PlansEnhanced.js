@@ -279,6 +279,7 @@ export default function PlansEnhanced() {
                             <PolicyRecommendationCard
                                 key={rec.policy?.id || rec.policyId || i}
                                 recommendation={rec} index={i}
+                                user={user}
                                 onSelect={setSelectedPlan}
                                 getEligibilityColor={getEligibilityColor}
                                 getEligibilityText={getEligibilityText}
@@ -320,6 +321,7 @@ export default function PlansEnhanced() {
                                 key={rec.policy?.id || rec.policyId || rec.id || i}
                                 recommendation={rec}
                                 index={i}
+                                user={user}
                                 onSelect={setSelectedPlan}
                                 getEligibilityColor={getEligibilityColor}
                                 getEligibilityText={getEligibilityText}
@@ -482,7 +484,7 @@ const ExplainabilitySection = ({ reason }) => {
 };
 
 // Policy Recommendation Card Component
-function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibilityColor, getEligibilityText, isTopPick }) {
+function PolicyRecommendationCard({ recommendation, index, user, onSelect, getEligibilityColor, getEligibilityText, isTopPick }) {
     const policy = recommendation.policy || recommendation;
     const hasAIData = recommendation.matchScore !== null && recommendation.matchScore !== undefined;
 
@@ -629,7 +631,7 @@ function PolicyRecommendationCard({ recommendation, index, onSelect, getEligibil
                     }}
                     onClick={() => onSelect(recommendation)}
                 >
-                    View Details & Consult Agent
+                    {user && user.role === 'USER' ? "View Details & Consult Agent" : "View Details"}
                 </button>
             </div>
         </motion.div>
