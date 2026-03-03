@@ -467,7 +467,11 @@ function AgentDetailModal({ agent, onClose, onUpdate }) {
     const [saving, setSaving] = useState(false);
 
     const availableRegions = ['North', 'South', 'East', 'West', 'Central'];
-    const availablePolicyTypes = ['Health', 'Life', 'Motor', 'Travel', 'Home'];
+    const availablePolicyTypes = [
+        'Health', 'Life', 'Child', 'Accident', 'Critical', 'Family', 'Senior', 'OPD', 'Top-Up', 'Wellness',
+        'Endowment', 'Money Back', 'Guaranteed', 'Pension', 'ULIP', 'Investment', 'Property', 'Group Health',
+        'Group Life', 'Cyber', 'Motor', 'Home', 'Travel'
+    ];
 
     const handleSaveAssignments = async () => {
         setSaving(true);

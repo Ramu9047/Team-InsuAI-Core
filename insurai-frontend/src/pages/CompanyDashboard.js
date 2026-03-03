@@ -1176,13 +1176,20 @@ export default function CompanyDashboard() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                         <select value={policyForm.type} onChange={e => setPolicyForm({ ...policyForm, type: e.target.value })}
                             style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '0.9rem' }}>
-                            {['Health', 'Life', 'Car', 'Corporate', 'Travel'].map(t => (
+                            {[
+                                'Health', 'Life', 'Child', 'Accident', 'Critical', 'Family', 'Senior', 'OPD', 'Top-Up', 'Wellness',
+                                'Endowment', 'Money Back', 'Guaranteed', 'Pension', 'ULIP', 'Investment', 'Property', 'Group Health',
+                                'Group Life', 'Cyber', 'Motor', 'Home', 'Travel'
+                            ].map(t => (
                                 <option key={t} value={t} style={{ background: '#1e293b' }}>{t}</option>
                             ))}
                         </select>
                         <select value={policyForm.category} onChange={e => setPolicyForm({ ...policyForm, category: e.target.value })}
                             style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '0.9rem' }}>
-                            {['Personal', 'Business'].map(c => (
+                            {[
+                                'Personal Insurance', 'Business Insurance', 'Health Insurance', 'Investment Plans', 'Employee Benefits',
+                                'Liability', 'Engineering', 'Other Plans'
+                            ].map(c => (
                                 <option key={c} value={c} style={{ background: '#1e293b' }}>{c}</option>
                             ))}
                         </select>

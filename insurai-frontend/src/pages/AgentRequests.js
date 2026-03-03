@@ -27,9 +27,17 @@ export default function AgentRequests() {
       api.get("/agents/appointments").then(res => {
         // Show all active/relevant statuses
         setRequests(res.data.filter(b => ["PENDING", "APPROVED", "COMPLETED", "REJECTED", "EXPIRED"].includes(b.status)));
+      }).catch(err => {
+        console.error("Failed to fetch appointments:", err);
       });
-      api.get("/claims").then(res => setClaims(res.data)); // Agents view all claims
-      api.get("/policies").then(res => setPolicies(res.data));
+      
+      api.get("/claims").then(res => setClaims(res.data)).catch(err => {
+        console.error("Failed to fetch claims:", err);
+      }); // Agents view all claims
+      
+      api.get("/policies").then(res => setPolicies(res.data)).catch(err => {
+        console.error("Failed to fetch policies:", err);
+      });
     }
   }, [user]);
 

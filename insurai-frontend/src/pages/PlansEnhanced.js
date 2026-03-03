@@ -237,10 +237,13 @@ export default function PlansEnhanced() {
                                     onChange={e => setFilters({ ...filters, type: e.target.value })}
                                 >
                                     <option value="">All Types</option>
-                                    <option value="Health">Health</option>
-                                    <option value="Life">Life</option>
-                                    <option value="Motor">Motor</option>
-                                    <option value="Corporate">Corporate</option>
+                                    {[
+                                        'Health', 'Life', 'Child', 'Accident', 'Critical', 'Family', 'Senior', 'OPD', 'Top-Up', 'Wellness',
+                                        'Endowment', 'Money Back', 'Guaranteed', 'Pension', 'ULIP', 'Investment', 'Property', 'Group Health',
+                                        'Group Life', 'Cyber', 'Motor', 'Home', 'Travel'
+                                    ].map(t => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
