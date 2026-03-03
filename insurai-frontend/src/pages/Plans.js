@@ -179,9 +179,9 @@ export default function Plans() {
                                                         className="primary-btn"
                                                         style={{
                                                             width: "100%", borderRadius: "var(--radius-md)", padding: "14px", fontSize: "0.95rem",
-                                                            background: (user && user.role !== 'USER') ? 'var(--card-border)' : stripeColor,
-                                                            border: `1px solid ${(user && user.role !== 'USER') ? 'var(--card-border)' : stripeColor}`,
-                                                            color: (user && user.role !== 'USER') ? 'var(--text-main)' : 'white',
+                                                            background: stripeColor,
+                                                            border: `1px solid ${stripeColor}`,
+                                                            color: 'white',
                                                             cursor: "pointer"
                                                         }}
                                                         onClick={() => {
